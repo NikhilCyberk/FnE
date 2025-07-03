@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: fneuser
+      POSTGRES_PASSWORD: fnepassword
+      POSTGRES_DB: fnedb
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fneuser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # backend:
+  #   build: .
+  #   command: npm run dev
+  #   volumes:
+  #     - .:/app
+  #   ports:
+  #     - '3000:3000'
+  #   environment:
+  #     - DATABASE_URL=postgresql://fneuser:fnepassword@db:5432/fnedb
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+
+volumes:
+  postgres_data: 

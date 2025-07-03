@@ -1,0 +1,907 @@
+2025-07-02T14:34:46.892Z [INFO]: Server running on port 3000 
+2025-07-02T14:34:46.894Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:35:05.579Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T14:35:05.613Z [ERROR]: Unhandled error: Cannot read properties of undefined (reading 'error') {"stack":"TypeError: Cannot read properties of undefined (reading 'error')\n    at exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:39:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"}
+2025-07-02T14:37:10.549Z [INFO]: Server running on port 3000 
+2025-07-02T14:37:10.554Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:37:14.263Z [INFO]: Server running on port 3000 
+2025-07-02T14:37:14.267Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:37:20.428Z [INFO]: Server running on port 3000 
+2025-07-02T14:37:20.431Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:37:24.885Z [INFO]: Server running on port 3000 
+2025-07-02T14:37:24.888Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:37:30.236Z [INFO]: Server running on port 3000 
+2025-07-02T14:37:30.240Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:37:34.029Z [INFO]: Server running on port 3000 
+2025-07-02T14:37:34.034Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:37:38.346Z [INFO]: Server running on port 3000 
+2025-07-02T14:37:38.350Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:37:42.846Z [INFO]: Server running on port 3000 
+2025-07-02T14:37:42.849Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:37:53.462Z [INFO]: Server running on port 3000 
+2025-07-02T14:37:53.464Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:38:48.509Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T14:38:48.538Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:28:23)"}
+2025-07-02T14:44:23.041Z [INFO]: Server running on port 3000 
+2025-07-02T14:44:23.044Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:44:37.149Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T14:44:37.179Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:28:23)"}
+2025-07-02T14:44:49.508Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T14:44:49.519Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:28:23)"}
+2025-07-02T14:44:51.797Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T14:44:51.808Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:28:23)"}
+2025-07-02T14:54:47.764Z [INFO]: Server running on port 3000 
+2025-07-02T14:54:47.767Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:54:58.283Z [INFO]: Server running on port 3000 
+2025-07-02T14:54:58.285Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:56:07.015Z [INFO]: Server running on port 3000 
+2025-07-02T14:56:07.019Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:56:15.451Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T14:56:15.478Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:28:23)"}
+2025-07-02T14:58:51.299Z [INFO]: Server running on port 3000 
+2025-07-02T14:58:51.302Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:59:38.174Z [INFO]: Server running on port 3000 
+2025-07-02T14:59:38.178Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T14:59:50.681Z [INFO]: Server running on port 3000 
+2025-07-02T14:59:50.685Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T15:00:05.273Z [INFO]: Server running on port 3000 
+2025-07-02T15:00:05.276Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T15:01:22.814Z [INFO]: Server running on port 3000 
+2025-07-02T15:01:22.820Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T15:01:39.177Z [INFO]: GET /api/db-health from ::1 
+2025-07-02T15:02:02.588Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T15:02:02.602Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:28:23)"}
+2025-07-02T15:02:50.391Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T15:02:50.402Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:28:23)"}
+2025-07-02T15:03:32.227Z [ERROR]: Unhandled error: Expected property name or '}' in JSON at position 1 (line 1 column 2) {"stack":"SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)\n    at JSON.parse (<anonymous>)\n    at parse (C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\body-parser\\lib\\types\\json.js:77:19)\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\body-parser\\lib\\read.js:123:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n    at invokeCallback (C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\raw-body\\index.js:238:16)\n    at done (C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:507:28)\n    at endReadableNT (node:internal/streams/readable:1701:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)"}
+2025-07-02T16:07:14.473Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T16:07:14.485Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:28:23)"}
+2025-07-02T16:09:17.604Z [INFO]: GET /api/db-health from ::1 
+2025-07-02T16:09:21.557Z [INFO]: GET /api/db-health from ::1 
+2025-07-02T16:09:22.109Z [INFO]: GET /api/db-health from ::1 
+2025-07-02T16:09:22.542Z [INFO]: GET /api/db-health from ::1 
+2025-07-02T16:10:55.570Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T16:10:55.583Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:28:23)"}
+2025-07-02T16:12:16.875Z [INFO]: Server running on port 3000 
+2025-07-02T16:12:16.878Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:12:21.290Z [INFO]: Server running on port 3000 
+2025-07-02T16:12:21.294Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:12:53.718Z [INFO]: Server running on port 3000 
+2025-07-02T16:12:53.724Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:12:59.542Z [INFO]: Server running on port 3000 
+2025-07-02T16:12:59.545Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:13:04.972Z [INFO]: Server running on port 3000 
+2025-07-02T16:13:04.976Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:13:09.306Z [INFO]: Server running on port 3000 
+2025-07-02T16:13:09.310Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:13:16.062Z [INFO]: Server running on port 3000 
+2025-07-02T16:13:16.068Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:13:21.580Z [INFO]: Server running on port 3000 
+2025-07-02T16:13:21.583Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:13:25.451Z [INFO]: Server running on port 3000 
+2025-07-02T16:13:25.454Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:13:29.973Z [INFO]: Server running on port 3000 
+2025-07-02T16:13:29.976Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:13:51.608Z [INFO]: Server running on port 3000 
+2025-07-02T16:13:51.613Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:14:04.445Z [INFO]: Server running on port 3000 
+2025-07-02T16:14:04.447Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:14:12.981Z [INFO]: GET /api/db-health from ::1 
+2025-07-02T16:14:25.209Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T16:14:25.223Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:24:23)"}
+2025-07-02T16:18:04.079Z [INFO]: Server running on port 3000 
+2025-07-02T16:18:04.082Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:18:20.487Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T16:18:20.523Z [ERROR]: Registration error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string {"stack":"Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:24:23)"}
+2025-07-02T16:18:58.551Z [INFO]: Server running on port 3000 
+2025-07-02T16:18:58.553Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:19:26.467Z [INFO]: Server running on port 3000 
+2025-07-02T16:19:26.469Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:19:43.998Z [INFO]: GET /api/db-health from ::1 
+2025-07-02T16:19:54.999Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T16:21:12.036Z [INFO]: Server running on port 3000 
+2025-07-02T16:21:12.041Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:21:22.159Z [INFO]: Server running on port 3000 
+2025-07-02T16:21:22.166Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:21:27.291Z [INFO]: Server running on port 3000 
+2025-07-02T16:21:27.311Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:21:32.677Z [INFO]: Server running on port 3000 
+2025-07-02T16:21:32.680Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:21:50.782Z [INFO]: POST /api/auth/register from ::1 
+2025-07-02T16:21:55.143Z [INFO]: POST /api/auth/login from ::1 
+2025-07-02T16:21:55.481Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:21:55.496Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:21:55.509Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:21:55.536Z [INFO]: GET /api/reports/summary from ::1 
+2025-07-02T16:21:55.560Z [INFO]: GET /api/reports/breakdown from ::1 
+2025-07-02T16:21:55.571Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:21:55.579Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:21:55.619Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:21:55.625Z [INFO]: GET /api/reports/summary from ::1 
+2025-07-02T16:21:55.628Z [INFO]: GET /api/reports/breakdown from ::1 
+2025-07-02T16:24:10.810Z [INFO]: Server running on port 3000 
+2025-07-02T16:24:10.814Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:24:13.406Z [INFO]: Server running on port 3000 
+2025-07-02T16:24:13.409Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:24:44.227Z [INFO]: Server running on port 3000 
+2025-07-02T16:24:44.231Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:25:17.487Z [INFO]: Server running on port 3000 
+2025-07-02T16:25:17.491Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:25:47.578Z [INFO]: Server running on port 3000 
+2025-07-02T16:25:47.584Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:26:20.053Z [INFO]: Server running on port 3000 
+2025-07-02T16:26:20.061Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:26:33.335Z [INFO]: Server running on port 3000 
+2025-07-02T16:26:33.339Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:28:43.301Z [INFO]: Server running on port 3000 
+2025-07-02T16:28:43.306Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:29:00.994Z [INFO]: Server running on port 3000 
+2025-07-02T16:29:00.997Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:29:04.052Z [INFO]: Server running on port 3000 
+2025-07-02T16:29:04.057Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:30:59.349Z [INFO]: POST /api/auth/login from ::1 
+2025-07-02T16:30:59.729Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:30:59.741Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:30:59.750Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:30:59.758Z [INFO]: GET /api/reports/summary from ::1 
+2025-07-02T16:30:59.763Z [INFO]: GET /api/reports/breakdown from ::1 
+2025-07-02T16:30:59.775Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:30:59.783Z [INFO]: GET /api/reports/summary from ::1 
+2025-07-02T16:30:59.787Z [INFO]: GET /api/reports/breakdown from ::1 
+2025-07-02T16:30:59.799Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:30:59.834Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:33:17.834Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:33:17.839Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:33:17.846Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:33:17.854Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:33:17.859Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:33:17.905Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:33:17.911Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:33:17.920Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:33:17.930Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:33:17.939Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:33:19.685Z [INFO]: Server running on port 3000 
+2025-07-02T16:33:19.690Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:33:19.825Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:33:19.836Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:33:19.840Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:33:19.843Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:33:19.845Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:33:19.852Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:33:19.856Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:33:19.859Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:33:19.864Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:33:19.867Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:34:06.991Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:34:06.996Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:34:07.054Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:34:07.056Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:34:07.059Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:34:07.074Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:34:07.078Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:34:07.083Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:34:07.086Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:34:07.131Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:34:19.126Z [INFO]: Server running on port 3000 
+2025-07-02T16:34:19.128Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:34:21.993Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:34:22.006Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:34:22.009Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:34:22.011Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:34:22.014Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:34:22.024Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:34:22.027Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:34:22.035Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:34:22.039Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:34:22.041Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:35:12.972Z [INFO]: Server running on port 3000 
+2025-07-02T16:35:12.976Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:35:28.441Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:35:28.462Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:35:28.475Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:35:28.488Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:35:28.493Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:35:28.557Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:35:28.575Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:35:28.586Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:35:28.594Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:35:28.602Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:35:28.605Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:35:28.612Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:35:28.618Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:35:28.623Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:35:28.626Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:35:31.036Z [INFO]: Server running on port 3000 
+2025-07-02T16:35:31.041Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:35:33.180Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:35:33.201Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:35:33.204Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:35:33.206Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:35:33.209Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:35:33.216Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:35:33.222Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:35:33.228Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:35:33.230Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:35:33.235Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:36:04.058Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:36:04.061Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:36:04.063Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:36:04.064Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:36:04.065Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:36:04.072Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:36:04.075Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:36:04.085Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:36:04.087Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:36:04.089Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:36:10.910Z [INFO]: POST /api/auth/login from ::1 
+2025-07-02T16:36:11.265Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:36:11.273Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:36:11.279Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:36:11.300Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:36:11.308Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:36:11.322Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:36:11.334Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:36:11.379Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:36:11.383Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:36:11.401Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:36:14.094Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:36:14.100Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:36:14.108Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:36:14.112Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:36:14.119Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:36:14.128Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:36:14.134Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:36:14.141Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:36:14.177Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:36:14.180Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:39:06.720Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:39:06.723Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:39:06.728Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:39:06.733Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:39:06.742Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:39:06.746Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:39:06.759Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:39:06.770Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:39:06.776Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:39:06.784Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:39:09.429Z [INFO]: Server running on port 3000 
+2025-07-02T16:39:09.441Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:39:37.101Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:39:37.125Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:39:37.130Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:39:37.133Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:39:37.136Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:39:37.141Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:39:37.145Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:39:37.149Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:39:37.155Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:39:37.158Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:39:46.854Z [INFO]: POST /api/auth/login from ::1 
+2025-07-02T16:39:47.208Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:39:47.217Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:39:47.236Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:39:47.243Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:39:47.248Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:39:47.261Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:39:47.271Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:39:47.317Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:39:47.326Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:39:47.336Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:39:58.999Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:39:59.011Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:39:59.018Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:39:59.023Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:39:59.031Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:39:59.074Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:39:59.098Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:39:59.104Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:39:59.108Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:39:59.120Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:40:21.040Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:40:21.044Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:40:21.054Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:40:21.065Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:40:21.072Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:40:21.109Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:40:21.119Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:40:21.143Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:40:21.148Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:40:21.151Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:40:23.091Z [INFO]: Server running on port 3000 
+2025-07-02T16:40:23.097Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:42:17.916Z [INFO]: Server running on port 3000 
+2025-07-02T16:42:17.919Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:43:48.882Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:43:48.917Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:43:48.931Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:43:48.939Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:43:48.957Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:43:49.166Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:43:49.175Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:43:49.196Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:43:49.205Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:43:49.211Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:45:26.730Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:45:26.738Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:45:26.755Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:45:26.815Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:45:26.827Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:45:26.981Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:45:26.989Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:45:26.997Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:45:27.011Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:45:27.015Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:46:06.935Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:46:06.942Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:46:06.956Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:46:06.961Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:46:06.968Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:46:06.984Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:46:06.987Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:46:07.007Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:46:07.032Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:46:07.034Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:47:06.647Z [INFO]: Server running on port 3000 
+2025-07-02T16:47:06.653Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:47:58.121Z [INFO]: POST /api/auth/login from ::1 
+2025-07-02T16:47:58.608Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:47:58.621Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:47:58.633Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:47:58.639Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:47:58.654Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:47:58.661Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:47:58.672Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:47:58.687Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:47:58.739Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:47:58.773Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:51:43.096Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:51:43.115Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:51:43.123Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:51:43.128Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:51:43.132Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:51:43.263Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:51:43.271Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:51:43.279Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:51:43.295Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:51:43.328Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:51:51.186Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:51:51.192Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:51:51.198Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:51:51.203Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:51:51.210Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:51:51.226Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:51:51.237Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:51:51.244Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:51:51.252Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:51:51.256Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:53:23.825Z [INFO]: Server running on port 3000 
+2025-07-02T16:53:23.831Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T16:54:01.261Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:54:01.306Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:54:01.366Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:54:01.408Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:54:01.459Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:54:01.633Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:54:01.640Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:54:01.647Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:54:01.654Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:54:01.660Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:54:19.087Z [INFO]: GET /api/categories from ::1 
+2025-07-02T16:54:19.109Z [INFO]: GET /api/categories from ::1 
+2025-07-02T16:54:19.307Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:54:19.312Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:54:19.376Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:54:19.379Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:54:23.538Z [INFO]: GET /api/categories from ::1 
+2025-07-02T16:54:23.584Z [INFO]: GET /api/categories from ::1 
+2025-07-02T16:54:23.967Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:54:23.974Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:54:23.992Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:54:23.997Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:55:44.498Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:55:44.511Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:55:44.542Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:55:44.556Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:55:44.562Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:55:44.704Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:55:44.728Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:55:44.733Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:55:44.745Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:55:44.751Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:55:54.544Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:55:54.547Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:55:54.553Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:55:54.558Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:55:54.563Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:55:54.598Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:55:54.603Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:55:54.639Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T16:55:54.645Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T16:55:54.649Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T16:56:57.400Z [INFO]: GET /api/categories from ::1 
+2025-07-02T16:56:57.441Z [INFO]: GET /api/categories from ::1 
+2025-07-02T16:56:57.872Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T16:56:57.876Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:56:57.937Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T16:56:57.941Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:04:08.635Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:04:08.677Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:04:09.141Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:04:09.150Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:04:09.368Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:04:09.372Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:05:18.243Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:05:18.323Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:05:44.176Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:05:44.187Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:05:44.199Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:05:44.202Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:05:44.205Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:05:44.234Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:05:44.251Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:05:44.258Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:05:44.263Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:05:44.270Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:05:46.870Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:05:46.892Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:06:05.695Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:06:05.698Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:06:05.707Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:06:05.712Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:06:05.715Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:06:05.770Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:06:05.776Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:06:05.779Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:06:05.784Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:06:05.786Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:06:10.444Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:06:10.453Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:06:10.572Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:06:10.575Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:06:10.586Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:06:10.589Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:06:12.924Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:06:12.935Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:06:14.332Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:06:14.341Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:06:14.453Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:06:14.455Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:06:14.465Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:06:14.468Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:08:22.482Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:08:22.512Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:08:22.836Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:08:22.840Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:08:22.883Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:08:22.888Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:10:45.614Z [INFO]: Server running on port 3000 
+2025-07-02T17:10:45.623Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T17:10:47.274Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:10:47.304Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:10:47.315Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:10:47.462Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:10:47.477Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:10:47.483Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:10:58.436Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:10:58.441Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:10:58.447Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:10:58.500Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:10:58.507Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:10:58.512Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:11:02.165Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:11:02.199Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:11:05.491Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:11:05.497Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:11:05.505Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:11:05.512Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:11:05.519Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:11:05.526Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:11:05.531Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:11:05.541Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:11:05.547Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:11:05.558Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:11:10.661Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:11:10.664Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:11:10.667Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:11:10.679Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:11:10.687Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:11:10.690Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:11:11.530Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:11:11.541Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:11:52.581Z [INFO]: Server running on port 3000 
+2025-07-02T17:11:52.585Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T17:12:12.449Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:12.472Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:12.496Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:12:12.564Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:12.568Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:12.574Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:12:18.791Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:18.795Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:18.801Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:12:18.809Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:18.819Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:18.823Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:12:19.574Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:19.592Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:21.066Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:21.071Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:21.075Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:12:21.083Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:21.095Z [INFO]: GET /api/categories from ::1 
+2025-07-02T17:12:21.101Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:24.328Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:24.332Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:24.339Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:12:24.343Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:12:24.346Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:12:24.355Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:24.364Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:24.372Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:12:24.409Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:12:24.412Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:12:25.944Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:25.954Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:31.903Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:31.915Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:37.133Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:37.144Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:40.533Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:40.651Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:42.390Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:42.396Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:42.408Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:12:42.413Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:12:42.417Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:12:42.425Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:42.432Z [INFO]: GET /api/budgets from ::1 
+2025-07-02T17:12:42.486Z [INFO]: GET /api/transactions from ::1 
+2025-07-02T17:12:42.495Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-02T17:12:42.503Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-02T17:12:55.307Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:12:55.337Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:17:02.355Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:17:02.407Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:19:52.368Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:19:57.120Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:19:57.132Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:23:04.690Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:28:25.170Z [INFO]: GET /api/accounts from ::1 
+2025-07-02T17:31:12.909Z [INFO]: Server running on port 3000 
+2025-07-02T17:31:12.912Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T17:31:17.027Z [INFO]: Server running on port 3000 
+2025-07-02T17:31:17.034Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T17:31:26.328Z [INFO]: Server running on port 3000 
+2025-07-02T17:31:26.331Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-02T17:31:30.622Z [INFO]: Server running on port 3000 
+2025-07-02T17:31:30.625Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:05:39.653Z [INFO]: Server running on port 3000 
+2025-07-03T02:05:39.655Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:08:31.371Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:31.397Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:08:31.401Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:08:31.403Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:08:31.404Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:08:31.412Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:31.418Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:08:31.419Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:08:31.422Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:08:31.431Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:08:31.436Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:31.442Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:08:31.444Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:08:31.447Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:08:31.452Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:08:31.455Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:31.459Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:08:31.460Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:08:31.462Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:08:31.465Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:08:36.176Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:36.183Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:36.194Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:36.203Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:38.621Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:38.626Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:38.632Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:38.637Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:48.099Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:48.104Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:48.111Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:48.116Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:50.379Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:50.384Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:08:50.392Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:08:50.403Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:08:50.409Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:50.417Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:08:50.424Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:08:50.429Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:50.434Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:08:50.437Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:08:50.443Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:08:50.448Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:08:50.450Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:50.452Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:08:50.457Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:08:50.460Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:08:50.463Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:08:50.467Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:08:50.469Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:08:50.471Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:08:53.418Z [INFO]: POST /api/auth/logout from ::1 
+2025-07-03T02:08:53.973Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:53.976Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:08:53.980Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:08:53.985Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:08:53.989Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:53.990Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:08:53.993Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:08:53.997Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:08:53.999Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:08:54.002Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:54.008Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:08:54.011Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:08:54.017Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:08:54.020Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:08:54.026Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:54.028Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:08:54.036Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:08:54.038Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:08:54.041Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:08:54.043Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:08:57.774Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:57.782Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:57.785Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:08:57.787Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:08:57.790Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:08:57.794Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:08:57.800Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:08:57.804Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:08:57.807Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:08:57.808Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:08:57.813Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:08:57.819Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:08:57.823Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:08:57.826Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:08:57.830Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:08:57.836Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:08:57.841Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:08:57.843Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:08:57.845Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:08:57.850Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:09:00.640Z [INFO]: POST /api/auth/logout from ::1 
+2025-07-03T02:09:01.176Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:09:01.180Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:09:01.191Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:09:01.194Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:09:01.197Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:09:01.199Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:09:01.204Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:09:01.208Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:09:01.209Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:09:01.211Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:09:01.214Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:09:01.217Z [ERROR]: Get accounts error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getAccounts (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\accountsController.js:15:20)"}
+2025-07-03T02:09:01.220Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:09:01.225Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:09:01.228Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:09:01.231Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:09:01.236Z [ERROR]: Get transactions error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getTransactions (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\transactionsController.js:20:20)"}
+2025-07-03T02:09:01.238Z [ERROR]: Get budgets error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getBudgets (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\budgetsController.js:14:20)"}
+2025-07-03T02:09:01.242Z [ERROR]: Spending summary error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.spendingSummary (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:18:20)"}
+2025-07-03T02:09:01.245Z [ERROR]: Category breakdown error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.categoryBreakdown (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\reportsController.js:35:20)"}
+2025-07-03T02:09:17.758Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:09:17.761Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:09:17.768Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:09:17.779Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:09:17.784Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:09:17.788Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:09:17.790Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:09:17.792Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:09:17.824Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:09:17.825Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:09:25.671Z [INFO]: POST /api/auth/login from ::1 
+2025-07-03T02:09:25.676Z [ERROR]: Login error: {"code":"ECONNREFUSED","stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.login (C:\\Users\\Nikhil\\Desktop\\FnE\\src\\controllers\\authController.js:46:24)"}
+2025-07-03T02:09:39.541Z [INFO]: Server running on port 3000 
+2025-07-03T02:09:39.544Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:10:26.070Z [INFO]: Server running on port 3000 
+2025-07-03T02:10:26.075Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:10:32.009Z [INFO]: Server running on port 3000 
+2025-07-03T02:10:32.012Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:10:44.254Z [INFO]: GET /api/db-health from ::1 
+2025-07-03T02:10:47.717Z [INFO]: POST /api/auth/login from ::1 
+2025-07-03T02:10:48.314Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:10:48.323Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:10:48.341Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:10:48.344Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:10:48.348Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:10:48.375Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:10:48.403Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T02:10:48.415Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T02:10:48.423Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T02:10:48.428Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T02:10:55.482Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:10:55.493Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:13:12.201Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:13:29.133Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:13:29.200Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:13:44.675Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:19:05.592Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:19:05.637Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T02:22:59.974Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:24:11.752Z [INFO]: Server running on port 3000 
+2025-07-03T02:24:11.758Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:24:52.962Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:25:39.095Z [INFO]: Server running on port 3000 
+2025-07-03T02:25:39.097Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:26:45.801Z [INFO]: Server running on port 3000 
+2025-07-03T02:26:45.806Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:27:23.699Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:30:59.509Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:31:37.452Z [INFO]: Server running on port 3000 
+2025-07-03T02:31:37.458Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:33:07.507Z [INFO]: Server running on port 3000 
+2025-07-03T02:33:07.514Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:33:45.944Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:34:28.657Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:36:43.626Z [INFO]: Server running on port 3000 
+2025-07-03T02:36:43.629Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:36:49.338Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:38:33.094Z [INFO]: Server running on port 3000 
+2025-07-03T02:38:33.097Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:38:53.639Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:39:02.911Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:41:59.117Z [INFO]: Server running on port 3000 
+2025-07-03T02:41:59.122Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:42:26.869Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:48:39.069Z [INFO]: Server running on port 3000 
+2025-07-03T02:48:39.074Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:49:08.199Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:51:07.701Z [INFO]: Server running on port 3000 
+2025-07-03T02:51:07.706Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:51:25.907Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:54:31.632Z [INFO]: Server running on port 3000 
+2025-07-03T02:54:31.635Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:54:39.499Z [INFO]: Server running on port 3000 
+2025-07-03T02:54:39.506Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:55:24.327Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T02:55:24.350Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T02:55:33.795Z [INFO]: Server running on port 3000 
+2025-07-03T02:55:33.798Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T02:55:37.060Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T02:55:37.072Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T02:55:56.763Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T02:56:23.630Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T02:56:23.636Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T02:58:57.151Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T02:58:57.154Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T02:59:11.389Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:02:13.210Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:02:13.215Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:02:16.141Z [INFO]: Server running on port 3000 
+2025-07-03T03:02:16.146Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:02:29.693Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:05:00.256Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:05:19.980Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:05:19.984Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:05:30.453Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:11:20.656Z [INFO]: Server running on port 3000 
+2025-07-03T03:11:20.662Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:11:53.295Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:11:53.314Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:11:56.017Z [INFO]: Server running on port 3000 
+2025-07-03T03:11:56.023Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:12:09.726Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:13:24.587Z [INFO]: Server running on port 3000 
+2025-07-03T03:13:24.590Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:13:29.728Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:13:29.745Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:13:49.243Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:14:23.026Z [INFO]: Server running on port 3000 
+2025-07-03T03:14:23.031Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:14:40.336Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:14:40.357Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:14:52.875Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:15:31.150Z [INFO]: Server running on port 3000 
+2025-07-03T03:15:31.158Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:16:37.857Z [INFO]: Server running on port 3000 
+2025-07-03T03:16:37.860Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:17:32.258Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:18:19.147Z [INFO]: Server running on port 3000 
+2025-07-03T03:18:19.150Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:19:13.671Z [INFO]: Server running on port 3000 
+2025-07-03T03:19:13.674Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:19:46.822Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:22:16.888Z [INFO]: Server running on port 3000 
+2025-07-03T03:22:16.893Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:22:21.347Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:22:27.212Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:22:27.218Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:22:42.408Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:23:04.758Z [INFO]: Server running on port 3000 
+2025-07-03T03:23:04.762Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:23:07.446Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:23:07.457Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:23:23.852Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:23:45.075Z [INFO]: Server running on port 3000 
+2025-07-03T03:23:45.078Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:23:47.260Z [INFO]: Server running on port 3000 
+2025-07-03T03:23:47.263Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:23:52.046Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:24:00.256Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-03T03:24:02.328Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-03T03:24:02.578Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-03T03:24:02.732Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-03T03:24:02.980Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-03T03:25:21.725Z [INFO]: Server running on port 3000 
+2025-07-03T03:25:21.729Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:25:47.226Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:25:47.235Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:26:02.198Z [INFO]: POST /api/extract-credit-card-info from ::1 
+2025-07-03T03:27:04.678Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:27:04.682Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:27:18.929Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-03T03:27:21.976Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-03T03:27:29.709Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T03:27:29.738Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T03:27:29.743Z [INFO]: GET /api/categories from ::1 
+2025-07-03T03:27:29.876Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T03:27:29.880Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T03:27:29.882Z [INFO]: GET /api/categories from ::1 
+2025-07-03T03:27:31.613Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:27:31.615Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:30:00.372Z [INFO]: Server running on port 3000 
+2025-07-03T03:30:00.381Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T03:30:00.420Z [INFO]: GET /api/credit-cards from ::ffff:127.0.0.1 
+2025-07-03T03:31:27.728Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:31:27.735Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T03:31:49.417Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-03T03:31:51.535Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-03T16:04:57.595Z [INFO]: Server running on port 3000 
+2025-07-03T16:04:57.598Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T16:14:29.827Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T16:14:29.860Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T16:14:29.868Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T16:14:29.873Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T16:14:29.876Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T16:14:30.012Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T16:14:30.018Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T16:14:30.025Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T16:14:30.031Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T16:14:30.037Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T16:14:33.520Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T16:14:33.533Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T16:14:43.673Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T16:14:43.678Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T16:14:43.688Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T16:14:43.702Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T16:14:43.706Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T16:14:43.763Z [INFO]: GET /api/accounts from ::1 
+2025-07-03T16:14:43.768Z [INFO]: GET /api/transactions from ::1 
+2025-07-03T16:14:43.772Z [INFO]: GET /api/budgets from ::1 
+2025-07-03T16:14:43.782Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-03T16:14:43.788Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-03T16:14:45.422Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T16:14:45.426Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T16:15:07.225Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-03T16:15:47.851Z [INFO]: Server running on port 3000 
+2025-07-03T16:15:47.856Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T16:18:48.338Z [INFO]: Server running on port 3000 
+2025-07-03T16:18:48.341Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T16:19:24.327Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T16:19:24.342Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T16:19:45.239Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-03T16:19:49.292Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-03T16:20:01.369Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T16:20:01.372Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T16:22:25.682Z [INFO]: Server running on port 3000 
+2025-07-03T16:22:25.688Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T16:27:17.407Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T16:27:17.430Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T17:01:58.226Z [INFO]: Server running on port 3000 
+2025-07-03T17:01:58.231Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-03T17:02:15.507Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T17:02:15.517Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-03T17:02:41.180Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-03T17:03:03.239Z [INFO]: POST /api/credit-cards from ::1 
