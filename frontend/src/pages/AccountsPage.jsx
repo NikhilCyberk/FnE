@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAccounts, createAccount, updateAccount, deleteAccount } from '../slices/accountsSlice';
-import { Box, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, CircularProgress, TablePagination, Grid, Card, CardContent, Fab, Tooltip, Avatar, FormControl, InputLabel, Select, MenuItem, ListSubheader, Tabs, Tab, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { Box, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, CircularProgress, TablePagination, Grid, Card, CardContent, Fab, Tooltip, Avatar, FormControl, InputLabel, Select, MenuItem, ListSubheader, Tabs, Tab, RadioGroup, FormControlLabel, Radio, TableSortLabel, InputAdornment } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { FaUniversity, FaMoneyBillWave, FaCreditCard, FaWallet } from 'react-icons/fa';
 import AddIcon from '@mui/icons-material/Add';
 import api from '../api';
+import log from 'loglevel';
 
 const AccountsPage = () => {
   const dispatch = useDispatch();
@@ -33,6 +34,9 @@ const AccountsPage = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [creditCardEntryMode, setCreditCardEntryMode] = useState('manual');
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('name');
+  const [filter, setFilter] = useState('');
 
   const accountTypes = [
     "Savings",
@@ -126,6 +130,7 @@ const AccountsPage = () => {
       dispatch(createAccount(form));
     }
     handleClose();
+    log.info('Submitting account form', form);
   };
 
   const handleDelete = (id) => {
@@ -140,6 +145,46 @@ const AccountsPage = () => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const handleFilterChange = (e) => {
+    setFilter(e.target.value);
+    setPage(0);
+  };
+
+  function descendingComparator(a, b, orderBy) {
+    if (b[orderBy] < a[orderBy]) return -1;
+    if (b[orderBy] > a[orderBy]) return 1;
+    return 0;
+  }
+  function getComparator(order, orderBy) {
+    return order === 'desc'
+      ? (a, b) => descendingComparator(a, b, orderBy)
+      : (a, b) => -descendingComparator(a, b, orderBy);
+  }
+  function applySortFilter(array, comparator, filter) {
+    const stabilized = array.map((el, idx) => [el, idx]);
+    stabilized.sort((a, b) => {
+      const order = comparator(a[0], b[0]);
+      if (order !== 0) return order;
+      return a[1] - b[1];
+    });
+    let filtered = stabilized.map((el) => el[0]);
+    if (filter) {
+      filtered = filtered.filter((acc) =>
+        acc.name?.toLowerCase().includes(filter.toLowerCase()) ||
+        acc.type?.toLowerCase().includes(filter.toLowerCase())
+      );
+    }
+    return filtered;
+  }
+  const sortedFilteredAccounts = applySortFilter(accounts, getComparator(order, orderBy), filter);
+  const paginatedAccounts = sortedFilteredAccounts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   // Helper to get icon by account type
   const getAccountIcon = (type) => {
@@ -169,6 +214,7 @@ const AccountsPage = () => {
     } catch (err) {
       // Optionally show error to user
       alert('Failed to extract credit card info from PDF.');
+      log.error('API error', err);
     }
   };
 
@@ -180,28 +226,92 @@ const AccountsPage = () => {
           <AddIcon />
         </Fab>
       </Tooltip>
+      <Box mb={2} display="flex" gap={2} alignItems="center">
+        <TextField
+          label="Filter by Name or Type"
+          value={filter}
+          onChange={handleFilterChange}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">🔍</InputAdornment>,
+          }}
+          size="small"
+          sx={{ width: 300 }}
+        />
+      </Box>
       {loading ? <CircularProgress /> : (
-        <Grid container spacing={3}>
-          {Array.isArray(accounts) && accounts.map((account) => (
-            <Grid item xs={12} sm={6} md={4} key={account.id}>
-              <Card sx={{ borderRadius: 3, boxShadow: 3, p: 0, background: 'background.paper', transition: 'background 0.5s' }}>
-                <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
-                  <Avatar sx={{ bgcolor: 'background.default', width: 56, height: 56, mb: 1, boxShadow: 2 }}>
-                    {getAccountIcon(account.type)}
-                  </Avatar>
-                  <Typography variant="h6" fontWeight={600} mb={0.5}>{account.name}</Typography>
-                  <Typography variant="subtitle2" color="text.secondary" mb={1}>{account.type}</Typography>
-                  <Typography variant="body1" fontWeight={500} color="primary.main">₹{account.balance}</Typography>
-                  <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+        <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3, maxHeight: 520 }}>
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                <TableCell>Icon</TableCell>
+                <TableCell sortDirection={orderBy === 'name' ? order : false}>
+                  <TableSortLabel
+                    active={orderBy === 'name'}
+                    direction={orderBy === 'name' ? order : 'asc'}
+                    onClick={() => handleRequestSort('name')}
+                  >
+                    Name
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sortDirection={orderBy === 'type' ? order : false}>
+                  <TableSortLabel
+                    active={orderBy === 'type'}
+                    direction={orderBy === 'type' ? order : 'asc'}
+                    onClick={() => handleRequestSort('type')}
+                  >
+                    Type
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>Bank</TableCell>
+                <TableCell sortDirection={orderBy === 'balance' ? order : false}>
+                  <TableSortLabel
+                    active={orderBy === 'balance'}
+                    direction={orderBy === 'balance' ? order : 'asc'}
+                    onClick={() => handleRequestSort('balance')}
+                  >
+                    Balance
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell>Account Number</TableCell>
+                <TableCell>IFSC</TableCell>
+                <TableCell>Branch</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedAccounts.map((account, idx) => (
+                <TableRow key={account.id} hover sx={{ backgroundColor: idx % 2 === 0 ? 'background.default' : 'action.hover', transition: 'background 0.3s' }}>
+                  <TableCell>{getAccountIcon(account.type)}</TableCell>
+                  <TableCell>{account.name}</TableCell>
+                  <TableCell>{account.type}</TableCell>
+                  <TableCell>{account.bank}</TableCell>
+                  <TableCell>₹{account.balance}</TableCell>
+                  <TableCell>{account.accountNumber || '-'}</TableCell>
+                  <TableCell>{account.ifsc || '-'}</TableCell>
+                  <TableCell>{account.branch || '-'}</TableCell>
+                  <TableCell>
                     <IconButton onClick={() => handleOpen(account)}><EditIcon /></IconButton>
                     <IconButton onClick={() => handleDelete(account.id)} color="error"><DeleteIcon /></IconButton>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {paginatedAccounts.length === 0 && (
+                <TableRow><TableCell colSpan={9} align="center">No accounts found</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
+      <TablePagination
+        component="div"
+        count={sortedFilteredAccounts.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        sx={{ mt: 1 }}
+      />
       {error && <Typography color="error">{error}</Typography>}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{editAccount ? 'Edit Account' : 'Add Account'}</DialogTitle>
