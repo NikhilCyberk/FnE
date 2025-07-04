@@ -10,6 +10,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { FaArrowDown, FaArrowUp, FaExchangeAlt } from 'react-icons/fa';
 import AddIcon from '@mui/icons-material/Add';
+import log from 'loglevel';
 
 const TransactionsPage = () => {
   const dispatch = useDispatch();
@@ -87,6 +88,7 @@ const TransactionsPage = () => {
       dispatch(createTransaction(form));
     }
     handleClose();
+    log.info('Submitting transaction form', form);
   };
 
   const handleDelete = (id) => {
