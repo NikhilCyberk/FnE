@@ -10,6 +10,7 @@ import TransactionsPage from './pages/TransactionsPage';
 import BudgetsPage from './pages/BudgetsPage';
 import ReportsPage from './pages/ReportsPage';
 import CreditCardsPage from './pages/CreditCardsPage';
+import CreditCardDetailPage from './pages/CreditCardDetailPage';
 import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -147,6 +148,7 @@ function AppContent() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/accounts" element={<AccountsPage />} />
             <Route path="/credit-cards" element={<CreditCardsPage />} />
+            <Route path="/credit-cards/:id" element={<CreditCardDetailPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/budgets" element={<BudgetsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
