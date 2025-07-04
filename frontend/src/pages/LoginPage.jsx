@@ -6,6 +6,7 @@ import {
   TextField, Button, Box, Typography, Alert, CircularProgress, Card, CardContent, Avatar, useTheme
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import log from 'loglevel';
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -34,6 +35,7 @@ const LoginPage = () => {
     const errors = validateForm();
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
+    log.info('Login attempt', { email, password });
     dispatch(loginUser({ email, password }));
   };
 
