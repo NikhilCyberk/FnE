@@ -3,6 +3,7 @@ const logger = require('../logger');
 
 // Get all category allocations for a budget
 exports.getBudgetCategories = async (req, res) => {
+  logger.info('Get budget categories request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { budgetId } = req.params;
@@ -13,6 +14,7 @@ exports.getBudgetCategories = async (req, res) => {
        WHERE bc.budget_id = $1 AND b.user_id = $2`,
       [budgetId, userId]
     );
+    logger.info('Get budget categories success', { userId: req.user && req.user.id });
     res.json(result.rows);
   } catch (err) {
     logger.error('Get budget categories error:', err);
@@ -22,6 +24,7 @@ exports.getBudgetCategories = async (req, res) => {
 
 // Add a category allocation to a budget
 exports.addBudgetCategory = async (req, res) => {
+  logger.info('Add budget category request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { budgetId, categoryId, allocatedAmount } = req.body;
@@ -32,6 +35,7 @@ exports.addBudgetCategory = async (req, res) => {
       'INSERT INTO budget_categories (budget_id, category_id, allocated_amount) VALUES ($1, $2, $3) RETURNING *',
       [budgetId, categoryId, allocatedAmount]
     );
+    logger.info('Add budget category success', { userId: req.user && req.user.id });
     res.status(201).json(result.rows[0]);
   } catch (err) {
     logger.error('Add budget category error:', err);
@@ -41,6 +45,7 @@ exports.addBudgetCategory = async (req, res) => {
 
 // Update a category allocation in a budget
 exports.updateBudgetCategory = async (req, res) => {
+  logger.info('Update budget category request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { id } = req.params;
@@ -57,6 +62,7 @@ exports.updateBudgetCategory = async (req, res) => {
       'UPDATE budget_categories SET allocated_amount = $1 WHERE id = $2 RETURNING *',
       [allocatedAmount, id]
     );
+    logger.info('Update budget category success', { userId: req.user && req.user.id });
     res.json(result.rows[0]);
   } catch (err) {
     logger.error('Update budget category error:', err);
@@ -66,6 +72,7 @@ exports.updateBudgetCategory = async (req, res) => {
 
 // Delete a category allocation from a budget
 exports.deleteBudgetCategory = async (req, res) => {
+  logger.info('Delete budget category request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { id } = req.params;
@@ -78,6 +85,7 @@ exports.deleteBudgetCategory = async (req, res) => {
     );
     if (check.rows.length === 0) return res.status(404).json({ error: 'Budget category not found.' });
     await pool.query('DELETE FROM budget_categories WHERE id = $1', [id]);
+    logger.info('Delete budget category success', { userId: req.user && req.user.id });
     res.json({ message: 'Budget category deleted.' });
   } catch (err) {
     logger.error('Delete budget category error:', err);
