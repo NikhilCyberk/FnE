@@ -99,6 +99,8 @@ const fs = require('fs');
 const { exec } = require('child_process');
 const path = require('path');
 const { promisify } = require('util');
+const pool = require('../db');
+const logger = require('../logger');
 
 const execAsync = promisify(exec);
 const upload = multer({ dest: 'uploads/' });
@@ -284,9 +286,9 @@ exports.extractCreditCardInfo = [
 
 // Function to extract credit card data from text
 function extractCreditCardData(text) {
-  console.log('--- RAW EXTRACTED TEXT START ---');
-  console.log(text);
-  console.log('--- RAW EXTRACTED TEXT END ---');
+  // console.log('--- RAW EXTRACTED TEXT START ---');
+  // console.log(text);
+  // console.log('--- RAW EXTRACTED TEXT END ---');
 
   // Name and Address: first line is name, second line is address
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
@@ -411,22 +413,100 @@ function extractCreditCardData(text) {
   };
 }
 
-// In-memory storage for credit cards (replace with DB in production)
-const creditCards = [];
-
 // Save a new credit card
 exports.saveCreditCard = async (req, res) => {
+  const client = await pool.connect();
   try {
+    logger.info('Saving credit card', { body: req.body });
     const card = req.body;
-    card.id = Date.now().toString(); // Simple unique ID
-    creditCards.push(card);
-    res.status(201).json(card);
+    // Insert card info into credit_cards
+    const insertCardQuery = `
+      INSERT INTO credit_cards (
+        user_id, card_name, card_number, credit_limit, available_credit_limit, available_cash_limit, total_payment_due, min_payment_due, statement_period, payment_due_date, statement_gen_date, address, issuer, status, statement_period_start, statement_period_end
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+      RETURNING id
+    `;
+    const cardValues = [
+      card.user_id || null,
+      card.cardName || null,
+      card.cardNumber || null,
+      card.creditLimit || null,
+      card.availableCreditLimit || null,
+      card.availableCashLimit || null,
+      card.totalPaymentDue || null,
+      card.minPaymentDue || null,
+      card.statementPeriod || null,
+      card.paymentDueDate ? new Date(card.paymentDueDate) : null,
+      card.statementGenDate ? new Date(card.statementGenDate) : null,
+      card.address || null,
+      card.issuer || null,
+      card.status || 'Active',
+      card.statementPeriodStart ? new Date(card.statementPeriodStart) : null,
+      card.statementPeriodEnd ? new Date(card.statementPeriodEnd) : null
+    ];
+    const cardResult = await client.query(insertCardQuery, cardValues);
+    const cardId = cardResult.rows[0].id;
+
+    // Insert transactions if present
+    if (Array.isArray(card.transactions)) {
+      const insertTxQuery = `
+        INSERT INTO credit_card_transactions (card_id, date, details, name, category, amount)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `;
+      for (const tx of card.transactions) {
+        await client.query(insertTxQuery, [
+          cardId,
+          tx.date ? new Date(tx.date) : null,
+          tx.details || null,
+          tx.name || null,
+          tx.category || null,
+          tx.amount ? parseFloat(tx.amount) : null
+        ]);
+      }
+    }
+    logger.info('Credit card saved', { cardId });
+    res.status(201).json({ ...card, id: cardId });
   } catch (err) {
+    logger.error('Error in saveCreditCard:', err);
     res.status(500).json({ error: 'Failed to save credit card', details: err.message });
+  } finally {
+    client.release();
   }
 };
 
 // Get all credit cards
 exports.getCreditCards = async (req, res) => {
-  res.json(creditCards);
+  const client = await pool.connect();
+  try {
+    // Fetch all cards
+    const cardsResult = await client.query('SELECT * FROM credit_cards');
+    const cards = cardsResult.rows;
+    // Fetch all transactions
+    const txResult = await client.query('SELECT * FROM credit_card_transactions');
+    const transactions = txResult.rows;
+    // Attach transactions to their cards
+    const cardsWithTx = cards.map(card => ({
+      ...card,
+      transactions: transactions.filter(tx => tx.card_id === card.id)
+    }));
+    res.json(cardsWithTx);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch credit cards', details: err.message });
+  } finally {
+    client.release();
+  }
+};
+
+exports.deleteCreditCard = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const result = await pool.query('DELETE FROM credit_cards WHERE id = $1', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Credit card not found' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    logger.error('Failed to delete credit card:', err);
+    res.status(500).json({ error: 'Failed to delete credit card' });
+  }
 };
