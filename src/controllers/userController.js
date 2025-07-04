@@ -3,10 +3,12 @@ const logger = require('../logger');
 
 // Get user profile
 exports.getProfile = async (req, res) => {
+  logger.info('Get profile request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const result = await pool.query('SELECT id, email, first_name, last_name, phone, timezone, currency, created_at, updated_at, is_active FROM users WHERE id = $1', [userId]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found.' });
+    logger.info('Get profile success', { userId: req.user && req.user.id });
     res.json(result.rows[0]);
   } catch (err) {
     logger.error('Get profile error:', err);
