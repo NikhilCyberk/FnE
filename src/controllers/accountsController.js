@@ -6,6 +6,7 @@ function isValidAccountName(name) { return typeof name === 'string' && name.leng
 function isValidAccountType(type) { return typeof type === 'string' && ['savings','checking','credit','cash','investment'].includes(type); }
 
 exports.getAccounts = async (req, res) => {
+  logger.info('Get accounts request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     // Pagination
@@ -13,6 +14,7 @@ exports.getAccounts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
     const result = await pool.query('SELECT * FROM accounts WHERE user_id = $1 ORDER BY id LIMIT $2 OFFSET $3', [userId, limit, offset]);
+    logger.info('Get accounts success', { userId: req.user && req.user.id });
     res.json({ accounts: result.rows, page, limit });
   } catch (err) {
     logger.error('Get accounts error:', err);
