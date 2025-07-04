@@ -2,6 +2,7 @@ const pool = require('../db');
 const logger = require('../logger');
 
 exports.spendingSummary = async (req, res) => {
+  logger.info('Spending summary request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { period = 'monthly', startDate, endDate } = req.query;
@@ -16,6 +17,7 @@ exports.spendingSummary = async (req, res) => {
     if (endDate) { query += ` AND transaction_date <= $${params.length + 1}`; params.push(endDate); }
     query += ' GROUP BY period ORDER BY period DESC';
     const result = await pool.query(query, params);
+    logger.info('Spending summary success', { userId: req.user && req.user.id });
     res.json(result.rows);
   } catch (err) {
     logger.error('Spending summary error:', err);
@@ -24,6 +26,7 @@ exports.spendingSummary = async (req, res) => {
 };
 
 exports.categoryBreakdown = async (req, res) => {
+  logger.info('Category breakdown request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { startDate, endDate } = req.query;
@@ -33,6 +36,7 @@ exports.categoryBreakdown = async (req, res) => {
     if (endDate) { query += ` AND t.transaction_date <= $${params.length + 1}`; params.push(endDate); }
     query += ' GROUP BY c.name ORDER BY total DESC';
     const result = await pool.query(query, params);
+    logger.info('Category breakdown success', { userId: req.user && req.user.id });
     res.json(result.rows);
   } catch (err) {
     logger.error('Category breakdown error:', err);
@@ -41,6 +45,7 @@ exports.categoryBreakdown = async (req, res) => {
 };
 
 exports.cashFlow = async (req, res) => {
+  logger.info('Cash flow request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { startDate, endDate } = req.query;
@@ -50,6 +55,7 @@ exports.cashFlow = async (req, res) => {
     if (endDate) { query += ` AND transaction_date <= $${params.length + 1}`; params.push(endDate); }
     query += ' GROUP BY transaction_date ORDER BY transaction_date';
     const result = await pool.query(query, params);
+    logger.info('Cash flow success', { userId: req.user && req.user.id });
     res.json(result.rows);
   } catch (err) {
     logger.error('Cash flow error:', err);
