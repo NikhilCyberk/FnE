@@ -3,6 +3,7 @@ const logger = require('../logger');
 
 // Get all categories for a user
 exports.getCategories = async (req, res) => {
+  logger.info('Get categories request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     // Pagination
@@ -10,6 +11,7 @@ exports.getCategories = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
     const result = await pool.query('SELECT * FROM categories WHERE user_id = $1 OR is_system = TRUE ORDER BY id LIMIT $2 OFFSET $3', [userId, limit, offset]);
+    logger.info('Get categories success', { userId: req.user && req.user.id });
     res.json({
       categories: result.rows,
       page,
@@ -23,11 +25,13 @@ exports.getCategories = async (req, res) => {
 
 // Get a single category by id
 exports.getCategoryById = async (req, res) => {
+  logger.info('Get category by id request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { id } = req.params;
     const result = await pool.query('SELECT * FROM categories WHERE id = $1 AND (user_id = $2 OR is_system = TRUE)', [id, userId]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Category not found.' });
+    logger.info('Get category by id success', { userId: req.user && req.user.id });
     res.json(result.rows[0]);
   } catch (err) {
     logger.error('Get category by id error:', err);
@@ -37,6 +41,7 @@ exports.getCategoryById = async (req, res) => {
 
 // Create a new category
 exports.createCategory = async (req, res) => {
+  logger.info('Create category request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { name, type, parentId, color, icon } = req.body;
@@ -44,6 +49,7 @@ exports.createCategory = async (req, res) => {
       'INSERT INTO categories (user_id, name, type, parent_id, color, icon, is_system) VALUES ($1, $2, $3, $4, $5, $6, FALSE) RETURNING *',
       [userId, name, type, parentId, color, icon]
     );
+    logger.info('Create category success', { userId: req.user && req.user.id });
     res.status(201).json(result.rows[0]);
   } catch (err) {
     logger.error('Create category error:', err);
@@ -53,6 +59,7 @@ exports.createCategory = async (req, res) => {
 
 // Update a category
 exports.updateCategory = async (req, res) => {
+  logger.info('Update category request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { id } = req.params;
@@ -62,6 +69,7 @@ exports.updateCategory = async (req, res) => {
       [name, type, parentId, color, icon, id, userId]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Category not found or not editable.' });
+    logger.info('Update category success', { userId: req.user && req.user.id });
     res.json(result.rows[0]);
   } catch (err) {
     logger.error('Update category error:', err);
@@ -71,11 +79,13 @@ exports.updateCategory = async (req, res) => {
 
 // Delete a category
 exports.deleteCategory = async (req, res) => {
+  logger.info('Delete category request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { id } = req.params;
     const result = await pool.query('DELETE FROM categories WHERE id = $1 AND user_id = $2 RETURNING *', [id, userId]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Category not found or not deletable.' });
+    logger.info('Delete category success', { userId: req.user && req.user.id });
     res.json({ message: 'Category deleted.' });
   } catch (err) {
     logger.error('Delete category error:', err);
