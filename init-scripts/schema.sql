@@ -80,4 +80,40 @@ CREATE TABLE IF NOT EXISTS transactions (
     recurring_rule JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Credit Cards table
+CREATE TABLE IF NOT EXISTS credit_cards (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    card_name VARCHAR(100),
+    card_number VARCHAR(32),
+    credit_limit NUMERIC(14,2),
+    available_credit_limit NUMERIC(14,2),
+    available_cash_limit NUMERIC(14,2),
+    total_payment_due NUMERIC(14,2),
+    min_payment_due NUMERIC(14,2),
+    statement_period VARCHAR(50),
+    payment_due_date DATE,
+    statement_gen_date DATE,
+    address TEXT,
+    issuer VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'Active',
+    statement_period_start DATE,
+    statement_period_end DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Credit Card Transactions table
+CREATE TABLE IF NOT EXISTS credit_card_transactions (
+    id SERIAL PRIMARY KEY,
+    card_id INTEGER REFERENCES credit_cards(id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    details TEXT,
+    name VARCHAR(100),
+    category VARCHAR(100),
+    amount NUMERIC(14,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ); 
