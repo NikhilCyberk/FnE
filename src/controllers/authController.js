@@ -15,6 +15,7 @@ function isValidPassword(password) {
 }
 
 exports.register = async (req, res) => {
+  logger.info('Register request', { body: req.body });
   try {
     const { email, password, firstName, lastName, phone } = req.body;
     if (!isValidEmail(email) || !isValidPassword(password)) {
@@ -30,6 +31,7 @@ exports.register = async (req, res) => {
       'INSERT INTO users (email, password_hash, first_name, last_name, phone) VALUES ($1, $2, $3, $4, $5)',
       [email, hashedPassword, firstName, lastName, phone]
     );
+    logger.info('Register success', { userId: newUserId });
     res.status(201).json({ message: 'User registered successfully.' });
   } catch (err) {
     logger.error('Registration error:', err);
