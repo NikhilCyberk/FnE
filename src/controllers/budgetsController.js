@@ -5,6 +5,7 @@ function isValidBudgetName(name) { return typeof name === 'string' && name.lengt
 function isValidPeriod(period) { return typeof period === 'string' && ['monthly','quarterly','yearly'].includes(period); }
 
 exports.getBudgets = async (req, res) => {
+  logger.info('Get budgets request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     // Pagination
@@ -12,6 +13,7 @@ exports.getBudgets = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
     const result = await pool.query('SELECT * FROM budgets WHERE user_id = $1 ORDER BY id LIMIT $2 OFFSET $3', [userId, limit, offset]);
+    logger.info('Get budgets success', { userId: req.user && req.user.id });
     res.json({ budgets: result.rows, page, limit });
   } catch (err) {
     logger.error('Get budgets error:', err);
