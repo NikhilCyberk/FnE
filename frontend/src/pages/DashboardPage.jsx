@@ -8,6 +8,7 @@ import { Box, Typography, Grid, Paper, CircularProgress, useTheme, Card, CardCon
 import { FaCalendarAlt, FaWallet, FaPiggyBank, FaChartPie } from 'react-icons/fa';
 import { MdOutlineSavings } from 'react-icons/md';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import log from 'loglevel';
 
 const DashboardPage = () => {
   const dispatch = useDispatch();
