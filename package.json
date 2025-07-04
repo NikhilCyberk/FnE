@@ -18,6 +18,8 @@
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
+    "loglevel": "^1.9.2",
     "multer": "^2.0.1",
     "pdf-parse": "^1.1.1",
     "pg": "^8.16.3",
