@@ -5,6 +5,7 @@ function isValidAmount(amount) { return typeof amount === 'number' && amount > 0
 function isValidType(type) { return typeof type === 'string' && ['income','expense','transfer'].includes(type); }
 
 exports.getTransactions = async (req, res) => {
+  logger.info('Get transactions request', { userId: req.user && req.user.id });
   try {
     const userId = req.user.userId;
     const { page = 1, limit = 50, startDate, endDate, categoryId, accountId } = req.query;
@@ -18,6 +19,7 @@ exports.getTransactions = async (req, res) => {
     query += ' ORDER BY transaction_date DESC LIMIT $' + paramIndex++ + ' OFFSET $' + paramIndex;
     params.push(Number(limit), (Number(page) - 1) * Number(limit));
     const result = await pool.query(query, params);
+    logger.info('Get transactions success', { userId: req.user && req.user.id });
     res.json(result.rows);
   } catch (err) {
     logger.error('Get transactions error:', err);
