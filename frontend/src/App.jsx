@@ -141,7 +141,7 @@ function AppContent() {
           {/* Theme toggle moved here */}
           <ThemeToggleButton />
         </Box>
-        <Container maxWidth="md" sx={{ pt: 2 }}>
+        <Box sx={{ pt: 2 }}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -154,7 +154,7 @@ function AppContent() {
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/" element={<Navigate to="/login" />} />
           </Routes>
-        </Container>
+        </Box>
       </Box>
     </Box>
   );

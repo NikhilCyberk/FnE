@@ -328,72 +328,82 @@ function extractCreditCardData(text) {
   const statementGenDate = statementGenDateMatch ? statementGenDateMatch[1] : '';
 
   // --- Improved Transaction Extraction ---
-  // 1. Extract dates block
-  let dateLineIdx = lines.findIndex(l => /^DATE$/i.test(l));
-  let dates = [];
-  if (dateLineIdx !== -1) {
-    // Collect all lines until a non-date line or empty line
-    let dateBlock = [];
-    for (let i = dateLineIdx + 1; i < lines.length; i++) {
-      if (/^\d{2}\/\d{2}\/\d{4}/.test(lines[i])) {
-        dateBlock.push(...lines[i].split(/\s+/).filter(Boolean));
-      } else if (lines[i] === '' || !/\d{2}\/\d{2}\/\d{4}/.test(lines[i])) {
-        break;
-      }
+  // Try to extract transactions using a robust regex per line
+  const transactionLineRegex = /^(\d{2}[\/\-]\d{2}[\/\-]\d{4})\s+(.+?)\s+([A-Z ]+)\s+([A-Z ]+)\s+([\d,]+\.\d{2})/;
+  let transactions = [];
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(transactionLineRegex);
+    if (match) {
+      transactions.push({
+        date: match[1],
+        details: match[2],
+        name: match[3],
+        category: match[4],
+        amount: match[5].replace(/,/g, ''),
+      });
     }
-    dates = dateBlock;
   }
-
-  // 2. Extract details and categories block
-  // Find the section after 'Name NIKHIL KUMAR' and before '**** End of Statement ****' or 'AMOUNT (Rs.)'
-  let detailsStartIdx = lines.findIndex(l => /^Name /i.test(l));
-  let details = [];
-  let categories = [];
-  if (detailsStartIdx !== -1) {
-    let i = detailsStartIdx + 1;
-    while (i < lines.length && !/^\*\*\* End of Statement \*\*\*$/.test(lines[i]) && !/^AMOUNT \(Rs\.\)$/i.test(lines[i])) {
-      if (lines[i]) {
-        details.push(lines[i]);
-        if (i + 1 < lines.length && lines[i + 1]) {
-          categories.push(lines[i + 1]);
-          i++;
-        } else {
-          categories.push('-');
+  // Fallback to previous block-based logic if no matches found
+  if (transactions.length === 0) {
+    // 1. Extract dates block
+    let dateLineIdx = lines.findIndex(l => /^DATE$/i.test(l));
+    let dates = [];
+    if (dateLineIdx !== -1) {
+      let dateBlock = [];
+      for (let i = dateLineIdx + 1; i < lines.length; i++) {
+        if (/^\d{2}\/\d{2}\/\d{4}/.test(lines[i])) {
+          dateBlock.push(...lines[i].split(/\s+/).filter(Boolean));
+        } else if (lines[i] === '' || !/\d{2}\/\d{2}\/\d{4}/.test(lines[i])) {
+          break;
         }
       }
-      i++;
+      dates = dateBlock;
     }
-  }
-
-  // 3. Extract amounts block
-  let amountLineIdx = lines.findIndex(l => /^AMOUNT \(Rs\.\)$/i.test(l));
-  let amounts = [];
-  if (amountLineIdx !== -1) {
-    // Collect all lines until a non-amount line or empty line
-    let amountBlock = [];
-    for (let i = amountLineIdx + 1; i < lines.length; i++) {
-      // Match amounts like 1,990.00 Dr
-      let matches = lines[i].match(/([\d,]+\.\d{2}) Dr/g);
-      if (matches) {
-        amountBlock.push(...matches.map(a => a.replace(/ Dr$/, '').replace(/,/g, '')));
-      } else if (lines[i] === '' || !/\d+\.\d{2} Dr/.test(lines[i])) {
-        break;
+    // 2. Extract details and categories block
+    let detailsStartIdx = lines.findIndex(l => /^Name /i.test(l));
+    let details = [];
+    let categories = [];
+    if (detailsStartIdx !== -1) {
+      let i = detailsStartIdx + 1;
+      while (i < lines.length && !/^\*\*\* End of Statement \*\*\*$/.test(lines[i]) && !/^AMOUNT \(Rs\.\)$/i.test(lines[i])) {
+        if (lines[i]) {
+          details.push(lines[i]);
+          if (i + 1 < lines.length && lines[i + 1]) {
+            categories.push(lines[i + 1]);
+            i++;
+          } else {
+            categories.push('-');
+          }
+        }
+        i++;
       }
     }
-    amounts = amountBlock;
-  }
-
-  // 4. Align by index
-  let n = Math.min(dates.length, details.length, categories.length, amounts.length);
-  let transactions = [];
-  for (let i = 0; i < n; i++) {
-    transactions.push({
-      date: dates[i] || '-',
-      details: details[i] || '-',
-      name: name || '-',
-      category: categories[i] || '-',
-      amount: amounts[i] || '-',
-    });
+    // 3. Extract amounts block
+    let amountLineIdx = lines.findIndex(l => /^AMOUNT \(Rs\.\)$/i.test(l));
+    let amounts = [];
+    if (amountLineIdx !== -1) {
+      let amountBlock = [];
+      for (let i = amountLineIdx + 1; i < lines.length; i++) {
+        let matches = lines[i].match(/([\d,]+\.\d{2}) Dr/g);
+        if (matches) {
+          amountBlock.push(...matches.map(a => a.replace(/ Dr$/, '').replace(/,/g, '')));
+        } else if (lines[i] === '' || !/\d+\.\d{2} Dr/.test(lines[i])) {
+          break;
+        }
+      }
+      amounts = amountBlock;
+    }
+    // 4. Align by index
+    let n = Math.min(dates.length, details.length, categories.length, amounts.length);
+    for (let i = 0; i < n; i++) {
+      transactions.push({
+        date: dates[i] || '-',
+        details: details[i] || '-',
+        name: name || '-',
+        category: categories[i] || '-',
+        amount: amounts[i] || '-',
+      });
+    }
   }
 
   return {
@@ -474,6 +484,44 @@ exports.saveCreditCard = async (req, res) => {
   }
 };
 
+// Helper to convert snake_case to camelCase
+function toCamel(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(toCamel);
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [
+      k.replace(/_([a-z])/g, (_, c) => c.toUpperCase()),
+      toCamel(v)
+    ])
+  );
+}
+
+// Helper function to serialize date fields
+function serializeCard(card) {
+  return {
+    ...toCamel(card),
+    // Serialize all date fields to ISO strings
+    paymentDueDate: card.payment_due_date instanceof Date 
+      ? card.payment_due_date.toISOString().slice(0, 10) 
+      : (typeof card.payment_due_date === 'string' ? card.payment_due_date : null),
+    statementGenDate: card.statement_gen_date instanceof Date 
+      ? card.statement_gen_date.toISOString().slice(0, 10) 
+      : (typeof card.statement_gen_date === 'string' ? card.statement_gen_date : null),
+    statementPeriodStart: card.statement_period_start instanceof Date 
+      ? card.statement_period_start.toISOString().slice(0, 10) 
+      : (typeof card.statement_period_start === 'string' ? card.statement_period_start : null),
+    statementPeriodEnd: card.statement_period_end instanceof Date 
+      ? card.statement_period_end.toISOString().slice(0, 10) 
+      : (typeof card.statement_period_end === 'string' ? card.statement_period_end : null),
+    createdAt: card.created_at instanceof Date 
+      ? card.created_at.toISOString() 
+      : (typeof card.created_at === 'string' ? card.created_at : null),
+    updatedAt: card.updated_at instanceof Date 
+      ? card.updated_at.toISOString() 
+      : (typeof card.updated_at === 'string' ? card.updated_at : null)
+  };
+}
+
 // Get all credit cards
 exports.getCreditCards = async (req, res) => {
   const client = await pool.connect();
@@ -484,14 +532,173 @@ exports.getCreditCards = async (req, res) => {
     // Fetch all transactions
     const txResult = await client.query('SELECT * FROM credit_card_transactions');
     const transactions = txResult.rows;
-    // Attach transactions to their cards
+    // Attach transactions to their cards, serialize dates, and convert to camelCase
     const cardsWithTx = cards.map(card => ({
-      ...card,
-      transactions: transactions.filter(tx => tx.card_id === card.id)
+      ...serializeCard(card),
+      transactions: toCamel(
+        transactions
+          .filter(tx => tx.card_id === card.id)
+          .map(tx => ({
+            ...tx,
+            date: tx.date instanceof Date
+              ? tx.date.toISOString().slice(0, 10)
+              : (typeof tx.date === 'string' ? tx.date : null)
+          }))
+      )
     }));
     res.json(cardsWithTx);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch credit cards', details: err.message });
+  } finally {
+    client.release();
+  }
+};
+
+// Get a single credit card by ID
+exports.getCreditCardById = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const id = req.params.id;
+    
+    // Fetch the card
+    const cardResult = await client.query('SELECT * FROM credit_cards WHERE id = $1', [id]);
+    if (cardResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Credit card not found' });
+    }
+    
+    const card = cardResult.rows[0];
+    
+    // Fetch transactions for this card
+    const txResult = await client.query('SELECT * FROM credit_card_transactions WHERE card_id = $1', [id]);
+    const transactions = txResult.rows;
+    
+    // Serialize the card with transactions
+    const cardWithTx = {
+      ...serializeCard(card),
+      transactions: toCamel(
+        transactions.map(tx => ({
+          ...tx,
+          date: tx.date instanceof Date
+            ? tx.date.toISOString().slice(0, 10)
+            : (typeof tx.date === 'string' ? tx.date : null)
+        }))
+      )
+    };
+    
+    res.json(cardWithTx);
+  } catch (err) {
+    logger.error('Error in getCreditCardById:', err);
+    res.status(500).json({ error: 'Failed to fetch credit card', details: err.message });
+  } finally {
+    client.release();
+  }
+};
+
+// Update a credit card
+exports.updateCreditCard = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const id = req.params.id;
+    const card = req.body;
+    
+    logger.info('Updating credit card', { id, body: req.body });
+    
+    // Check if card exists
+    const checkResult = await client.query('SELECT id FROM credit_cards WHERE id = $1', [id]);
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Credit card not found' });
+    }
+    
+    // Update card info
+    const updateCardQuery = `
+      UPDATE credit_cards SET
+        card_name = $1,
+        card_number = $2,
+        credit_limit = $3,
+        available_credit_limit = $4,
+        available_cash_limit = $5,
+        total_payment_due = $6,
+        min_payment_due = $7,
+        statement_period = $8,
+        payment_due_date = $9,
+        statement_gen_date = $10,
+        address = $11,
+        issuer = $12,
+        status = $13,
+        statement_period_start = $14,
+        statement_period_end = $15,
+        bill_paid = $16,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $17
+      RETURNING *
+    `;
+    
+    const cardValues = [
+      card.cardName || null,
+      card.cardNumber || null,
+      card.creditLimit || null,
+      card.availableCreditLimit || null,
+      card.availableCashLimit || null,
+      card.totalPaymentDue || null,
+      card.minPaymentDue || null,
+      card.statementPeriod || null,
+      card.paymentDueDate ? new Date(card.paymentDueDate) : null,
+      card.statementGenDate ? new Date(card.statementGenDate) : null,
+      card.address || null,
+      card.issuer || null,
+      card.status || 'Active',
+      card.statementPeriodStart ? new Date(card.statementPeriodStart) : null,
+      card.statementPeriodEnd ? new Date(card.statementPeriodEnd) : null,
+      typeof card.billPaid === 'boolean' ? card.billPaid : false,
+      id
+    ];
+    
+    const cardResult = await client.query(updateCardQuery, cardValues);
+    const updatedCard = cardResult.rows[0];
+    
+    // Update transactions if present
+    if (Array.isArray(card.transactions)) {
+      // Delete existing transactions
+      await client.query('DELETE FROM credit_card_transactions WHERE card_id = $1', [id]);
+      
+      // Insert new transactions
+      const insertTxQuery = `
+        INSERT INTO credit_card_transactions (card_id, date, details, name, category, amount)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `;
+      for (const tx of card.transactions) {
+        await client.query(insertTxQuery, [
+          id,
+          tx.date ? new Date(tx.date) : null,
+          tx.details || null,
+          tx.name || null,
+          tx.category || null,
+          tx.amount ? parseFloat(tx.amount) : null
+        ]);
+      }
+    }
+    
+    // Fetch the updated card with transactions
+    const finalCardResult = await client.query('SELECT * FROM credit_cards WHERE id = $1', [id]);
+    const txResult = await client.query('SELECT * FROM credit_card_transactions WHERE card_id = $1', [id]);
+    
+    const finalCard = {
+      ...serializeCard(finalCardResult.rows[0]),
+      transactions: toCamel(
+        txResult.rows.map(tx => ({
+          ...tx,
+          date: tx.date instanceof Date
+            ? tx.date.toISOString().slice(0, 10)
+            : (typeof tx.date === 'string' ? tx.date : null)
+        }))
+      )
+    };
+    
+    logger.info('Credit card updated successfully', { id });
+    res.json(finalCard);
+  } catch (err) {
+    logger.error('Error in updateCreditCard:', err);
+    res.status(500).json({ error: 'Failed to update credit card', details: err.message });
   } finally {
     client.release();
   }

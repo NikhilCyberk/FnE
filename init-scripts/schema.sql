@@ -101,6 +101,8 @@ CREATE TABLE IF NOT EXISTS credit_cards (
     status VARCHAR(20) DEFAULT 'Active',
     statement_period_start DATE,
     statement_period_end DATE,
+    bill_paid BOOLEAN DEFAULT FALSE,
+    bill_paid_on TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
