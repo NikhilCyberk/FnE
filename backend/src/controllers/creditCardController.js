@@ -429,6 +429,35 @@ exports.saveCreditCard = async (req, res) => {
   try {
     logger.info('Saving credit card', { body: req.body });
     const card = req.body;
+    // Require user_id to be an email (user's email)
+    if (!card.user_id || typeof card.user_id !== 'string' || !card.user_id.includes('@')) {
+      return res.status(400).json({ error: 'user_id (email) is required' });
+    }
+    
+    // Helper function to safely parse dates
+    const parseDate = (dateString) => {
+      if (!dateString || dateString === '') return null;
+      
+      // Handle DD/MM/YYYY format (common in credit card statements)
+      if (typeof dateString === 'string' && dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+          const year = parseInt(parts[2], 10);
+          
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+            const date = new Date(year, month, day);
+            return isNaN(date.getTime()) ? null : date;
+          }
+        }
+      }
+      
+      // Try standard date parsing
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? null : date;
+    };
+    
     // Insert card info into credit_cards
     const insertCardQuery = `
       INSERT INTO credit_cards (
@@ -446,13 +475,13 @@ exports.saveCreditCard = async (req, res) => {
       card.totalPaymentDue || null,
       card.minPaymentDue || null,
       card.statementPeriod || null,
-      card.paymentDueDate ? new Date(card.paymentDueDate) : null,
-      card.statementGenDate ? new Date(card.statementGenDate) : null,
+      parseDate(card.paymentDueDate),
+      parseDate(card.statementGenDate),
       card.address || null,
       card.issuer || null,
       card.status || 'Active',
-      card.statementPeriodStart ? new Date(card.statementPeriodStart) : null,
-      card.statementPeriodEnd ? new Date(card.statementPeriodEnd) : null
+      parseDate(card.statementPeriodStart),
+      parseDate(card.statementPeriodEnd)
     ];
     const cardResult = await client.query(insertCardQuery, cardValues);
     const cardId = cardResult.rows[0].id;
@@ -466,7 +495,7 @@ exports.saveCreditCard = async (req, res) => {
       for (const tx of card.transactions) {
         await client.query(insertTxQuery, [
           cardId,
-          tx.date ? new Date(tx.date) : null,
+          parseDate(tx.date),
           tx.details || null,
           tx.name || null,
           tx.category || null,
@@ -603,6 +632,35 @@ exports.updateCreditCard = async (req, res) => {
     
     logger.info('Updating credit card', { id, body: req.body });
     
+    // Require user_id to be an email (user's email)
+    if (!card.user_id || typeof card.user_id !== 'string' || !card.user_id.includes('@')) {
+      return res.status(400).json({ error: 'user_id (email) is required' });
+    }
+    
+    // Helper function to safely parse dates
+    const parseDate = (dateString) => {
+      if (!dateString || dateString === '') return null;
+      
+      // Handle DD/MM/YYYY format (common in credit card statements)
+      if (typeof dateString === 'string' && dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+          const year = parseInt(parts[2], 10);
+          
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+            const date = new Date(year, month, day);
+            return isNaN(date.getTime()) ? null : date;
+          }
+        }
+      }
+      
+      // Try standard date parsing
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? null : date;
+    };
+    
     // Check if card exists
     const checkResult = await client.query('SELECT id FROM credit_cards WHERE id = $1', [id]);
     if (checkResult.rows.length === 0) {
@@ -642,13 +700,13 @@ exports.updateCreditCard = async (req, res) => {
       card.totalPaymentDue || null,
       card.minPaymentDue || null,
       card.statementPeriod || null,
-      card.paymentDueDate ? new Date(card.paymentDueDate) : null,
-      card.statementGenDate ? new Date(card.statementGenDate) : null,
+      parseDate(card.paymentDueDate),
+      parseDate(card.statementGenDate),
       card.address || null,
       card.issuer || null,
       card.status || 'Active',
-      card.statementPeriodStart ? new Date(card.statementPeriodStart) : null,
-      card.statementPeriodEnd ? new Date(card.statementPeriodEnd) : null,
+      parseDate(card.statementPeriodStart),
+      parseDate(card.statementPeriodEnd),
       typeof card.billPaid === 'boolean' ? card.billPaid : false,
       id
     ];
@@ -669,7 +727,7 @@ exports.updateCreditCard = async (req, res) => {
       for (const tx of card.transactions) {
         await client.query(insertTxQuery, [
           id,
-          tx.date ? new Date(tx.date) : null,
+          parseDate(tx.date),
           tx.details || null,
           tx.name || null,
           tx.category || null,
@@ -715,5 +773,41 @@ exports.deleteCreditCard = async (req, res) => {
   } catch (err) {
     logger.error('Failed to delete credit card:', err);
     res.status(500).json({ error: 'Failed to delete credit card' });
+  }
+};
+
+// Get all card name options grouped by bank
+exports.getCardNameOptions = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const result = await client.query('SELECT bank_name, card_name FROM card_name_options');
+    // Group by bank
+    const grouped = {};
+    result.rows.forEach(({ bank_name, card_name }) => {
+      if (!grouped[bank_name]) grouped[bank_name] = [];
+      grouped[bank_name].push(card_name);
+    });
+    res.json(grouped);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch card name options', details: err.message });
+  } finally {
+    client.release();
+  }
+};
+
+// Add a new card name option
+exports.addCardNameOption = async (req, res) => {
+  const { bank_name, card_name } = req.body;
+  if (!bank_name || !card_name) {
+    return res.status(400).json({ error: 'bank_name and card_name are required' });
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('INSERT INTO card_name_options (bank_name, card_name) VALUES ($1, $2)', [bank_name, card_name]);
+    res.status(201).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add card name option', details: err.message });
+  } finally {
+    client.release();
   }
 };

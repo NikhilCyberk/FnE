@@ -64,6 +64,7 @@ const CreditCardEditDialog = ({ open, onClose, card, onSave, loading: externalLo
   const [showPreview, setShowPreview] = useState(false);
   const [editTxnIdx, setEditTxnIdx] = useState(null);
   const [txnDraft, setTxnDraft] = useState(emptyTxn);
+  const [cardNamesByBank, setCardNamesByBank] = useState({});
 
   useEffect(() => {
     if (card) {
@@ -82,6 +83,15 @@ const CreditCardEditDialog = ({ open, onClose, card, onSave, loading: externalLo
     setEditTxnIdx(null);
     setTxnDraft(emptyTxn);
   }, [card, open]);
+
+  useEffect(() => {
+    if (open) {
+      // Fetch card name options from backend
+      api.get('/api/credit-cards/card-names').then(res => {
+        setCardNamesByBank(res.data || {});
+      });
+    }
+  }, [open]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -287,6 +297,45 @@ const CreditCardEditDialog = ({ open, onClose, card, onSave, loading: externalLo
           )}
           {creditCardEntryMode === 'pdf' && !showPreview && (
             <>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Bank</InputLabel>
+                <Select
+                  label="Bank"
+                  name="bank"
+                  value={form.bank || ""}
+                  onChange={handleChange}
+                >
+                  {bankNames.map((bank) => (
+                    <MenuItem key={bank} value={bank}>{bank}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {form.bank && cardNamesByBank[form.bank] ? (
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Card Name</InputLabel>
+                  <Select
+                    label="Card Name"
+                    name="cardName"
+                    value={form.cardName || ''}
+                    onChange={handleChange}
+                  >
+                    {cardNamesByBank[form.bank].map((name) => (
+                      <MenuItem key={name} value={name}>{name}</MenuItem>
+                    ))}
+                    <MenuItem value="other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              ) : null}
+              {(!form.bank || !cardNamesByBank[form.bank] || form.cardName === 'other') && (
+                <TextField
+                  label="Card Name"
+                  name="cardName"
+                  value={form.cardName === 'other' ? '' : (form.cardName || '')}
+                  onChange={handleChange}
+                  fullWidth
+                  margin="normal"
+                />
+              )}
               <TextField
                 label="Upload Bill Statement (PDF)"
                 type="file"

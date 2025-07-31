@@ -30,7 +30,13 @@ import {
   InputLabel,
   Tabs,
   Tab,
-  LinearProgress
+  LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Snackbar
 } from '@mui/material';
 import { FaCreditCard } from 'react-icons/fa';
 import PrintIcon from '@mui/icons-material/Print';
@@ -39,10 +45,12 @@ import DownloadIcon from '@mui/icons-material/Download';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SaveIcon from '@mui/icons-material/Save';
 import CloseIcon from '@mui/icons-material/Close';
-import TextField from '@mui/material/TextField';
+import AddIcon from '@mui/icons-material/Add';
+import UploadIcon from '@mui/icons-material/Upload';
 import api from '../api';
 import CreditCardEditDialog from './CreditCardEditDialog';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { jwtDecode } from 'jwt-decode';
 
 // Bank colors and information
 const BANK_COLORS = {
@@ -89,6 +97,20 @@ const BANK_COLORS = {
 
 // List of major Indian banks
 const INDIAN_BANKS = Object.keys(BANK_COLORS);
+
+// Helper function to get user email from JWT token
+const getUserEmail = () => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      return decoded.email || decoded.userEmail || decoded.user_email || 'default@example.com';
+    } catch (e) {
+      console.error('Failed to decode token', e);
+    }
+  }
+  return 'default@example.com'; // Default email for testing
+};
 
 function formatCurrency(val) {
   if (val === undefined || val === null || val === '') return '-';
@@ -196,6 +218,16 @@ const CreditCardDetailPage = () => {
   const [cardNameDraft, setCardNameDraft] = useState('');
   const [editingField, setEditingField] = useState(null);
   const [fieldDraft, setFieldDraft] = useState('');
+  
+  // New statement upload functionality
+  const [newStatementDialogOpen, setNewStatementDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [pdfPassword, setPdfPassword] = useState('');
+  const [extracting, setExtracting] = useState(false);
+  const [extractedData, setExtractedData] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [cardNamesByBank, setCardNamesByBank] = useState({});
 
   useEffect(() => {
     const fetchCard = async () => {
@@ -240,12 +272,23 @@ const CreditCardDetailPage = () => {
     }
   }, [card]);
 
+  useEffect(() => {
+    if (newStatementDialogOpen) {
+      api.get('/api/credit-cards/card-names').then(res => {
+        setCardNamesByBank(res.data || {});
+      });
+    }
+  }, [newStatementDialogOpen]);
+
   const handleEdit = () => setEditOpen(true);
   const handleEditClose = () => setEditOpen(false);
   const handleEditSave = async (form) => {
     setEditLoading(true);
     try {
-      const res = await api.put(`/api/credit-cards/${card.id}`, form);
+      const res = await api.put(`/api/credit-cards/${card.id}`, {
+        ...form,
+        user_id: getUserEmail()
+      });
       setCard(res.data);
       setEditOpen(false);
     } catch (err) {
@@ -319,7 +362,8 @@ const CreditCardDetailPage = () => {
         statementPeriodEnd: statementForm.statementPeriodEnd,
         statementGenDate: statementForm.statementGenDate,
         address: statementForm.address,
-        issuer: statementForm.issuer
+        issuer: statementForm.issuer,
+        user_id: getUserEmail()
       });
       // Update card with the response data
       setCard(res.data);
@@ -347,7 +391,8 @@ const CreditCardDetailPage = () => {
         ...card,
         creditLimit: financialForm.creditLimit,
         availableCreditLimit: financialForm.availableCreditLimit,
-        availableCashLimit: financialForm.availableCashLimit
+        availableCashLimit: financialForm.availableCashLimit,
+        user_id: getUserEmail()
       });
       setCard(res.data);
       setFinancialEditMode(false);
@@ -374,7 +419,8 @@ const CreditCardDetailPage = () => {
         ...card,
         totalPaymentDue: paymentForm.totalPaymentDue,
         minPaymentDue: paymentForm.minPaymentDue,
-        paymentDueDate: paymentForm.paymentDueDate
+        paymentDueDate: paymentForm.paymentDueDate,
+        user_id: getUserEmail()
       });
       setCard(res.data);
       setPaymentEditMode(false);
@@ -387,7 +433,8 @@ const CreditCardDetailPage = () => {
     try {
       const res = await api.put(`/api/credit-cards/${card.id}`, {
         ...card,
-        cardName: cardNameDraft
+        cardName: cardNameDraft,
+        user_id: getUserEmail()
       });
       setCard(res.data);
       setCardNameEditMode(false);
@@ -409,7 +456,8 @@ const CreditCardDetailPage = () => {
     try {
       const res = await api.put(`/api/credit-cards/${card.id}`, {
         ...card,
-        [field]: fieldDraft
+        [field]: fieldDraft,
+        user_id: getUserEmail()
       });
       setCard(res.data);
       setEditingField(null);
@@ -421,6 +469,104 @@ const CreditCardDetailPage = () => {
   const handleFieldCancel = () => {
     setEditingField(null);
     setFieldDraft('');
+  };
+
+  // New statement upload functions
+  const handleNewStatementOpen = () => {
+    setNewStatementDialogOpen(true);
+    setSelectedFile(null);
+    setPdfPassword('');
+    setExtractedData(null);
+    setShowPreview(false);
+  };
+
+  const handleNewStatementClose = () => {
+    setNewStatementDialogOpen(false);
+    setSelectedFile(null);
+    setPdfPassword('');
+    setExtractedData(null);
+    setShowPreview(false);
+  };
+
+  const handleFileSelect = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const handleExtractStatement = async () => {
+    if (!selectedFile) return;
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    if (pdfPassword) {
+      formData.append('password', pdfPassword);
+    }
+    
+    setExtracting(true);
+    try {
+      const res = await api.post('/api/credit-cards/extract-credit-card-info', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setExtractedData(res.data);
+      setShowPreview(true);
+      setSnackbar({ open: true, message: 'Statement extracted successfully!', severity: 'success' });
+    } catch (err) {
+      let msg = 'Failed to extract statement from PDF.';
+      if (err.response && err.response.data) {
+        msg += ' ' + (err.response.data.error || '');
+      }
+      setSnackbar({ open: true, message: msg, severity: 'error' });
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+  const handleUpdateWithNewStatement = async () => {
+    if (!extractedData) return;
+    
+    try {
+      // Merge the extracted data with existing card data
+      const updatedCard = {
+        ...card,
+        // Update financial information
+        creditLimit: extractedData.creditLimit || card.creditLimit,
+        availableCreditLimit: extractedData.availableCreditLimit || card.availableCreditLimit,
+        availableCashLimit: extractedData.availableCashLimit || card.availableCashLimit,
+        totalPaymentDue: extractedData.totalPaymentDue || card.totalPaymentDue,
+        minPaymentDue: extractedData.minPaymentDue || card.minPaymentDue,
+        
+        // Update statement information
+        statementPeriod: extractedData.statementPeriod || card.statementPeriod,
+        statementPeriodStart: extractedData.statementPeriodStart || card.statementPeriodStart,
+        statementPeriodEnd: extractedData.statementPeriodEnd || card.statementPeriodEnd,
+        paymentDueDate: extractedData.paymentDueDate || card.paymentDueDate,
+        statementGenDate: extractedData.statementGenDate || card.statementGenDate,
+        
+        // Update other fields
+        address: extractedData.address || card.address,
+        issuer: extractedData.issuer || card.issuer,
+        
+        // Merge transactions (append new ones to existing)
+        transactions: [
+          ...(card.transactions || []),
+          ...(extractedData.transactions || [])
+        ],
+        
+        // Include user_id for backend validation
+        user_id: getUserEmail()
+      };
+
+      const res = await api.put(`/api/credit-cards/${card.id}`, updatedCard);
+      setCard(res.data);
+      setSnackbar({ open: true, message: 'Card updated with new statement!', severity: 'success' });
+      handleNewStatementClose();
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to update card with new statement', severity: 'error' });
+    }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   if (loading) {
@@ -568,6 +714,21 @@ const CreditCardDetailPage = () => {
                 }}
               />
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <Button 
+                  variant="contained" 
+                  size="small"
+                  startIcon={<UploadIcon />} 
+                  onClick={handleNewStatementOpen}
+                  sx={{ 
+                    bgcolor: 'rgba(76,175,80,0.8)', 
+                    color: 'white',
+                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.2s',
+                    boxShadow: 1,
+                    '&:hover': { bgcolor: 'rgba(76,175,80,1)', color: 'white', boxShadow: 4, transform: 'scale(1.05)' }
+                  }}
+                >
+                  Add New Statement
+                </Button>
                 <Button 
                   variant="contained" 
                   size="small"
@@ -776,7 +937,7 @@ const CreditCardDetailPage = () => {
                         variant="contained"
                         color="primary"
                         onClick={async () => {
-                          const res = await api.put(`/api/credit-cards/${card.id}`, { ...card, bill_paid: true });
+                          const res = await api.put(`/api/credit-cards/${card.id}`, { ...card, bill_paid: true, user_id: getUserEmail() });
                           setCard(res.data);
                         }}
                       >
@@ -1085,6 +1246,191 @@ const CreditCardDetailPage = () => {
         onSave={handleEditSave}
         loading={editLoading}
       />
+
+      {/* New Statement Upload Dialog */}
+      <Dialog open={newStatementDialogOpen} onClose={handleNewStatementClose} maxWidth="md" fullWidth>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <UploadIcon />
+            Add New Statement for {card?.cardName || card?.name}
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {!showPreview ? (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Upload a new credit card statement PDF to update this card's information with the latest data.
+              </Typography>
+              
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Bank</InputLabel>
+                <Select
+                  label="Bank"
+                  value={extractedData?.bank || card?.bank || ""}
+                  onChange={e => setExtractedData(data => ({ ...data, bank: e.target.value }))}
+                >
+                  {INDIAN_BANKS.map((bank) => (
+                    <MenuItem key={bank} value={bank}>{bank}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {/* Card Name Dropdown or TextField */}
+              {(extractedData?.bank && cardNamesByBank[extractedData.bank]) ? (
+                <FormControl fullWidth margin="normal">
+                  <InputLabel>Card Name</InputLabel>
+                  <Select
+                    label="Card Name"
+                    value={extractedData?.cardName || ''}
+                    onChange={e => setExtractedData(data => ({ ...data, cardName: e.target.value }))}
+                  >
+                    {cardNamesByBank[extractedData.bank].map((name) => (
+                      <MenuItem key={name} value={name}>{name}</MenuItem>
+                    ))}
+                    <MenuItem value="other">Other</MenuItem>
+                  </Select>
+                </FormControl>
+              ) : null}
+              {(extractedData?.bank && !cardNamesByBank[extractedData.bank] || extractedData?.cardName === 'other') && (
+                <TextField
+                  label="Card Name"
+                  value={extractedData?.cardName === 'other' ? '' : (extractedData?.cardName || '')}
+                  onChange={e => setExtractedData(data => ({ ...data, cardName: e.target.value }))}
+                  fullWidth
+                  margin="normal"
+                />
+              )}
+              <TextField
+                label="Upload Statement PDF"
+                type="file"
+                inputProps={{ accept: 'application/pdf' }}
+                fullWidth
+                margin="normal"
+                onChange={handleFileSelect}
+                disabled={extracting}
+              />
+              
+              <TextField
+                label="PDF Password (if required)"
+                type="password"
+                value={pdfPassword}
+                onChange={(e) => setPdfPassword(e.target.value)}
+                fullWidth
+                margin="normal"
+                disabled={extracting}
+                helperText="Enter password if the PDF is password protected"
+              />
+              
+              <Button
+                variant="contained"
+                onClick={handleExtractStatement}
+                disabled={extracting || !selectedFile}
+                startIcon={extracting ? <CircularProgress size={20} /> : <UploadIcon />}
+                sx={{ mt: 2 }}
+                fullWidth
+              >
+                {extracting ? 'Extracting...' : 'Extract Statement'}
+              </Button>
+            </Box>
+          ) : (
+            <Box sx={{ mt: 2 }}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Bank</InputLabel>
+                <Select
+                  label="Bank"
+                  value={extractedData?.bank || card?.bank || ""}
+                  onChange={e => setExtractedData(data => ({ ...data, bank: e.target.value }))}
+                >
+                  {INDIAN_BANKS.map((bank) => (
+                    <MenuItem key={bank} value={bank}>{bank}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                label="Card Name"
+                value={extractedData?.cardName || card?.cardName || ""}
+                onChange={e => setExtractedData(data => ({ ...data, cardName: e.target.value }))}
+                fullWidth
+                margin="normal"
+              />
+              <Typography variant="h6" gutterBottom>Extracted Statement Data</Typography>
+              
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Financial Information</Typography>
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="body2">
+                      <strong>Credit Limit:</strong> {formatCurrency(extractedData?.creditLimit)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Available Credit:</strong> {formatCurrency(extractedData?.availableCreditLimit)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Total Payment Due:</strong> {formatCurrency(extractedData?.totalPaymentDue)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Min Payment Due:</strong> {formatCurrency(extractedData?.minPaymentDue)}
+                    </Typography>
+                  </Box>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Statement Information</Typography>
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="body2">
+                      <strong>Statement Period:</strong> {extractedData?.statementPeriod}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Payment Due Date:</strong> {formatDate(extractedData?.paymentDueDate)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Statement Date:</strong> {formatDate(extractedData?.statementGenDate)}
+                    </Typography>
+                  </Box>
+                </Grid>
+                
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">
+                    New Transactions: {extractedData?.transactions?.length || 0}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    These will be added to your existing {card?.transactions?.length || 0} transactions.
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleNewStatementClose}>
+            Cancel
+          </Button>
+          {showPreview && (
+            <Button 
+              variant="contained" 
+              onClick={handleUpdateWithNewStatement}
+              startIcon={<SaveIcon />}
+            >
+              Update Card with New Statement
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbar.severity} 
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -1416,3 +1416,281 @@
 2025-07-05T06:40:20.185Z [INFO]: PUT /api/credit-cards/1 from ::1 
 2025-07-05T06:40:20.186Z [INFO]: Updating credit card {"id":"1","body":{"id":1,"userId":1,"cardName":"Neo Rupay Credit Card","cardNumber":"653047******9634","creditLimit":"31000.00","availableCreditLimit":"22940.80","availableCashLimit":null,"totalPaymentDue":"8059.20","minPaymentDue":"162.00","statementPeriod":"14/01/2025 - 22/06/2025","paymentDueDate":"2025-07-04","statementGenDate":"2025-06-14","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","issuer":"Axis Bank","status":"Active","statementPeriodStart":"2025-01-06","statementPeriodEnd":"2025-06-14","createdAt":"2025-07-04T18:27:57.026Z","updatedAt":"2025-07-05T06:22:47.412Z","billPaid":false,"transactions":[{"id":36,"cardId":1,"date":"2025-06-06","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00","createdAt":{},"updatedAt":{}},{"id":37,"cardId":1,"date":"2025-06-06","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00","createdAt":{},"updatedAt":{}},{"id":38,"cardId":1,"date":"2025-06-06","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60","createdAt":{},"updatedAt":{}},{"id":39,"cardId":1,"date":"2025-06-07","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60","createdAt":{},"updatedAt":{}},{"id":40,"cardId":1,"date":"2025-06-09","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00","createdAt":{},"updatedAt":{}}],"bill_paid":true}}
 2025-07-05T06:40:20.198Z [INFO]: Credit card updated successfully {"id":"1"}
+2025-07-05T10:03:48.997Z [INFO]: Server running on port 3000 
+2025-07-05T10:03:49.001Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:04:47.977Z [INFO]: Server running on port 3000 
+2025-07-05T10:04:47.980Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:05:45.060Z [INFO]: POST /api/auth/register from ::1 
+2025-07-05T10:05:45.061Z [INFO]: Register request {"body":{"email":"knikhil128@gmail.com","password":"1234567890","firstName":"nikhil","lastName":"kumar","phone":"+91123456890"}}
+2025-07-05T10:05:45.174Z [ERROR]: Registration error: newUserId is not defined {"stack":"ReferenceError: newUserId is not defined\n    at exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\src\\controllers\\authController.js:34:47)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"}
+2025-07-05T10:06:03.107Z [INFO]: POST /api/auth/register from ::1 
+2025-07-05T10:06:03.108Z [INFO]: Register request {"body":{"email":"knikhil128@gmail.com","password":"1234567890","firstName":"nikhil","lastName":"kumar","phone":"123456890"}}
+2025-07-05T10:06:32.133Z [INFO]: POST /api/auth/login from ::1 
+2025-07-05T10:06:32.825Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:06:32.832Z [INFO]: Get accounts request {}
+2025-07-05T10:06:32.833Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:06:32.835Z [INFO]: Get transactions request {}
+2025-07-05T10:06:32.837Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:06:32.839Z [INFO]: Get budgets request {}
+2025-07-05T10:06:32.840Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:06:32.843Z [INFO]: Spending summary request {}
+2025-07-05T10:06:32.844Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:06:32.846Z [INFO]: Category breakdown request {}
+2025-07-05T10:06:32.848Z [INFO]: Get accounts success {}
+2025-07-05T10:06:32.854Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:06:32.858Z [INFO]: Get accounts request {}
+2025-07-05T10:06:32.863Z [INFO]: Get accounts success {}
+2025-07-05T10:06:32.938Z [INFO]: Get transactions success {}
+2025-07-05T10:06:32.941Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:06:32.949Z [INFO]: Get transactions request {}
+2025-07-05T10:06:32.952Z [INFO]: Get transactions success {}
+2025-07-05T10:06:32.955Z [INFO]: Get budgets success {}
+2025-07-05T10:06:32.958Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:06:32.961Z [INFO]: Get budgets request {}
+2025-07-05T10:06:32.962Z [INFO]: Get budgets success {}
+2025-07-05T10:06:32.968Z [INFO]: Spending summary success {}
+2025-07-05T10:06:32.970Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:06:32.973Z [INFO]: Spending summary request {}
+2025-07-05T10:06:32.975Z [INFO]: Category breakdown success {}
+2025-07-05T10:06:32.976Z [INFO]: Spending summary success {}
+2025-07-05T10:06:32.977Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:06:32.979Z [INFO]: Category breakdown request {}
+2025-07-05T10:06:32.982Z [INFO]: Category breakdown success {}
+2025-07-05T10:06:41.069Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:06:41.074Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:06:59.491Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-05T10:07:10.337Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-05T10:07:29.952Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-05T10:07:30.011Z [INFO]: Saving credit card {"body":{"name":"NIKHIL KUMAR","bank":"","balance":"","cardNumber":"653047******9634","expiry":"","cvv":"","issuer":"","pdfPassword":"NIKH1007","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","cardName":"Neo Rupay Credit Card","creditLimit":"31000.00","availableCreditLimit":"22940.80","availableCashLimit":"0.00","totalPaymentDue":"8059.20","minPaymentDue":"162.00","statementPeriodStart":"2025-01-14","statementPeriodEnd":"2025-06-22","paymentDueDate":"2025-07-12","statementGenDate":"2025-06-22","transactions":[{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00"},{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00"},{"date":"14/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"15/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"17/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00"}],"statementPeriod":"14/01/2025 - 22/06/2025"}}
+2025-07-05T10:07:30.026Z [ERROR]: Error in saveCreditCard: invalid input syntax for type date: "0NaN-NaN-NaNTNaN:NaN:NaN.NaN+NaN:NaN" {"length":177,"name":"error","severity":"ERROR","code":"22007","where":"unnamed portal parameter $2 = '...'","file":"datetime.c","line":"4143","routine":"DateTimeParseError","stack":"error: invalid input syntax for type date: \"0NaN-NaN-NaNTNaN:NaN:NaN.NaN+NaN:NaN\"\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\node_modules\\pg\\lib\\client.js:545:17\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.saveCreditCard (C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\src\\controllers\\creditCardController.js:467:9)"}
+2025-07-05T10:07:41.367Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-05T10:07:41.440Z [INFO]: Saving credit card {"body":{"name":"NIKHIL KUMAR","bank":"","balance":"","cardNumber":"653047******9634","expiry":"","cvv":"","issuer":"","pdfPassword":"NIKH1007","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","cardName":"Neo Rupay Credit Card","creditLimit":"31000.00","availableCreditLimit":"22940.80","availableCashLimit":"0","totalPaymentDue":"8059.20","minPaymentDue":"162.00","statementPeriodStart":"2025-01-14","statementPeriodEnd":"2025-06-22","paymentDueDate":"2025-07-12","statementGenDate":"2025-06-22","transactions":[{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00"},{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00"},{"date":"14/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"15/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"17/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00"}],"statementPeriod":"14/01/2025 - 22/06/2025"}}
+2025-07-05T10:07:41.444Z [ERROR]: Error in saveCreditCard: invalid input syntax for type date: "0NaN-NaN-NaNTNaN:NaN:NaN.NaN+NaN:NaN" {"length":177,"name":"error","severity":"ERROR","code":"22007","where":"unnamed portal parameter $2 = '...'","file":"datetime.c","line":"4143","routine":"DateTimeParseError","stack":"error: invalid input syntax for type date: \"0NaN-NaN-NaNTNaN:NaN:NaN.NaN+NaN:NaN\"\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\node_modules\\pg\\lib\\client.js:545:17\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.saveCreditCard (C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\src\\controllers\\creditCardController.js:467:9)"}
+2025-07-05T10:11:45.760Z [INFO]: Server running on port 3000 
+2025-07-05T10:11:45.764Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:11:47.301Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:11:47.484Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:12:04.584Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:12:04.669Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:12:10.406Z [INFO]: DELETE /api/credit-cards/1 from ::1 
+2025-07-05T10:12:10.539Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T10:12:10.542Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T10:12:12.893Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:12:12.900Z [INFO]: Get accounts request {}
+2025-07-05T10:12:12.902Z [INFO]: Get accounts success {}
+2025-07-05T10:12:12.904Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:12:12.906Z [INFO]: Get accounts request {}
+2025-07-05T10:12:12.907Z [INFO]: Get accounts success {}
+2025-07-05T10:12:20.161Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:12:20.164Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:12:21.675Z [INFO]: DELETE /api/credit-cards/2 from ::1 
+2025-07-05T10:12:21.806Z [INFO]: GET /api/credit-cards/2 from ::1 
+2025-07-05T10:12:21.809Z [INFO]: GET /api/credit-cards/2 from ::1 
+2025-07-05T10:12:23.819Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:12:23.822Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:12:43.035Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-05T10:12:50.888Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-05T10:12:50.981Z [INFO]: Saving credit card {"body":{"name":"NIKHIL KUMAR","bank":"","balance":"","cardNumber":"653047******9634","expiry":"","cvv":"","issuer":"","pdfPassword":"NIKH1007","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","cardName":"Neo Rupay Credit Card","creditLimit":"31000.00","availableCreditLimit":"22940.80","availableCashLimit":"0.00","totalPaymentDue":"8059.20","minPaymentDue":"162.00","statementPeriodStart":"2025-01-14","statementPeriodEnd":"2025-06-22","paymentDueDate":"2025-07-12","statementGenDate":"2025-06-22","transactions":[{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00"},{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00"},{"date":"14/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"15/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"17/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00"}],"statementPeriod":"14/01/2025 - 22/06/2025"}}
+2025-07-05T10:12:50.992Z [ERROR]: Error in saveCreditCard: null value in column "date" of relation "credit_card_transactions" violates not-null constraint {"length":370,"name":"error","severity":"ERROR","code":"23502","detail":"Failing row contains (1, 3, null, UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585, NIKHIL KUMAR, ELECTRONICS, 10.00, 2025-07-05 15:42:50.98896, 2025-07-05 15:42:50.98896).","schema":"public","table":"credit_card_transactions","column":"date","file":"execMain.c","line":"1988","routine":"ExecConstraints","stack":"error: null value in column \"date\" of relation \"credit_card_transactions\" violates not-null constraint\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\node_modules\\pg\\lib\\client.js:545:17\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.saveCreditCard (C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\src\\controllers\\creditCardController.js:475:9)"}
+2025-07-05T10:15:03.075Z [INFO]: Server running on port 3000 
+2025-07-05T10:15:03.077Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:15:06.625Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-05T10:15:06.672Z [INFO]: Saving credit card {"body":{"name":"NIKHIL KUMAR","bank":"","balance":"","cardNumber":"653047******9634","expiry":"","cvv":"","issuer":"","pdfPassword":"NIKH1007","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","cardName":"Neo Rupay Credit Card","creditLimit":"31000.00","availableCreditLimit":"22940.80","availableCashLimit":"0.00","totalPaymentDue":"8059.20","minPaymentDue":"162.00","statementPeriodStart":"2025-01-14","statementPeriodEnd":"2025-06-22","paymentDueDate":"2025-07-12","statementGenDate":"2025-06-22","transactions":[{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00"},{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00"},{"date":"14/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"15/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"17/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00"}],"statementPeriod":"14/01/2025 - 22/06/2025"}}
+2025-07-05T10:15:06.686Z [INFO]: Credit card saved {"cardId":4}
+2025-07-05T10:15:11.360Z [INFO]: GET /api/credit-cards/4 from ::1 
+2025-07-05T10:15:11.367Z [INFO]: GET /api/credit-cards/4 from ::1 
+2025-07-05T10:18:21.100Z [INFO]: Server running on port 3000 
+2025-07-05T10:18:21.102Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:18:34.023Z [INFO]: Server running on port 3000 
+2025-07-05T10:18:34.025Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:20:03.828Z [INFO]: Server running on port 3000 
+2025-07-05T10:20:03.876Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:20:06.133Z [INFO]: Server running on port 3000 
+2025-07-05T10:20:06.136Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:20:40.164Z [INFO]: Server running on port 3000 
+2025-07-05T10:20:40.167Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:21:37.409Z [INFO]: Server running on port 3000 
+2025-07-05T10:21:37.413Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:24:15.190Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:24:15.198Z [INFO]: Get accounts request {}
+2025-07-05T10:24:15.201Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:24:15.208Z [INFO]: Get transactions request {}
+2025-07-05T10:24:15.209Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:24:15.213Z [INFO]: Get budgets request {}
+2025-07-05T10:24:15.214Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:24:15.216Z [INFO]: Spending summary request {}
+2025-07-05T10:24:15.221Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:24:15.225Z [INFO]: Category breakdown request {}
+2025-07-05T10:24:15.321Z [INFO]: Get accounts success {}
+2025-07-05T10:24:15.327Z [INFO]: Get transactions success {}
+2025-07-05T10:24:15.331Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:24:15.333Z [INFO]: Get accounts request {}
+2025-07-05T10:24:15.335Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:24:15.338Z [INFO]: Get transactions request {}
+2025-07-05T10:24:15.341Z [INFO]: Get accounts success {}
+2025-07-05T10:24:15.343Z [INFO]: Get transactions success {}
+2025-07-05T10:24:15.354Z [INFO]: Get budgets success {}
+2025-07-05T10:24:15.357Z [INFO]: Spending summary success {}
+2025-07-05T10:24:15.359Z [INFO]: Category breakdown success {}
+2025-07-05T10:24:15.362Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:24:15.365Z [INFO]: Get budgets request {}
+2025-07-05T10:24:15.366Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:24:15.369Z [INFO]: Spending summary request {}
+2025-07-05T10:24:15.371Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:24:15.374Z [INFO]: Category breakdown request {}
+2025-07-05T10:24:15.375Z [INFO]: Get budgets success {}
+2025-07-05T10:24:15.378Z [INFO]: Spending summary success {}
+2025-07-05T10:24:15.380Z [INFO]: Category breakdown success {}
+2025-07-05T10:24:28.072Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:24:28.074Z [INFO]: Get accounts request {}
+2025-07-05T10:24:28.075Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:24:28.076Z [INFO]: Get transactions request {}
+2025-07-05T10:24:28.078Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:24:28.079Z [INFO]: Get budgets request {}
+2025-07-05T10:24:28.081Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:24:28.082Z [INFO]: Spending summary request {}
+2025-07-05T10:24:28.083Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:24:28.085Z [INFO]: Category breakdown request {}
+2025-07-05T10:24:28.175Z [INFO]: Get accounts success {}
+2025-07-05T10:24:28.177Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:24:28.185Z [INFO]: Get accounts request {}
+2025-07-05T10:24:28.187Z [INFO]: Get accounts success {}
+2025-07-05T10:24:28.196Z [INFO]: Get transactions success {}
+2025-07-05T10:24:28.198Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:24:28.200Z [INFO]: Get transactions request {}
+2025-07-05T10:24:28.202Z [INFO]: Category breakdown success {}
+2025-07-05T10:24:28.204Z [INFO]: Get transactions success {}
+2025-07-05T10:24:28.206Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:24:28.208Z [INFO]: Category breakdown request {}
+2025-07-05T10:24:28.209Z [INFO]: Get budgets success {}
+2025-07-05T10:24:28.211Z [INFO]: Category breakdown success {}
+2025-07-05T10:24:28.212Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:24:28.214Z [INFO]: Get budgets request {}
+2025-07-05T10:24:28.216Z [INFO]: Get budgets success {}
+2025-07-05T10:24:28.219Z [INFO]: Spending summary success {}
+2025-07-05T10:24:28.222Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:24:28.224Z [INFO]: Spending summary request {}
+2025-07-05T10:24:28.225Z [INFO]: Spending summary success {}
+2025-07-05T10:24:42.060Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:24:42.063Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:24:42.066Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:24:42.068Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:24:42.071Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:24:42.073Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:24:42.074Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:24:42.075Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:24:42.077Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:24:42.078Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:25:08.939Z [INFO]: POST /api/auth/register from ::1 
+2025-07-05T10:25:08.939Z [INFO]: Register request {"body":{"email":"knikhil128@gmail.com","password":"123456789","firstName":"nikhil","lastName":"kumar","phone":"91123456890"}}
+2025-07-05T10:25:09.069Z [ERROR]: Registration error: newUserId is not defined {"stack":"ReferenceError: newUserId is not defined\n    at exports.register (C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\src\\controllers\\authController.js:34:47)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"}
+2025-07-05T10:25:24.699Z [INFO]: POST /api/auth/login from ::1 
+2025-07-05T10:25:25.189Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:25:25.191Z [INFO]: Get accounts request {}
+2025-07-05T10:25:25.193Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:25:25.195Z [INFO]: Get transactions request {}
+2025-07-05T10:25:25.196Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:25:25.199Z [INFO]: Get budgets request {}
+2025-07-05T10:25:25.202Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:25:25.204Z [INFO]: Spending summary request {}
+2025-07-05T10:25:25.205Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:25:25.207Z [INFO]: Category breakdown request {}
+2025-07-05T10:25:25.208Z [INFO]: Get accounts success {}
+2025-07-05T10:25:25.213Z [INFO]: GET /api/accounts from ::1 
+2025-07-05T10:25:25.218Z [INFO]: Get accounts request {}
+2025-07-05T10:25:25.221Z [INFO]: Get accounts success {}
+2025-07-05T10:25:25.282Z [INFO]: Get transactions success {}
+2025-07-05T10:25:25.284Z [INFO]: GET /api/transactions from ::1 
+2025-07-05T10:25:25.287Z [INFO]: Get transactions request {}
+2025-07-05T10:25:25.288Z [INFO]: Get transactions success {}
+2025-07-05T10:25:25.297Z [INFO]: Get budgets success {}
+2025-07-05T10:25:25.299Z [INFO]: Category breakdown success {}
+2025-07-05T10:25:25.301Z [INFO]: GET /api/budgets from ::1 
+2025-07-05T10:25:25.303Z [INFO]: Get budgets request {}
+2025-07-05T10:25:25.304Z [INFO]: Spending summary success {}
+2025-07-05T10:25:25.305Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-07-05T10:25:25.307Z [INFO]: Category breakdown request {}
+2025-07-05T10:25:25.308Z [INFO]: Get budgets success {}
+2025-07-05T10:25:25.310Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-07-05T10:25:25.312Z [INFO]: Spending summary request {}
+2025-07-05T10:25:25.314Z [INFO]: Category breakdown success {}
+2025-07-05T10:25:25.315Z [INFO]: Spending summary success {}
+2025-07-05T10:25:30.404Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:25:30.411Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:25:44.852Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-05T10:25:55.040Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-05T10:25:55.195Z [INFO]: Saving credit card {"body":{"name":"NIKHIL KUMAR","bank":"","balance":"","cardNumber":"653047******9634","expiry":"","cvv":"","issuer":"","pdfPassword":"NIKH1007","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","cardName":"Neo Rupay Credit Card","creditLimit":"31000.00","availableCreditLimit":"22940.80","availableCashLimit":"0.00","totalPaymentDue":"8059.20","minPaymentDue":"162.00","statementPeriodStart":"2025-01-14","statementPeriodEnd":"2025-06-22","paymentDueDate":"2025-07-12","statementGenDate":"2025-06-22","transactions":[{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00"},{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00"},{"date":"14/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"15/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"17/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00"}],"statementPeriod":"14/01/2025 - 22/06/2025"}}
+2025-07-05T10:27:01.402Z [INFO]: Server running on port 3000 
+2025-07-05T10:27:01.407Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:27:01.681Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:27:01.795Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:27:23.557Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-05T10:27:30.806Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-05T10:27:30.856Z [INFO]: Saving credit card {"body":{"name":"NIKHIL KUMAR","bank":"","balance":"","cardNumber":"653047******9634","expiry":"","cvv":"","issuer":"","pdfPassword":"NIKH1007","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","cardName":"Neo Rupay Credit Card","creditLimit":"31000.00","availableCreditLimit":"22940.80","availableCashLimit":"0.00","totalPaymentDue":"8059.20","minPaymentDue":"162.00","statementPeriodStart":"2025-01-14","statementPeriodEnd":"2025-06-22","paymentDueDate":"2025-07-12","statementGenDate":"2025-06-22","transactions":[{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00"},{"date":"14/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00"},{"date":"14/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"15/06/2025","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"17/06/2025","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00"}],"statementPeriod":"14/01/2025 - 22/06/2025"}}
+2025-07-05T10:28:02.661Z [INFO]: Server running on port 3000 
+2025-07-05T10:28:02.664Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T10:28:52.567Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:28:52.685Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:29:06.549Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-05T10:29:10.776Z [INFO]: POST /api/credit-cards from ::1 
+2025-07-05T10:29:10.829Z [INFO]: Saving credit card {"body":{"cardName":"Neo Rupay Credit Card Statement","cardNumber":"653047******9634","creditLimit":31000,"availableCreditLimit":22940.8,"availableCashLimit":0,"totalPaymentDue":8059.2,"minPaymentDue":162,"statementPeriod":"14/01/2025 - 22/06/2025","statementPeriodStart":"2025-01-14","statementPeriodEnd":"2025-06-22","paymentDueDate":"2025-07-12","statementGenDate":"2025-06-22","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","issuer":"","bank":"","status":"Active","transactions":[{"date":"2025-06-14","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00"},{"date":"2025-06-14","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00"},{"date":"2025-06-14","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"2025-06-15","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60"},{"date":"2025-06-17","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00"}],"user_id":"knikhil128@gmail.com"}}
+2025-07-05T10:29:10.842Z [INFO]: Credit card saved {"cardId":1}
+2025-07-05T10:29:26.853Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T10:29:26.908Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T10:31:48.059Z [INFO]: PUT /api/credit-cards/1 from ::1 
+2025-07-05T10:31:48.107Z [INFO]: Updating credit card {"id":"1","body":{"id":1,"userId":"knikhil128@gmail.com","cardName":"Neo Rupay Credit Card Statement","cardNumber":"653047******9634","creditLimit":"31000.00","availableCreditLimit":"22940.80","availableCashLimit":null,"totalPaymentDue":"8059.20","minPaymentDue":"162.00","statementPeriod":"14/01/2025 - 22/06/2025","paymentDueDate":"2025-07-11","statementGenDate":"2025-06-21","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","issuer":null,"status":"Active","statementPeriodStart":"2025-01-13","statementPeriodEnd":"2025-06-21","billPaid":false,"billPaidOn":null,"createdAt":"2025-07-05T10:29:10.831Z","updatedAt":"2025-07-05T10:29:10.831Z","transactions":[{"id":1,"cardId":1,"date":"2025-06-13","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00","createdAt":{},"updatedAt":{}},{"id":2,"cardId":1,"date":"2025-06-13","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00","createdAt":{},"updatedAt":{}},{"id":3,"cardId":1,"date":"2025-06-13","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60","createdAt":{},"updatedAt":{}},{"id":4,"cardId":1,"date":"2025-06-14","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60","createdAt":{},"updatedAt":{}},{"id":5,"cardId":1,"date":"2025-06-16","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00","createdAt":{},"updatedAt":{}}],"bill_paid":true,"user_id":"knikhil128@gmail.com"}}
+2025-07-05T10:31:48.122Z [INFO]: Credit card updated successfully {"id":"1"}
+2025-07-05T10:32:12.953Z [INFO]: PUT /api/credit-cards/1 from ::1 
+2025-07-05T10:32:13.021Z [INFO]: Updating credit card {"id":"1","body":{"id":1,"userId":"knikhil128@gmail.com","cardName":"Neo Rupay Credit Card Statement","cardNumber":"653047******9634","creditLimit":"31000.00","availableCreditLimit":"22940.80","availableCashLimit":null,"totalPaymentDue":"8059.20","minPaymentDue":"162.00","statementPeriod":"14/01/2025 - 22/06/2025","paymentDueDate":"2025-07-10","statementGenDate":"2025-06-20","address":"1532 P2 SANJAY NAGAR DCM AJMER ROAD, , JAIPUR 302021","issuer":"Axis Bank","status":"Active","statementPeriodStart":"2025-01-12","statementPeriodEnd":"2025-06-20","billPaid":false,"billPaidOn":null,"createdAt":"2025-07-05T10:29:10.831Z","updatedAt":"2025-07-05T10:31:48.111Z","transactions":[{"id":6,"cardId":1,"date":"2025-06-12","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"10.00","createdAt":{},"updatedAt":{}},{"id":7,"cardId":1,"date":"2025-06-12","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"1990.00","createdAt":{},"updatedAt":{}},{"id":8,"cardId":1,"date":"2025-06-12","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60","createdAt":{},"updatedAt":{}},{"id":9,"cardId":1,"date":"2025-06-13","details":"WWW CHEQ ONE","name":"NIKHIL KUMAR","category":"EDUCATION","amount":"2029.60","createdAt":{},"updatedAt":{}},{"id":10,"cardId":1,"date":"2025-06-15","details":"UPI/NIKHIL KUMAR/PAYTMQR5O1YOK@PTYS/8955407585","name":"NIKHIL KUMAR","category":"ELECTRONICS","amount":"2000.00","createdAt":{},"updatedAt":{}}],"user_id":"knikhil128@gmail.com"}}
+2025-07-05T10:32:13.034Z [INFO]: Credit card updated successfully {"id":"1"}
+2025-07-05T10:32:33.896Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:32:33.962Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:32:35.933Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T10:32:35.937Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T10:37:26.463Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T10:37:26.562Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T10:41:37.035Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:41:37.101Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T10:41:59.280Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-05T17:00:54.743Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T17:00:54.851Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T17:00:59.602Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T17:00:59.608Z [INFO]: GET /api/credit-cards/1 from ::1 
+2025-07-05T17:01:08.456Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T17:01:08.460Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T17:01:27.211Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-05T17:01:40.207Z [INFO]: POST /api/credit-cards/extract-credit-card-info from ::1 
+2025-07-05T17:08:09.415Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T17:08:09.526Z [INFO]: GET /api/credit-cards from ::1 
+2025-07-05T18:00:40.187Z [INFO]: Server running on port 3000 
+2025-07-05T18:00:40.192Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:00:48.949Z [INFO]: Server running on port 3000 
+2025-07-05T18:00:48.952Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:01:18.628Z [INFO]: GET /api/credit-cards/card-names from ::1 
+2025-07-05T18:01:18.711Z [ERROR]: Error in getCreditCardById: invalid input syntax for type integer: "card-names" {"length":153,"name":"error","severity":"ERROR","code":"22P02","where":"unnamed portal parameter $1 = '...'","file":"numutils.c","line":"619","routine":"pg_strtoint32_safe","stack":"error: invalid input syntax for type integer: \"card-names\"\n    at C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\node_modules\\pg\\lib\\client.js:545:17\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getCreditCardById (C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\src\\controllers\\creditCardController.js:593:24)"}
+2025-07-05T18:10:40.375Z [INFO]: Server running on port 3000 
+2025-07-05T18:10:40.380Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:15:27.864Z [INFO]: Server running on port 3000 
+2025-07-05T18:15:27.866Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:19:19.169Z [INFO]: Server running on port 3000 
+2025-07-05T18:19:19.172Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:21:48.519Z [INFO]: Server running on port 3000 
+2025-07-05T18:21:48.521Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:24:09.566Z [INFO]: Server running on port 3000 
+2025-07-05T18:24:09.572Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:24:45.686Z [INFO]: Server running on port 3000 
+2025-07-05T18:24:45.690Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:25:34.306Z [INFO]: Server running on port 3000 
+2025-07-05T18:25:34.311Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:26:31.661Z [INFO]: Server running on port 3000 
+2025-07-05T18:26:31.665Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:27:27.585Z [INFO]: Server running on port 3000 
+2025-07-05T18:27:27.589Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:27:54.120Z [INFO]: Server running on port 3000 
+2025-07-05T18:27:54.123Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:28:36.390Z [INFO]: Server running on port 3000 
+2025-07-05T18:28:36.395Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:29:15.649Z [INFO]: Server running on port 3000 
+2025-07-05T18:29:15.652Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-07-05T18:30:11.063Z [INFO]: Server running on port 3000 
+2025-07-05T18:30:11.066Z [INFO]: Swagger docs at http://localhost:3000/api-docs 

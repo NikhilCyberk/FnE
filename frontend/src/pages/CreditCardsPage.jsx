@@ -170,11 +170,14 @@ const CreditCardsPage = () => {
 
   const buildCardPayload = (form) => {
     const token = localStorage.getItem('token');
-    let userId = null;
+    let userEmail = 'default@example.com'; // Default email for testing
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        userId = decoded.userId || decoded.id || decoded.user_id || null;
+        // Try to get email from token, fallback to default
+        userEmail = decoded.email || decoded.userEmail || decoded.user_email || 'default@example.com';
+        console.log('JWT decoded:', decoded);
+        console.log('User email extracted:', userEmail);
       } catch (e) {
         log.error('Failed to decode token', e);
       }
@@ -183,7 +186,7 @@ const CreditCardsPage = () => {
       const n = cleanNumber(val);
       return (n !== null && !isNaN(n)) ? n : fallback;
     };
-    return {
+    const payload = {
       cardName: form.cardName || form.name || '',
       cardNumber: form.cardNumber || '',
       creditLimit: safeNumber(form.creditLimit, 0),
@@ -204,20 +207,25 @@ const CreditCardsPage = () => {
         ...tx,
         date: toISODate(tx.date)
       })),
-      user_id: userId
+      user_id: userEmail // Use email as user_id
     };
+    console.log('Final payload:', payload);
+    return payload;
   };
 
   const handleSave = async (form) => {
     setLoading(true);
     try {
+      // Build the payload with user_id
+      const payload = buildCardPayload(form);
+      
       // If editing, update; else, add new
       if (editCard) {
-        const res = await api.put(`/api/credit-cards/${editCard.id}`, form);
+        const res = await api.put(`/api/credit-cards/${editCard.id}`, payload);
         setItems((prev) => prev.map(c => c.id === editCard.id ? res.data : c));
       } else {
-        const res = await api.post('/api/credit-cards', form);
-      setItems((prev) => [...prev, res.data]);
+        const res = await api.post('/api/credit-cards', payload);
+        setItems((prev) => [...prev, res.data]);
       }
       setSnackbar({ open: true, message: 'Credit card saved successfully!', severity: 'success' });
       handleClose();
