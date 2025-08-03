@@ -1694,3 +1694,39 @@
 2025-07-05T18:29:15.652Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
 2025-07-05T18:30:11.063Z [INFO]: Server running on port 3000 
 2025-07-05T18:30:11.066Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-08-03T02:59:30.917Z [INFO]: Server running on port 3000 
+2025-08-03T02:59:30.920Z [INFO]: Swagger docs at http://localhost:3000/api-docs 
+2025-08-03T03:00:12.187Z [INFO]: GET /api/accounts from ::1 
+2025-08-03T03:00:12.203Z [INFO]: GET /api/transactions from ::1 
+2025-08-03T03:00:12.207Z [INFO]: GET /api/budgets from ::1 
+2025-08-03T03:00:12.211Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-08-03T03:00:12.214Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-08-03T03:00:12.217Z [INFO]: GET /api/accounts from ::1 
+2025-08-03T03:00:12.222Z [INFO]: GET /api/transactions from ::1 
+2025-08-03T03:00:12.225Z [INFO]: GET /api/budgets from ::1 
+2025-08-03T03:00:12.228Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-08-03T03:00:12.231Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-08-03T03:00:16.456Z [INFO]: GET /api/accounts?page=1&limit=10 from ::1 
+2025-08-03T03:00:16.460Z [INFO]: GET /api/accounts?page=1&limit=10 from ::1 
+2025-08-03T03:00:18.078Z [INFO]: GET /api/credit-cards from ::1 
+2025-08-03T03:00:18.082Z [ERROR]: Unhandled error:  {"stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getCreditCards (C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\backend\\src\\controllers\\creditCardController.js:556:18)"}
+2025-08-03T03:00:18.084Z [INFO]: GET /api/credit-cards from ::1 
+2025-08-03T03:00:18.086Z [ERROR]: Unhandled error:  {"stack":"AggregateError [ECONNREFUSED]: \n    at C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async exports.getCreditCards (C:\\Users\\Nikhil\\Desktop\\FnE\\FnE\\backend\\src\\controllers\\creditCardController.js:556:18)"}
+2025-08-03T03:00:19.376Z [INFO]: GET /api/categories from ::1 
+2025-08-03T03:00:19.380Z [INFO]: GET /api/transactions from ::1 
+2025-08-03T03:00:19.389Z [INFO]: GET /api/accounts from ::1 
+2025-08-03T03:00:19.399Z [INFO]: GET /api/categories from ::1 
+2025-08-03T03:00:19.402Z [INFO]: GET /api/transactions from ::1 
+2025-08-03T03:00:19.406Z [INFO]: GET /api/accounts from ::1 
+2025-08-03T03:00:20.491Z [INFO]: GET /api/budgets from ::1 
+2025-08-03T03:00:20.493Z [INFO]: GET /api/budgets from ::1 
+2025-08-03T03:00:24.559Z [INFO]: GET /api/budgets from ::1 
+2025-08-03T03:00:24.568Z [INFO]: GET /api/budgets from ::1 
+2025-08-03T03:00:24.570Z [INFO]: GET /api/accounts from ::1 
+2025-08-03T03:00:24.572Z [INFO]: GET /api/transactions from ::1 
+2025-08-03T03:00:24.575Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-08-03T03:00:24.577Z [INFO]: GET /api/reports/category-breakdown from ::1 
+2025-08-03T03:00:24.579Z [INFO]: GET /api/accounts from ::1 
+2025-08-03T03:00:24.581Z [INFO]: GET /api/transactions from ::1 
+2025-08-03T03:00:24.584Z [INFO]: GET /api/reports/spending-summary from ::1 
+2025-08-03T03:00:24.587Z [INFO]: GET /api/reports/category-breakdown from ::1 

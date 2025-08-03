@@ -38,6 +38,21 @@ dotenv.config();
       servers: [
         { url: 'http://localhost:3000' },
       ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            description: 'JWT token obtained from login endpoint'
+          }
+        }
+      },
+      security: [
+        {
+          bearerAuth: []
+        }
+      ]
     },
     apis: ['./src/routes/*.js', './src/server.js'],
   };
