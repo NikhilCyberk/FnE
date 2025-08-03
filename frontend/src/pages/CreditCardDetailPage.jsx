@@ -1,1437 +1,237 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchCreditCardById } from '../slices/creditCardsSlice';
 import { 
-  Box, 
-  Typography, 
-  TableContainer, 
-  Table, 
-  TableHead,
-  TableBody, 
-  TableRow, 
-  TableCell, 
-  Paper, 
-  CircularProgress, 
-  Button, 
-  Card, 
-  Grid, 
-  Avatar, 
-  Chip, 
-  Breadcrumbs, 
-  Link, 
-  Divider,
-  Stack,
-  useTheme,
-  useMediaQuery,
-  Alert,
-  IconButton,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Tabs,
-  Tab,
-  LinearProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Snackbar
-} from '@mui/material';
-import { FaCreditCard } from 'react-icons/fa';
-import PrintIcon from '@mui/icons-material/Print';
-import EditIcon from '@mui/icons-material/Edit';
-import DownloadIcon from '@mui/icons-material/Download';
-import CreditCardIcon from '@mui/icons-material/CreditCard';
-import SaveIcon from '@mui/icons-material/Save';
-import CloseIcon from '@mui/icons-material/Close';
-import AddIcon from '@mui/icons-material/Add';
-import UploadIcon from '@mui/icons-material/Upload';
-import api from '../api';
-import CreditCardEditDialog from './CreditCardEditDialog';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { jwtDecode } from 'jwt-decode';
-
-// Bank colors and information
-const BANK_COLORS = {
-  'Axis Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'HDFC Bank': { color: '#FF6F00', bgColor: '#FFF8E1' },
-  'ICICI Bank': { color: '#FF5722', bgColor: '#FBE9E7' },
-  'State Bank of India (SBI)': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Kotak Mahindra Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Punjab National Bank (PNB)': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Bank of Baroda': { color: '#FF5722', bgColor: '#FBE9E7' },
-  'Canara Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Union Bank of India': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Bank of India': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Central Bank of India': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Indian Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'UCO Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Punjab & Sind Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'IDBI Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Yes Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Federal Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Karnataka Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'South Indian Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Tamilnad Mercantile Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'City Union Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'DCB Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'RBL Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Bandhan Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'IDFC First Bank': { color: '#FF5722', bgColor: '#FBE9E7' },
-  'AU Small Finance Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Equitas Small Finance Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Ujjivan Small Finance Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Jammu & Kashmir Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Vijaya Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Dena Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Corporation Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Andhra Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Oriental Bank of Commerce': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Allahabad Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'United Bank of India': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Syndicate Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'IndusInd Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Other': { color: '#757575', bgColor: '#F5F5F5' }
-};
-
-// List of major Indian banks
-const INDIAN_BANKS = Object.keys(BANK_COLORS);
-
-// Helper function to get user email from JWT token
-const getUserEmail = () => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      return decoded.email || decoded.userEmail || decoded.user_email || 'default@example.com';
-    } catch (e) {
-      console.error('Failed to decode token', e);
-    }
-  }
-  return 'default@example.com'; // Default email for testing
-};
-
-function formatCurrency(val) {
-  if (val === undefined || val === null || val === '') return '-';
-  const num = Number(String(val).replace(/,/g, ''));
-  if (isNaN(num)) return '-';
-  return num.toLocaleString('en-IN', { 
-    style: 'currency', 
-    currency: 'INR', 
-    maximumFractionDigits: 2 
-  });
-}
-
-function formatDate(val) {
-  if (!val) return 'N/A';
-  // If it's a Date object, format it directly
-  if (val instanceof Date) {
-    if (isNaN(val.getTime())) return 'N/A';
-    return val.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
-  // If it's a string, try to parse it
-  if (typeof val === 'string') {
-    // Accept YYYY-MM-DD, YYYY-MM-DD HH:mm:ss, DD/MM/YYYY, DD-MM-YYYY, or ISO
-    if (/^\d{4}-\d{2}-\d{2}(?: .*)?$/.test(val)) {
-      // Handles YYYY-MM-DD and YYYY-MM-DD HH:mm:ss
-      const d = val.split(' ')[0];
-      const date = new Date(d);
-      if (isNaN(date.getTime())) return 'N/A';
-      return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    let d = val;
-    if (/\d{2}\/\d{2}\/\d{4}/.test(val)) {
-      const [day, month, year] = val.split('/');
-      d = `${year}-${month}-${day}`;
-    } else if (/\d{2}-\d{2}-\d{4}/.test(val)) {
-      const [day, month, year] = val.split('-');
-      d = `${year}-${month}-${day}`;
-    }
-    const date = new Date(d);
-    if (isNaN(date.getTime())) return 'N/A';
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
-  // If it's an object, try to handle { year, month, day } or { seconds }
-  if (typeof val === 'object' && val !== null) {
-    if ('year' in val && 'month' in val && 'day' in val) {
-      const date = new Date(val.year, val.month - 1, val.day);
-      if (isNaN(date.getTime())) return 'N/A';
-      return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    if ('seconds' in val) {
-      const date = new Date(val.seconds * 1000);
-      if (isNaN(date.getTime())) return 'N/A';
-      return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-  }
-  return 'N/A';
-}
-
-function safeString(val) {
-  if (val === undefined || val === null) return '-';
-  if (typeof val === 'object') {
-    try {
-      return Array.isArray(val) ? val.join(', ') : JSON.stringify(val);
-    } catch {
-      return '[Object]';
-    }
-  }
-  return String(val);
-}
+  FaArrowLeft, 
+  FaEdit, 
+  FaTrash, 
+  FaCreditCard,
+  FaCalendarAlt,
+  FaExclamationTriangle,
+  FaChartPie,
+  FaDownload,
+  FaEye,
+  FaEyeSlash
+} from 'react-icons/fa';
 
 const CreditCardDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  
-  const [card, setCard] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [exporting, setExporting] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [editLoading, setEditLoading] = useState(false);
-  const [statementEditMode, setStatementEditMode] = useState(false);
-  const [statementForm, setStatementForm] = useState({
-    statementPeriodStart: '',
-    statementPeriodEnd: '',
-    statementGenDate: '',
-    address: '',
-    issuer: ''
-  });
-  const [financialEditMode, setFinancialEditMode] = useState(false);
-  const [financialForm, setFinancialForm] = useState({
-    creditLimit: '',
-    availableCreditLimit: '',
-    availableCashLimit: ''
-  });
-  const [paymentEditMode, setPaymentEditMode] = useState(false);
-  const [paymentForm, setPaymentForm] = useState({
-    totalPaymentDue: '',
-    minPaymentDue: '',
-    paymentDueDate: ''
-  });
-  const [tab, setTab] = useState(0);
-  const [cardNameEditMode, setCardNameEditMode] = useState(false);
-  const [cardNameDraft, setCardNameDraft] = useState('');
-  const [editingField, setEditingField] = useState(null);
-  const [fieldDraft, setFieldDraft] = useState('');
-  
-  // New statement upload functionality
-  const [newStatementDialogOpen, setNewStatementDialogOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [pdfPassword, setPdfPassword] = useState('');
-  const [extracting, setExtracting] = useState(false);
-  const [extractedData, setExtractedData] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [cardNamesByBank, setCardNamesByBank] = useState({});
+  const dispatch = useDispatch();
+  const { selectedCard, loading } = useSelector((state) => state.creditCards);
+  const [showBalances, setShowBalances] = useState(true);
 
   useEffect(() => {
-    const fetchCard = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get(`/api/credit-cards/${id}`);
-        setCard(res.data);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching credit card:', err);
-        if (err.response?.status === 404) {
-          setError('Credit card not found');
-        } else {
-          setError('Failed to fetch credit card');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCard();
-  }, [id]);
-
-  useEffect(() => {
-    if (card) {
-      setStatementForm({
-        statementPeriodStart: card.statementPeriodStart || '',
-        statementPeriodEnd: card.statementPeriodEnd || '',
-        statementGenDate: card.statementGenDate || '',
-        address: card.address || '',
-        issuer: card.issuer || ''
-      });
-      setFinancialForm({
-        creditLimit: card.creditLimit || '',
-        availableCreditLimit: card.availableCreditLimit || '',
-        availableCashLimit: card.availableCashLimit || ''
-      });
-      setPaymentForm({
-        totalPaymentDue: card.totalPaymentDue || '',
-        minPaymentDue: card.minPaymentDue || '',
-        paymentDueDate: card.paymentDueDate || ''
-      });
+    if (id) {
+      dispatch(fetchCreditCardById(id));
     }
-  }, [card]);
-
-  useEffect(() => {
-    if (newStatementDialogOpen) {
-      api.get('/api/credit-cards/card-names').then(res => {
-        setCardNamesByBank(res.data || {});
-      });
-    }
-  }, [newStatementDialogOpen]);
-
-  const handleEdit = () => setEditOpen(true);
-  const handleEditClose = () => setEditOpen(false);
-  const handleEditSave = async (form) => {
-    setEditLoading(true);
-    try {
-      const res = await api.put(`/api/credit-cards/${card.id}`, {
-        ...form,
-        user_id: getUserEmail()
-      });
-      setCard(res.data);
-      setEditOpen(false);
-    } catch (err) {
-      alert('Failed to update credit card');
-    } finally {
-      setEditLoading(false);
-    }
-  };
-  const handlePrint = () => window.print();
-  
-  const handleExportCSV = () => {
-    if (!card.transactions || card.transactions.length === 0) {
-      alert('No transactions to export');
-      return;
-    }
-    
-    setExporting(true);
-    try {
-      const headers = ['Date', 'Details', 'Name', 'Category', 'Amount'];
-      const rows = card.transactions.map(txn => [
-        formatDate(txn.date),
-        txn.details || '',
-        txn.name || '',
-        txn.category || '',
-        txn.amount || ''
-      ]);
-      
-      const csvContent = [headers, ...rows]
-        .map(r => r.map(x => `"${String(x || '').replace(/"/g, '""')}"`).join(','))
-        .join('\n');
-      
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `credit_card_${card.id}_transactions.csv`;
-      document.body.appendChild(a);
-      a.click();
-      
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        setExporting(false);
-      }, 100);
-    } catch (err) {
-      console.error('Error exporting CSV:', err);
-      setExporting(false);
-      alert('Failed to export CSV');
-    }
-  };
-
-  const handleStatementEdit = () => setStatementEditMode(true);
-  const handleStatementCancel = () => {
-    setStatementForm({
-      statementPeriodStart: card.statementPeriodStart || '',
-      statementPeriodEnd: card.statementPeriodEnd || '',
-      statementGenDate: card.statementGenDate || '',
-      address: card.address || '',
-      issuer: card.issuer || ''
-    });
-    setStatementEditMode(false);
-  };
-  const handleStatementChange = (e) => {
-    setStatementForm({ ...statementForm, [e.target.name]: e.target.value });
-  };
-  const handleStatementSave = async () => {
-    try {
-      const res = await api.put(`/api/credit-cards/${card.id}`, {
-        ...card,
-        statementPeriodStart: statementForm.statementPeriodStart,
-        statementPeriodEnd: statementForm.statementPeriodEnd,
-        statementGenDate: statementForm.statementGenDate,
-        address: statementForm.address,
-        issuer: statementForm.issuer,
-        user_id: getUserEmail()
-      });
-      // Update card with the response data
-      setCard(res.data);
-      setStatementEditMode(false);
-    } catch (err) {
-      alert('Failed to update statement information');
-    }
-  };
-
-  const handleFinancialEdit = () => setFinancialEditMode(true);
-  const handleFinancialCancel = () => {
-    setFinancialForm({
-      creditLimit: card.creditLimit || '',
-      availableCreditLimit: card.availableCreditLimit || '',
-      availableCashLimit: card.availableCashLimit || ''
-    });
-    setFinancialEditMode(false);
-  };
-  const handleFinancialChange = (e) => {
-    setFinancialForm({ ...financialForm, [e.target.name]: e.target.value });
-  };
-  const handleFinancialSave = async () => {
-    try {
-      const res = await api.put(`/api/credit-cards/${card.id}`, {
-        ...card,
-        creditLimit: financialForm.creditLimit,
-        availableCreditLimit: financialForm.availableCreditLimit,
-        availableCashLimit: financialForm.availableCashLimit,
-        user_id: getUserEmail()
-      });
-      setCard(res.data);
-      setFinancialEditMode(false);
-    } catch (err) {
-      alert('Failed to update financial details');
-    }
-  };
-
-  const handlePaymentEdit = () => setPaymentEditMode(true);
-  const handlePaymentCancel = () => {
-    setPaymentForm({
-      totalPaymentDue: card.totalPaymentDue || '',
-      minPaymentDue: card.minPaymentDue || '',
-      paymentDueDate: card.paymentDueDate || ''
-    });
-    setPaymentEditMode(false);
-  };
-  const handlePaymentChange = (e) => {
-    setPaymentForm({ ...paymentForm, [e.target.name]: e.target.value });
-  };
-  const handlePaymentSave = async () => {
-    try {
-      const res = await api.put(`/api/credit-cards/${card.id}`, {
-        ...card,
-        totalPaymentDue: paymentForm.totalPaymentDue,
-        minPaymentDue: paymentForm.minPaymentDue,
-        paymentDueDate: paymentForm.paymentDueDate,
-        user_id: getUserEmail()
-      });
-      setCard(res.data);
-      setPaymentEditMode(false);
-    } catch (err) {
-      alert('Failed to update payment information');
-    }
-  };
-
-  const handleCardNameSave = async () => {
-    try {
-      const res = await api.put(`/api/credit-cards/${card.id}`, {
-        ...card,
-        cardName: cardNameDraft,
-        user_id: getUserEmail()
-      });
-      setCard(res.data);
-      setCardNameEditMode(false);
-    } catch (err) {
-      alert('Failed to update card name');
-    }
-  };
-
-  const handleCardNameCancel = () => {
-    setCardNameDraft(card.name || '');
-    setCardNameEditMode(false);
-  };
-
-  const handleFieldEdit = (field, value) => {
-    setEditingField(field);
-    setFieldDraft(value);
-  };
-  const handleFieldSave = async (field) => {
-    try {
-      const res = await api.put(`/api/credit-cards/${card.id}`, {
-        ...card,
-        [field]: fieldDraft,
-        user_id: getUserEmail()
-      });
-      setCard(res.data);
-      setEditingField(null);
-      setFieldDraft('');
-    } catch (err) {
-      alert('Failed to update field');
-    }
-  };
-  const handleFieldCancel = () => {
-    setEditingField(null);
-    setFieldDraft('');
-  };
-
-  // New statement upload functions
-  const handleNewStatementOpen = () => {
-    setNewStatementDialogOpen(true);
-    setSelectedFile(null);
-    setPdfPassword('');
-    setExtractedData(null);
-    setShowPreview(false);
-  };
-
-  const handleNewStatementClose = () => {
-    setNewStatementDialogOpen(false);
-    setSelectedFile(null);
-    setPdfPassword('');
-    setExtractedData(null);
-    setShowPreview(false);
-  };
-
-  const handleFileSelect = (e) => {
-    setSelectedFile(e.target.files[0]);
-  };
-
-  const handleExtractStatement = async () => {
-    if (!selectedFile) return;
-    
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    if (pdfPassword) {
-      formData.append('password', pdfPassword);
-    }
-    
-    setExtracting(true);
-    try {
-      const res = await api.post('/api/credit-cards/extract-credit-card-info', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
-      setExtractedData(res.data);
-      setShowPreview(true);
-      setSnackbar({ open: true, message: 'Statement extracted successfully!', severity: 'success' });
-    } catch (err) {
-      let msg = 'Failed to extract statement from PDF.';
-      if (err.response && err.response.data) {
-        msg += ' ' + (err.response.data.error || '');
-      }
-      setSnackbar({ open: true, message: msg, severity: 'error' });
-    } finally {
-      setExtracting(false);
-    }
-  };
-
-  const handleUpdateWithNewStatement = async () => {
-    if (!extractedData) return;
-    
-    try {
-      // Merge the extracted data with existing card data
-      const updatedCard = {
-        ...card,
-        // Update financial information
-        creditLimit: extractedData.creditLimit || card.creditLimit,
-        availableCreditLimit: extractedData.availableCreditLimit || card.availableCreditLimit,
-        availableCashLimit: extractedData.availableCashLimit || card.availableCashLimit,
-        totalPaymentDue: extractedData.totalPaymentDue || card.totalPaymentDue,
-        minPaymentDue: extractedData.minPaymentDue || card.minPaymentDue,
-        
-        // Update statement information
-        statementPeriod: extractedData.statementPeriod || card.statementPeriod,
-        statementPeriodStart: extractedData.statementPeriodStart || card.statementPeriodStart,
-        statementPeriodEnd: extractedData.statementPeriodEnd || card.statementPeriodEnd,
-        paymentDueDate: extractedData.paymentDueDate || card.paymentDueDate,
-        statementGenDate: extractedData.statementGenDate || card.statementGenDate,
-        
-        // Update other fields
-        address: extractedData.address || card.address,
-        issuer: extractedData.issuer || card.issuer,
-        
-        // Merge transactions (append new ones to existing)
-        transactions: [
-          ...(card.transactions || []),
-          ...(extractedData.transactions || [])
-        ],
-        
-        // Include user_id for backend validation
-        user_id: getUserEmail()
-      };
-
-      const res = await api.put(`/api/credit-cards/${card.id}`, updatedCard);
-      setCard(res.data);
-      setSnackbar({ open: true, message: 'Card updated with new statement!', severity: 'success' });
-      handleNewStatementClose();
-    } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to update card with new statement', severity: 'error' });
-    }
-  };
-
-  const handleSnackbarClose = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
+  }, [dispatch, id]);
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
     );
   }
 
-  if (error) {
+  if (!selectedCard) {
     return (
-      <Box sx={{ p: 4, maxWidth: 1000, mx: 'auto' }}>
-        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
-        <Button variant="outlined" onClick={() => navigate(-1)}>
-          &larr; Back
-        </Button>
-      </Box>
+      <div className="text-center py-12">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Card not found</h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-6">The credit card you're looking for doesn't exist.</p>
+        <button
+          onClick={() => navigate('/credit-cards')}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        >
+          Back to Credit Cards
+        </button>
+      </div>
     );
   }
 
-  if (!card) return null;
-
-  // Debug: Log the card and transactions
-  console.log('CARD OBJECT:', card);
-  if (Array.isArray(card.transactions)) {
-    card.transactions.forEach((txn, idx) => {
-      console.log(`Transaction #${idx + 1}:`, txn);
-      console.log('Transaction date raw:', txn.date, typeof txn.date, JSON.stringify(txn.date));
-    });
-  }
+  const utilization = selectedCard.creditLimit > 0 ? (selectedCard.currentBalance / selectedCard.creditLimit) * 100 : 0;
+  const isOverLimit = selectedCard.currentBalance > selectedCard.creditLimit;
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 2, sm: 3 } }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <Link component={RouterLink} underline="hover" color="inherit" to="/">
-          Home
-        </Link>
-        <Link component={RouterLink} underline="hover" color="inherit" to="/credit-cards">
-          Credit Cards
-        </Link>
-        <Typography color="text.primary">Details</Typography>
-      </Breadcrumbs>
-
-      {/* Credit Card Display (Header) */}
-      <Card
-        sx={{
-          p: { xs: 2, sm: 3, md: 4 },
-          mb: 4,
-          borderRadius: 3,
-          background: 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)',
-          color: 'white',
-          position: 'relative',
-          overflow: 'hidden',
-          minHeight: { xs: 'auto', md: 300 },
-          transition: 'box-shadow 0.3s cubic-bezier(.25,.8,.25,1), transform 0.2s cubic-bezier(.25,.8,.25,1)',
-          boxShadow: 4,
-          '&:hover': {
-            boxShadow: 10,
-            transform: 'translateY(-2px) scale(1.01)'
-          }
-        }}
-      >
-        {/* Background Pattern */}
-        <CreditCardIcon sx={{
-          position: 'absolute',
-          right: { xs: 10, md: 20 },
-          top: { xs: 10, md: 20 },
-          fontSize: { xs: 80, md: 120 },
-          color: 'rgba(255,255,255,0.1)',
-          zIndex: 0,
-        }} />
-        
-        {/* Card Header */}
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-          <Stack 
-            direction={{ xs: 'column', md: 'row' }} 
-            justifyContent="space-between" 
-            alignItems={{ xs: 'flex-start', md: 'center' }}
-            spacing={2}
-            sx={{ mb: 3 }}
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/credit-cards')}
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
-            <Box display="flex" alignItems="center">
-              <Avatar sx={{ 
-                bgcolor: 'rgba(255,255,255,0.2)', 
-                color: 'white', 
-                width: { xs: 48, md: 56 }, 
-                height: { xs: 48, md: 56 }, 
-                mr: 2 
-              }}>
-                <FaCreditCard size={isSmallScreen ? 20 : 24} />
-              </Avatar>
-              <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {cardNameEditMode ? (
-                    <>
-                      <TextField
-                        value={cardNameDraft}
-                        onChange={e => setCardNameDraft(e.target.value)}
-                        size="small"
-                        variant="outlined"
-                        sx={{ bgcolor: 'white', borderRadius: 1, minWidth: 200 }}
-                        inputProps={{ style: { fontWeight: 600, fontSize: isSmallScreen ? 20 : 24 } }}
-                      />
-                      <IconButton size="small" color="primary" onClick={handleCardNameSave}><SaveIcon /></IconButton>
-                      <IconButton size="small" onClick={handleCardNameCancel}><CloseIcon /></IconButton>
-                    </>
-                  ) : (
-                    <Typography
-                      variant={isSmallScreen ? "h6" : "h5"}
-                      fontWeight={600}
-                      sx={{ mr: 1, cursor: 'pointer' }}
-                      onClick={() => {
-                        setCardNameDraft(card.cardName || card.name || 'Credit Card');
-                        setCardNameEditMode(true);
-                      }}
-                    >
-                      {safeString(card.cardName || card.name || 'Credit Card')}
-                    </Typography>
-                  )}
-                </Box>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    fontFamily: 'monospace', 
-                    fontSize: { xs: 14, md: 16 },
-                    letterSpacing: 1,
-                    mt: 0.5
-                  }}
-                >
-                  {safeString(card.cardNumber)}
-                </Typography>
-              </Box>
-            </Box>
-            
-            <Box>
-              <Chip
-                label={safeString(card.status) || 'Active'}
-                color={card.status === 'Inactive' ? 'default' : 'success'}
-                sx={{ 
-                  fontWeight: 600, 
-                  mb: 2,
-                  bgcolor: card.status === 'Inactive' ? 'rgba(255,255,255,0.3)' : 'rgba(76,175,80,0.8)'
-                }}
-              />
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-                <Button 
-                  variant="contained" 
-                  size="small"
-                  startIcon={<UploadIcon />} 
-                  onClick={handleNewStatementOpen}
-                  sx={{ 
-                    bgcolor: 'rgba(76,175,80,0.8)', 
-                    color: 'white',
-                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.2s',
-                    boxShadow: 1,
-                    '&:hover': { bgcolor: 'rgba(76,175,80,1)', color: 'white', boxShadow: 4, transform: 'scale(1.05)' }
-                  }}
-                >
-                  Add New Statement
-                </Button>
-                <Button 
-                  variant="contained" 
-                  size="small"
-                  startIcon={<PrintIcon />} 
-                  onClick={handlePrint}
-                  sx={{ 
-                    bgcolor: 'rgba(255,255,255,0.2)', 
-                    color: 'white',
-                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.2s',
-                    boxShadow: 1,
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.3)', color: '#1976d2', boxShadow: 4, transform: 'scale(1.05)' }
-                  }}
-                >
-                  Print
-                </Button>
-                <Button 
-                  variant="contained" 
-                  size="small"
-                  startIcon={<DownloadIcon />} 
-                  onClick={handleExportCSV} 
-                  disabled={exporting}
-                  sx={{ 
-                    bgcolor: 'rgba(255,255,255,0.2)', 
-                    color: 'white',
-                    transition: 'background 0.2s, box-shadow 0.2s, transform 0.2s',
-                    boxShadow: 1,
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.3)', color: '#1976d2', boxShadow: 4, transform: 'scale(1.05)' }
-                  }}
-                >
-                  {exporting ? 'Exporting...' : 'Export'}
-                </Button>
-              </Stack>
-            </Box>
-          </Stack>
+            <FaArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedCard.cardName}</h1>
+            <p className="text-gray-600 dark:text-gray-400">Credit card details and transactions</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <FaDownload className="w-4 h-4" />
+            Export Statement
+          </button>
+          <button className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <FaEdit className="w-5 h-5" />
+          </button>
+          <button className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+            <FaTrash className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
 
-          <Divider sx={{ borderColor: 'rgba(255,255,255,0.3)', mb: 3 }} />
-
-          {/* Card Details Grid */}
-          <Grid container spacing={2}>
-            {/* Financial Info */}
-            <Grid xs={12} md={6}>
-              <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, p: 2, height: '100%', position: 'relative' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
-                    Financial Details
-                  </Typography>
-                </Box>
-                <Stack spacing={1.5}>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Credit Limit
-                    </Typography>
-                    {editingField === 'creditLimit' ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TextField
-                          name="creditLimit"
-                          type="number"
-                          value={fieldDraft}
-                          onChange={e => setFieldDraft(e.target.value)}
-                          size="small"
-                          sx={{ bgcolor: 'white', borderRadius: 1, width: '100%' }}
-                        />
-                        <IconButton size="small" color="primary" onClick={() => handleFieldSave('creditLimit')}><SaveIcon /></IconButton>
-                        <IconButton size="small" onClick={handleFieldCancel}><CloseIcon /></IconButton>
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('creditLimit', card.creditLimit)}>
-                        {formatCurrency(card.creditLimit)}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Available Credit
-                    </Typography>
-                    {editingField === 'availableCreditLimit' ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TextField
-                          name="availableCreditLimit"
-                          type="number"
-                          value={fieldDraft}
-                          onChange={e => setFieldDraft(e.target.value)}
-                          size="small"
-                          sx={{ bgcolor: 'white', borderRadius: 1, width: '100%' }}
-                        />
-                        <IconButton size="small" color="primary" onClick={() => handleFieldSave('availableCreditLimit')}><SaveIcon /></IconButton>
-                        <IconButton size="small" onClick={handleFieldCancel}><CloseIcon /></IconButton>
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('availableCreditLimit', card.availableCreditLimit)}>
-                        {formatCurrency(card.availableCreditLimit)}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Available Cash
-                    </Typography>
-                    {editingField === 'availableCashLimit' ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TextField
-                          name="availableCashLimit"
-                          type="number"
-                          value={fieldDraft}
-                          onChange={e => setFieldDraft(e.target.value)}
-                          size="small"
-                          sx={{ bgcolor: 'white', borderRadius: 1, width: '100%' }}
-                        />
-                        <IconButton size="small" color="primary" onClick={() => handleFieldSave('availableCashLimit')}><SaveIcon /></IconButton>
-                        <IconButton size="small" onClick={handleFieldCancel}><CloseIcon /></IconButton>
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('availableCashLimit', card.availableCashLimit)}>
-                        {formatCurrency(card.availableCashLimit)}
-                      </Typography>
-                    )}
-                  </Box>
-                </Stack>
-              </Box>
-            </Grid>
-
-            {/* Payment Info */}
-            <Grid xs={12} md={6}>
-              <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, p: 2, height: '100%', position: 'relative' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
-                    Payment Information
-                  </Typography>
-                </Box>
-                <Stack spacing={1.5}>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Total Payment Due
-                    </Typography>
-                    {editingField === 'totalPaymentDue' ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TextField
-                          name="totalPaymentDue"
-                          type="number"
-                          value={fieldDraft}
-                          onChange={e => setFieldDraft(e.target.value)}
-                          size="small"
-                          sx={{ bgcolor: 'white', borderRadius: 1, width: '100%' }}
-                        />
-                        <IconButton size="small" color="primary" onClick={() => handleFieldSave('totalPaymentDue')}><SaveIcon /></IconButton>
-                        <IconButton size="small" onClick={handleFieldCancel}><CloseIcon /></IconButton>
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('totalPaymentDue', card.totalPaymentDue)}>
-                        {formatCurrency(card.totalPaymentDue)}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Minimum Payment Due
-                    </Typography>
-                    {editingField === 'minPaymentDue' ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TextField
-                          name="minPaymentDue"
-                          type="number"
-                          value={fieldDraft}
-                          onChange={e => setFieldDraft(e.target.value)}
-                          size="small"
-                          sx={{ bgcolor: 'white', borderRadius: 1, width: '100%' }}
-                        />
-                        <IconButton size="small" color="primary" onClick={() => handleFieldSave('minPaymentDue')}><SaveIcon /></IconButton>
-                        <IconButton size="small" onClick={handleFieldCancel}><CloseIcon /></IconButton>
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('minPaymentDue', card.minPaymentDue)}>
-                        {formatCurrency(card.minPaymentDue)}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Payment Due Date
-                    </Typography>
-                    {editingField === 'paymentDueDate' ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TextField
-                          name="paymentDueDate"
-                          type="date"
-                          value={fieldDraft}
-                          onChange={e => setFieldDraft(e.target.value)}
-                          size="small"
-                          InputLabelProps={{ shrink: true }}
-                          sx={{ bgcolor: 'white', borderRadius: 1, width: '100%' }}
-                        />
-                        <IconButton size="small" color="primary" onClick={() => handleFieldSave('paymentDueDate')}><SaveIcon /></IconButton>
-                        <IconButton size="small" onClick={handleFieldCancel}><CloseIcon /></IconButton>
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('paymentDueDate', card.paymentDueDate)}>
-                        {formatDate(card.paymentDueDate)}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Box sx={{ mt: 2 }}>
-                    {card.bill_paid ? (
-                      <Chip label="Paid" color="success" variant="filled" />
-                    ) : (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={async () => {
-                          const res = await api.put(`/api/credit-cards/${card.id}`, { ...card, bill_paid: true, user_id: getUserEmail() });
-                          setCard(res.data);
-                        }}
-                      >
-                        Mark as Paid
-                      </Button>
-                    )}
-                  </Box>
-                </Stack>
-              </Box>
-            </Grid>
-
-            {/* Statement Info */}
-            <Grid xs={12}>
-              <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, p: 2, position: 'relative' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, flexGrow: 1 }}>
-                    Statement Information
-                  </Typography>
-                </Box>
-                <Grid container spacing={2}>
-                  <Grid xs={12} sm={6}>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Statement Period
-                    </Typography>
-                    {editingField === 'statementPeriodStart' || editingField === 'statementPeriodEnd' ? (
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <TextField
-                          name="statementPeriodStart"
-                          type="date"
-                          value={fieldDraft}
-                          onChange={e => setFieldDraft(e.target.value)}
-                          size="small"
-                          InputLabelProps={{ shrink: true }}
-                          sx={{ bgcolor: 'white', borderRadius: 1 }}
-                        />
-                        <Typography sx={{ mx: 1, alignSelf: 'center', color: 'white' }}>to</Typography>
-                        <TextField
-                          name="statementPeriodEnd"
-                          type="date"
-                          value={fieldDraft}
-                          onChange={e => setFieldDraft(e.target.value)}
-                          size="small"
-                          InputLabelProps={{ shrink: true }}
-                          sx={{ bgcolor: 'white', borderRadius: 1 }}
-                        />
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('statementPeriodStart', card.statementPeriodStart)}>
-                        {card.statementPeriod && card.statementPeriod !== '-' 
-                          ? card.statementPeriod
-                          : (card.statementPeriodStart && card.statementPeriodEnd
-                            ? `${formatDate(card.statementPeriodStart)} to ${formatDate(card.statementPeriodEnd)}`
-                            : '-')}
-                      </Typography>
-                    )}
-                  </Grid>
-                  <Grid xs={12} sm={6}>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Statement Generation Date
-                    </Typography>
-                    {editingField === 'statementGenDate' ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TextField
-                          name="statementGenDate"
-                          type="date"
-                          value={fieldDraft}
-                          onChange={e => setFieldDraft(e.target.value)}
-                          size="small"
-                          InputLabelProps={{ shrink: true }}
-                          sx={{ bgcolor: 'white', borderRadius: 1 }}
-                        />
-                        <IconButton size="small" color="primary" onClick={() => handleFieldSave('statementGenDate')}><SaveIcon /></IconButton>
-                        <IconButton size="small" onClick={handleFieldCancel}><CloseIcon /></IconButton>
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('statementGenDate', card.statementGenDate)}>
-                        {formatDate(card.statementGenDate)}
-                      </Typography>
-                    )}
-                  </Grid>
-                  <Grid xs={12} sm={8}>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Address
-                    </Typography>
-                    {editingField === 'address' ? (
-                      <TextField
-                        name="address"
-                        value={fieldDraft}
-                        onChange={e => setFieldDraft(e.target.value)}
-                        size="small"
-                        fullWidth
-                        sx={{ bgcolor: 'white', borderRadius: 1 }}
-                      />
-                    ) : (
-                      <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('address', card.address)}>
-                        {safeString(card.address)}
-                      </Typography>
-                    )}
-                  </Grid>
-                  <Grid xs={12} sm={4}>
-                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
-                      Issuer
-                    </Typography>
-                    {editingField === 'issuer' ? (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <FormControl size="small" fullWidth sx={{ bgcolor: 'white', borderRadius: 1 }}>
-                          <Select
-                            name="issuer"
-                            value={fieldDraft}
-                            onChange={e => setFieldDraft(e.target.value)}
-                            displayEmpty
-                            sx={{ minWidth: 120 }}
-                            renderValue={selected => selected ? (
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: BANK_COLORS[selected]?.color || '#757575', flexShrink: 0 }} />
-                                <Typography sx={{ color: BANK_COLORS[selected]?.color || '#757575', fontWeight: 500 }}>{selected}</Typography>
-                              </Box>
-                            ) : <em>Select a bank</em>}
-                          >
-                            <MenuItem value="">
-                              <em>Select a bank</em>
-                            </MenuItem>
-                            {INDIAN_BANKS.map((bank) => (
-                              <MenuItem key={bank} value={bank}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: BANK_COLORS[bank].color, flexShrink: 0 }} />
-                                  <Typography sx={{ color: BANK_COLORS[bank].color, fontWeight: 500 }}>{bank}</Typography>
-                                </Box>
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                        <IconButton size="small" color="primary" onClick={() => handleFieldSave('issuer')}><SaveIcon /></IconButton>
-                        <IconButton size="small" onClick={handleFieldCancel}><CloseIcon /></IconButton>
-                      </Box>
-                    ) : (
-                      card.issuer && BANK_COLORS[card.issuer] ? (
-                        <Chip
-                          label={card.issuer}
-                          size="small"
-                          sx={{
-                            bgcolor: BANK_COLORS[card.issuer].bgColor,
-                            color: BANK_COLORS[card.issuer].color,
-                            fontWeight: 600,
-                            fontSize: '0.875rem',
-                            cursor: 'pointer',
-                            '& .MuiChip-label': { px: 1.5 }
-                          }}
-                          onClick={() => handleFieldEdit('issuer', card.issuer)}
-                        />
-                      ) : (
-                        <Typography variant="body1" fontWeight={600} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('issuer', card.issuer)}>
-                          {safeString(card.issuer)}
-                        </Typography>
-                      )
-                    )}
-                  </Grid>
-                </Grid>
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-      </Card>
-
-      {/* Tabs */}
-      <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, mb: 3 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
-          <Tab label="Overview" />
-          <Tab label="Transactions" />
-        </Tabs>
-      </Box>
-
-      {/* Tab Panels */}
-      {tab === 0 && (
-        <Box>
-          {/* Overview Tab: Utilization and Trends only, no duplicate details */}
-          <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-            {card.creditLimit && card.availableCreditLimit ? (() => {
-              const limit = Number(card.creditLimit);
-              const available = Number(card.availableCreditLimit);
-              const used = limit - available;
-              const percent = limit > 0 ? Math.round((used / limit) * 100) : 0;
-              return (
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                    Credit Utilization: {percent}% ({formatCurrency(used)} / {formatCurrency(limit)})
-                  </Typography>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={percent}
-                    sx={{ height: 12, borderRadius: 6, background: '#e3eafc', '& .MuiLinearProgress-bar': { background: percent > 90 ? '#d32f2f' : percent > 75 ? '#ffa000' : '#1976d2' } }}
-                  />
-                </Box>
-              );
-            })() : null}
-            {card.transactions && card.transactions.length > 0 && (
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Spending Trends
-                </Typography>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart
-                    data={(() => {
-                      // Group transactions by month and sum positive amounts
-                      const monthly = {};
-                      card.transactions.forEach(txn => {
-                        if (!txn.date || !txn.amount) return;
-                        const date = new Date(txn.date);
-                        if (isNaN(date.getTime())) return;
-                        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                        const amt = Number(txn.amount);
-                        if (amt > 0) {
-                          monthly[key] = (monthly[key] || 0) + amt;
-                        }
-                      });
-                      return Object.entries(monthly).map(([month, total]) => ({ month, total }));
-                    })()}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis tickFormatter={formatCurrency} />
-                    <Tooltip formatter={formatCurrency} labelFormatter={m => `Month: ${m}`} />
-                    <Line type="monotone" dataKey="total" stroke="#1976d2" strokeWidth={3} dot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </Box>
-            )}
-          </Paper>
-        </Box>
-      )}
-      {tab === 1 && (
-        <Box>
-          {/* Transactions Tab: transactions table */}
-          <Card sx={{ p: 0, borderRadius: 2, overflow: 'hidden' }}>
-            <Box sx={{ p: 3, pb: 0 }}>
-              <Typography variant="h6" fontWeight={600}>
-                Transactions
-              </Typography>
-            </Box>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ bgcolor: 'action.hover' }}>
-                    <TableCell><Typography fontWeight={600}>Date</Typography></TableCell>
-                    <TableCell><Typography fontWeight={600}>Details</Typography></TableCell>
-                    <TableCell><Typography fontWeight={600}>Name</Typography></TableCell>
-                    <TableCell><Typography fontWeight={600}>Category</Typography></TableCell>
-                    <TableCell align="right"><Typography fontWeight={600}>Amount</Typography></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(!card.transactions || card.transactions.length === 0) ? (
-                    <TableRow>
-                      <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
-                        <Typography color="text.secondary">
-                          No transactions found
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    card.transactions.map((txn, idx) => (
-                      <TableRow 
-                        key={idx} 
-                        sx={{ 
-                          transition: 'background 0.2s, box-shadow 0.2s',
-                          '&:nth-of-type(odd)': { bgcolor: 'action.hover' },
-                          '&:hover': { bgcolor: 'primary.lighter', boxShadow: 2 }
-                        }}
-                      >
-                        <TableCell>{formatDate(txn.date)}</TableCell>
-                        <TableCell>{safeString(txn.details)}</TableCell>
-                        <TableCell>{safeString(txn.name)}</TableCell>
-                        <TableCell>
-                          {txn.category && (
-                            <Chip 
-                              label={txn.category} 
-                              size="small" 
-                              variant="outlined"
-                              sx={{ fontSize: '0.75rem' }}
-                            />
-                          )}
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography 
-                            fontWeight={600}
-                            color={Number(txn.amount) < 0 ? 'error.main' : 'success.main'}
-                          >
-                            {formatCurrency(txn.amount)}
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-        </Box>
-      )}
-
-      <CreditCardEditDialog
-        open={editOpen}
-        onClose={handleEditClose}
-        card={card}
-        onSave={handleEditSave}
-        loading={editLoading}
-      />
-
-      {/* New Statement Upload Dialog */}
-      <Dialog open={newStatementDialogOpen} onClose={handleNewStatementClose} maxWidth="md" fullWidth>
-        <DialogTitle>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <UploadIcon />
-            Add New Statement for {card?.cardName || card?.name}
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          {!showPreview ? (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Upload a new credit card statement PDF to update this card's information with the latest data.
-              </Typography>
-              
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Bank</InputLabel>
-                <Select
-                  label="Bank"
-                  value={extractedData?.bank || card?.bank || ""}
-                  onChange={e => setExtractedData(data => ({ ...data, bank: e.target.value }))}
-                >
-                  {INDIAN_BANKS.map((bank) => (
-                    <MenuItem key={bank} value={bank}>{bank}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              {/* Card Name Dropdown or TextField */}
-              {(extractedData?.bank && cardNamesByBank[extractedData.bank]) ? (
-                <FormControl fullWidth margin="normal">
-                  <InputLabel>Card Name</InputLabel>
-                  <Select
-                    label="Card Name"
-                    value={extractedData?.cardName || ''}
-                    onChange={e => setExtractedData(data => ({ ...data, cardName: e.target.value }))}
-                  >
-                    {cardNamesByBank[extractedData.bank].map((name) => (
-                      <MenuItem key={name} value={name}>{name}</MenuItem>
-                    ))}
-                    <MenuItem value="other">Other</MenuItem>
-                  </Select>
-                </FormControl>
-              ) : null}
-              {(extractedData?.bank && !cardNamesByBank[extractedData.bank] || extractedData?.cardName === 'other') && (
-                <TextField
-                  label="Card Name"
-                  value={extractedData?.cardName === 'other' ? '' : (extractedData?.cardName || '')}
-                  onChange={e => setExtractedData(data => ({ ...data, cardName: e.target.value }))}
-                  fullWidth
-                  margin="normal"
-                />
-              )}
-              <TextField
-                label="Upload Statement PDF"
-                type="file"
-                inputProps={{ accept: 'application/pdf' }}
-                fullWidth
-                margin="normal"
-                onChange={handleFileSelect}
-                disabled={extracting}
-              />
-              
-              <TextField
-                label="PDF Password (if required)"
-                type="password"
-                value={pdfPassword}
-                onChange={(e) => setPdfPassword(e.target.value)}
-                fullWidth
-                margin="normal"
-                disabled={extracting}
-                helperText="Enter password if the PDF is password protected"
-              />
-              
-              <Button
-                variant="contained"
-                onClick={handleExtractStatement}
-                disabled={extracting || !selectedFile}
-                startIcon={extracting ? <CircularProgress size={20} /> : <UploadIcon />}
-                sx={{ mt: 2 }}
-                fullWidth
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Credit Card Display */}
+        <div className="lg:col-span-1">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-6 text-white">
+            <div className="flex items-center justify-between mb-8">
+              <div className="text-sm opacity-80">VISA</div>
+              <button
+                onClick={() => setShowBalances(!showBalances)}
+                className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
               >
-                {extracting ? 'Extracting...' : 'Extract Statement'}
-              </Button>
-            </Box>
-          ) : (
-            <Box sx={{ mt: 2 }}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Bank</InputLabel>
-                <Select
-                  label="Bank"
-                  value={extractedData?.bank || card?.bank || ""}
-                  onChange={e => setExtractedData(data => ({ ...data, bank: e.target.value }))}
-                >
-                  {INDIAN_BANKS.map((bank) => (
-                    <MenuItem key={bank} value={bank}>{bank}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                label="Card Name"
-                value={extractedData?.cardName || card?.cardName || ""}
-                onChange={e => setExtractedData(data => ({ ...data, cardName: e.target.value }))}
-                fullWidth
-                margin="normal"
-              />
-              <Typography variant="h6" gutterBottom>Extracted Statement Data</Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" color="primary">Financial Information</Typography>
-                  <Box sx={{ mt: 1 }}>
-                    <Typography variant="body2">
-                      <strong>Credit Limit:</strong> {formatCurrency(extractedData?.creditLimit)}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Available Credit:</strong> {formatCurrency(extractedData?.availableCreditLimit)}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Total Payment Due:</strong> {formatCurrency(extractedData?.totalPaymentDue)}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Min Payment Due:</strong> {formatCurrency(extractedData?.minPaymentDue)}
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" color="primary">Statement Information</Typography>
-                  <Box sx={{ mt: 1 }}>
-                    <Typography variant="body2">
-                      <strong>Statement Period:</strong> {extractedData?.statementPeriod}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Payment Due Date:</strong> {formatDate(extractedData?.paymentDueDate)}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Statement Date:</strong> {formatDate(extractedData?.statementGenDate)}
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">
-                    New Transactions: {extractedData?.transactions?.length || 0}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    These will be added to your existing {card?.transactions?.length || 0} transactions.
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleNewStatementClose}>
-            Cancel
-          </Button>
-          {showPreview && (
-            <Button 
-              variant="contained" 
-              onClick={handleUpdateWithNewStatement}
-              startIcon={<SaveIcon />}
-            >
-              Update Card with New Statement
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
+                {showBalances ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <div className="text-sm opacity-80 mb-1">Card Number</div>
+              <div className="text-lg font-mono">
+                {showBalances ? selectedCard.cardNumber?.replace(/(\d{4})/g, '$1 ').trim() : '•••• •••• •••• ••••'}
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm opacity-80 mb-1">Cardholder</div>
+                <div className="font-medium">{selectedCard.cardName}</div>
+              </div>
+              <div>
+                <div className="text-sm opacity-80 mb-1">Bank</div>
+                <div className="font-medium">{selectedCard.bankName}</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert 
-          onClose={handleSnackbarClose} 
-          severity={snackbar.severity} 
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+        {/* Card Details */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Credit Limit</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">
+                    ₹{selectedCard.creditLimit?.toLocaleString() || '0'}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                  <FaCreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Current Balance</p>
+                  <p className={`text-xl font-bold ${isOverLimit ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+                    ₹{selectedCard.currentBalance?.toLocaleString() || '0'}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
+                  <FaExclamationTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Available Credit</p>
+                  <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                    ₹{Math.max(0, (selectedCard.creditLimit || 0) - (selectedCard.currentBalance || 0)).toLocaleString()}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                  <FaChartPie className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Utilization */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Credit Utilization</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Utilization Rate</span>
+                <span className={`text-lg font-bold ${utilization > 30 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                  {utilization.toFixed(1)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div
+                  className={`h-3 rounded-full transition-all duration-300 ${
+                    utilization > 30 ? 'bg-red-500' : 'bg-green-500'
+                  }`}
+                  style={{ width: `${Math.min(utilization, 100)}%` }}
+                ></div>
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {utilization > 30 ? 'High utilization - consider paying down balance' : 'Good utilization rate'}
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Information */}
+          {(selectedCard.dueDate || selectedCard.minimumPayment) && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedCard.dueDate && (
+                  <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <FaCalendarAlt className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                    <div>
+                      <div className="text-sm font-medium text-yellow-800 dark:text-yellow-400">Payment Due Date</div>
+                      <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                        {new Date(selectedCard.dueDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {selectedCard.minimumPayment && (
+                  <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <FaCreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div>
+                      <div className="text-sm font-medium text-blue-800 dark:text-blue-400">Minimum Payment</div>
+                      <div className="text-sm text-blue-700 dark:text-blue-300">
+                        ₹{selectedCard.minimumPayment.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Recent Transactions */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recent Transactions</h3>
+            <div className="text-center py-8">
+              <FaCreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No transactions yet</h4>
+              <p className="text-gray-500 dark:text-gray-400">Transactions will appear here once you import a statement</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

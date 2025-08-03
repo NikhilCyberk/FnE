@@ -1,560 +1,356 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, CircularProgress, Grid, Card, CardContent, Fab, Tooltip, Avatar, FormControl, InputLabel, Select, MenuItem, RadioGroup, FormControlLabel, Radio, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper, TableSortLabel, InputAdornment, TablePagination, Chip } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import { FaCreditCard } from 'react-icons/fa';
-import api from '../api';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import log from 'loglevel';
-import { jwtDecode } from 'jwt-decode';
-import { useNavigate } from 'react-router-dom';
-import CreditCardEditDialog from './CreditCardEditDialog';
-
-const BANK_COLORS = {
-  'Axis Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'HDFC Bank': { color: '#FF6F00', bgColor: '#FFF8E1' },
-  'ICICI Bank': { color: '#FF5722', bgColor: '#FBE9E7' },
-  'State Bank of India (SBI)': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Kotak Mahindra Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Punjab National Bank (PNB)': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Bank of Baroda': { color: '#FF5722', bgColor: '#FBE9E7' },
-  'Canara Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Union Bank of India': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Bank of India': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Central Bank of India': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Indian Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'UCO Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Punjab & Sind Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'IDBI Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Yes Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Federal Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Karnataka Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'South Indian Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Tamilnad Mercantile Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'City Union Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'DCB Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'RBL Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Bandhan Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'IDFC First Bank': { color: '#FF5722', bgColor: '#FBE9E7' },
-  'AU Small Finance Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Equitas Small Finance Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Ujjivan Small Finance Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Jammu & Kashmir Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Vijaya Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Dena Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Corporation Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Andhra Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Oriental Bank of Commerce': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Allahabad Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'United Bank of India': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Syndicate Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'IndusInd Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Other': { color: '#757575', bgColor: '#F5F5F5' }
-};
-
-// Placeholder for Redux slice (to be implemented)
-const useCreditCards = () => {
-  // Replace with real Redux logic
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  return { items, loading, error, setItems, setLoading, setError };
-};
-
-const bankNames = [
-  "State Bank of India",
-  "HDFC Bank",
-  "ICICI Bank",
-  "Axis Bank",
-  "Punjab National Bank",
-  "Bank of Baroda",
-  "Kotak Mahindra Bank",
-  "IndusInd Bank",
-  "Yes Bank",
-  "IDFC FIRST Bank"
-];
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchCreditCards } from '../slices/creditCardsSlice';
+import { 
+  FaPlus, 
+  FaEdit, 
+  FaTrash, 
+  FaCreditCard,
+  FaEye,
+  FaEyeSlash,
+  FaDownload,
+  FaUpload,
+  FaCalendarAlt,
+  FaExclamationTriangle,
+  FaChartPie
+} from 'react-icons/fa';
 
 const CreditCardsPage = () => {
-  const { items: creditCards, loading, error, setItems, setLoading, setError } = useCreditCards();
-  const [open, setOpen] = useState(false);
-  const [editCard, setEditCard] = useState(null);
-  const [form, setForm] = useState({
-    name: '',
-    bank: '',
-    balance: '',
-    cardNumber: '',
-    expiry: '',
-    cvv: '',
-    issuer: '',
-    pdfPassword: ''
-  });
-  const [formErrors, setFormErrors] = useState({});
-  const [creditCardEntryMode, setCreditCardEntryMode] = useState('manual');
-  const [extracting, setExtracting] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [selectedCard, setSelectedCard] = useState(null);
-  const [showDetails, setShowDetails] = useState(false);
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('name');
-  const [filter, setFilter] = useState('');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [detailCard, setDetailCard] = useState(null);
-
-  // Transaction editing helpers
-  const emptyTxn = { date: '', details: '', name: '', category: '', amount: '' };
-  const [editTxnIdx, setEditTxnIdx] = useState(null);
-  const [txnDraft, setTxnDraft] = useState(emptyTxn);
-
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { creditCards, loading } = useSelector((state) => state.creditCards);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showBalances, setShowBalances] = useState(true);
 
   useEffect(() => {
-    // Fetch credit cards from backend
-    const fetchCards = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get('/api/credit-cards');
-        setItems(res.data);
-      } catch (err) {
-        setError('Failed to fetch credit cards');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCards();
-  }, [setItems, setLoading, setError]);
+    dispatch(fetchCreditCards());
+  }, [dispatch]);
 
-  const handleOpen = (card = null) => {
-    setEditCard(card);
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setEditCard(null);
-  };
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const validateForm = () => {
-    const errors = {};
-    if (!form.name) errors.name = 'Name is required.';
-    if (!form.bank) errors.bank = 'Bank is required.';
-    if (form.balance === '' || isNaN(form.balance)) errors.balance = 'Balance must be a number.';
-    if (!form.cardNumber) errors.cardNumber = 'Card Number is required.';
-    if (!form.expiry) errors.expiry = 'Expiry Date is required.';
-    if (!form.cvv) errors.cvv = 'CVV is required.';
-    return errors;
-  };
-
-  // Helper to clean numbers
-  const cleanNumber = str => str ? Number(String(str).replace(/,/g, '')) : null;
-
-  const toISODate = (str) => {
-    if (!str) return null;
-    // Handles DD/MM/YYYY or DD-MM-YYYY
-    const match = str.match(/^([0-9]{2})[\/\-]([0-9]{2})[\/\-]([0-9]{4})$/);
-    if (match) {
-      return `${match[3]}-${match[2]}-${match[1]}`;
-    }
-    // If already in ISO or unrecognized, return as is
-    return str;
-  };
-
-  const buildCardPayload = (form) => {
-    const token = localStorage.getItem('token');
-    let userEmail = 'default@example.com'; // Default email for testing
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        // Try to get email from token, fallback to default
-        userEmail = decoded.email || decoded.userEmail || decoded.user_email || 'default@example.com';
-        console.log('JWT decoded:', decoded);
-        console.log('User email extracted:', userEmail);
-      } catch (e) {
-        log.error('Failed to decode token', e);
-      }
-    }
-    const safeNumber = (val, fallback = 0) => {
-      const n = cleanNumber(val);
-      return (n !== null && !isNaN(n)) ? n : fallback;
-    };
-    const payload = {
-      cardName: form.cardName || form.name || '',
-      cardNumber: form.cardNumber || '',
-      creditLimit: safeNumber(form.creditLimit, 0),
-      availableCreditLimit: safeNumber(form.availableCreditLimit, 0),
-      availableCashLimit: safeNumber(form.availableCashLimit, 0),
-      totalPaymentDue: safeNumber(form.totalPaymentDue, 0),
-      minPaymentDue: safeNumber(form.minPaymentDue, 0),
-      statementPeriod: form.statementPeriod || null,
-      statementPeriodStart: form.statementPeriodStart || null,
-      statementPeriodEnd: form.statementPeriodEnd || null,
-      paymentDueDate: toISODate(form.paymentDueDate),
-      statementGenDate: toISODate(form.statementGenDate),
-      address: form.address || '',
-      issuer: form.issuer || '',
-      bank: form.bank || '',
-      status: form.status || 'Active',
-      transactions: (form.transactions || []).map(tx => ({
-        ...tx,
-        date: toISODate(tx.date)
-      })),
-      user_id: userEmail // Use email as user_id
-    };
-    console.log('Final payload:', payload);
-    return payload;
-  };
-
-  const handleSave = async (form) => {
-    setLoading(true);
-    try {
-      // Build the payload with user_id
-      const payload = buildCardPayload(form);
-      
-      // If editing, update; else, add new
-      if (editCard) {
-        const res = await api.put(`/api/credit-cards/${editCard.id}`, payload);
-        setItems((prev) => prev.map(c => c.id === editCard.id ? res.data : c));
-      } else {
-        const res = await api.post('/api/credit-cards', payload);
-        setItems((prev) => [...prev, res.data]);
-      }
-      setSnackbar({ open: true, message: 'Credit card saved successfully!', severity: 'success' });
-      handleClose();
-    } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to save credit card', severity: 'error' });
-    } finally {
-      setLoading(false);
+  const getCardColor = (cardType) => {
+    switch (cardType?.toLowerCase()) {
+      case 'visa':
+        return 'from-blue-500 to-purple-600';
+      case 'mastercard':
+        return 'from-red-500 to-orange-500';
+      case 'amex':
+        return 'from-green-500 to-blue-600';
+      default:
+        return 'from-gray-600 to-gray-800';
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      setLoading(true);
-      await api.delete(`/api/credit-cards/${id}`);
-      setItems((prev) => prev.filter(card => card.id !== id));
-      setSnackbar({ open: true, message: 'Credit card deleted successfully!', severity: 'success' });
-    } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to delete credit card', severity: 'error' });
-      log.error('API error', err);
-    } finally {
-      setLoading(false);
+  const getCardLogo = (cardType) => {
+    switch (cardType?.toLowerCase()) {
+      case 'visa':
+        return 'VISA';
+      case 'mastercard':
+        return 'MC';
+      case 'amex':
+        return 'AMEX';
+      default:
+        return 'CC';
     }
   };
 
-  const handleBillUpload = async () => {
-    if (!selectedFile) return;
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    if (form.pdfPassword) {
-      formData.append('password', form.pdfPassword);
-    }
-    setExtracting(true);
-    try {
-      const res = await api.post('/api/credit-cards/extract-credit-card-info', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setForm((prev) => {
-        let newForm = { ...prev, ...res.data };
-        // Auto-parse statementPeriod into start/end date fields
-        if (res.data.statementPeriod) {
-          const match = res.data.statementPeriod.match(/(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/);
-          if (match) {
-            // Convert DD/MM/YYYY to YYYY-MM-DD for input type="date"
-            const toISO = (d) => {
-              const [day, month, year] = d.split('/');
-              return `${year}-${month}-${day}`;
-            };
-            newForm.statementPeriodStart = toISO(match[1]);
-            newForm.statementPeriodEnd = toISO(match[2]);
-          }
-        }
-        // Convert all date fields to YYYY-MM-DD for input type='date'
-        const dateFields = ['paymentDueDate', 'statementGenDate'];
-        dateFields.forEach(f => {
-          if (newForm[f] && /\d{2}\/\d{2}\/\d{4}/.test(newForm[f])) {
-            const [day, month, year] = newForm[f].split('/');
-            newForm[f] = `${year}-${month}-${day}`;
-          }
-        });
-        // Parse number fields as numbers or empty string
-        const numFields = ['creditLimit','availableCreditLimit','availableCashLimit','totalPaymentDue','minPaymentDue'];
-        numFields.forEach(f => {
-          if (newForm[f] !== undefined && newForm[f] !== null && newForm[f] !== '') {
-            const n = String(newForm[f]).replace(/,/g, '');
-            newForm[f] = isNaN(Number(n)) ? '' : n;
-          }
-        });
-        return newForm;
-      });
-      setShowPreview(true);
-      setSnackbar({ open: true, message: 'Credit card info extracted successfully!', severity: 'success' });
-      log.info('Extracted credit card info', res.data);
-    } catch (err) {
-      let msg = 'Failed to extract credit card info from PDF.';
-      if (err.response && err.response.data) {
-        msg += ' ' + (err.response.data.error || '');
-        if (err.response.data.details) msg += ' Details: ' + err.response.data.details;
-        if (err.response.data.stack) msg += ' (See console for stack)';
-        console.error('Backend error:', err.response.data);
-      } else {
-        console.error('Unknown error:', err);
-      }
-      setSnackbar({ open: true, message: msg, severity: 'error' });
-      log.error('API error', err);
-    } finally {
-      setExtracting(false);
-    }
-  };
+  const totalCreditLimit = creditCards?.reduce((sum, card) => sum + (card.creditLimit || 0), 0) || 0;
+  const totalBalance = creditCards?.reduce((sum, card) => sum + (card.currentBalance || 0), 0) || 0;
+  const totalAvailable = totalCreditLimit - totalBalance;
+  const utilizationRate = totalCreditLimit > 0 ? (totalBalance / totalCreditLimit) * 100 : 0;
 
-  const handleAddAfterPreview = async () => {
-    try {
-      const payload = buildCardPayload(form);
-      const res = await api.post('/api/credit-cards', payload);
-      setItems((prev) => [...prev, res.data]);
-      setSnackbar({ open: true, message: 'Credit card saved successfully!', severity: 'success' });
-      handleClose();
-      setShowPreview(false);
-      log.info('Added credit card', res.data);
-    } catch (err) {
-      setSnackbar({ open: true, message: 'Failed to save credit card', severity: 'error' });
-      log.error('API error', err);
-    }
-  };
-
-  const handleCancelPreview = () => {
-    setShowPreview(false);
-    handleClose();
-  };
-
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleFilterChange = (e) => {
-    setFilter(e.target.value);
-    setPage(0);
-  };
-
-  function descendingComparator(a, b, orderBy) {
-    if (b[orderBy] < a[orderBy]) return -1;
-    if (b[orderBy] > a[orderBy]) return 1;
-    return 0;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
-
-  function getComparator(order, orderBy) {
-    return order === 'desc'
-      ? (a, b) => descendingComparator(a, b, orderBy)
-      : (a, b) => -descendingComparator(a, b, orderBy);
-  }
-
-  function applySortFilter(array, comparator, filter) {
-    const stabilized = array.map((el, idx) => [el, idx]);
-    stabilized.sort((a, b) => {
-      const order = comparator(a[0], b[0]);
-      if (order !== 0) return order;
-      return a[1] - b[1];
-    });
-    let filtered = stabilized.map((el) => el[0]);
-    if (filter) {
-      filtered = filtered.filter((card) =>
-        card.name?.toLowerCase().includes(filter.toLowerCase()) ||
-        card.bank?.toLowerCase().includes(filter.toLowerCase())
-      );
-    }
-    return filtered;
-  }
-
-  const sortedFilteredCards = applySortFilter(creditCards, getComparator(order, orderBy), filter);
-  const paginatedCards = sortedFilteredCards.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  // Validation for PDF extraction form
-  const validateExtractedForm = () => {
-    const errors = {};
-    if (!form.name) errors.name = 'Name is required.';
-    if (!form.cardNumber) errors.cardNumber = 'Card Number is required.';
-    if (!form.creditLimit || isNaN(Number(form.creditLimit))) errors.creditLimit = 'Credit Limit is required and must be a number.';
-    if (!form.statementPeriodStart) errors.statementPeriodStart = 'Statement Start Date is required.';
-    if (!form.statementPeriodEnd) errors.statementPeriodEnd = 'Statement End Date is required.';
-    if (!form.paymentDueDate) errors.paymentDueDate = 'Payment Due Date is required.';
-    // Optionally: check date format
-    const isValidDate = (d) => !isNaN(Date.parse(d));
-    if (form.statementPeriodStart && !isValidDate(form.statementPeriodStart)) errors.statementPeriodStart = 'Invalid start date.';
-    if (form.statementPeriodEnd && !isValidDate(form.statementPeriodEnd)) errors.statementPeriodEnd = 'Invalid end date.';
-    if (form.paymentDueDate && !isValidDate(form.paymentDueDate)) errors.paymentDueDate = 'Invalid payment due date.';
-    // Numeric fields
-    ['availableCreditLimit','availableCashLimit','totalPaymentDue','minPaymentDue'].forEach(f => {
-      if (form[f] && isNaN(Number(form[f]))) errors[f] = 'Must be a number.';
-    });
-    return errors;
-  };
-
-  // Transaction editing helpers
-  const handleTxnEdit = (idx) => {
-    setEditTxnIdx(idx);
-    setTxnDraft(form.transactions[idx]);
-  };
-  const handleTxnDraftChange = (e) => {
-    setTxnDraft({ ...txnDraft, [e.target.name]: e.target.value });
-  };
-  const handleTxnSave = (idx) => {
-    const updated = [...form.transactions];
-    updated[idx] = txnDraft;
-    setForm(f => ({ ...f, transactions: updated }));
-    setEditTxnIdx(null);
-    setTxnDraft(emptyTxn);
-  };
-  const handleTxnDelete = (idx) => {
-    const updated = [...form.transactions];
-    updated.splice(idx, 1);
-    setForm(f => ({ ...f, transactions: updated }));
-    setEditTxnIdx(null);
-  };
-  const handleTxnAdd = () => {
-    if (!txnDraft.date && !txnDraft.details && !txnDraft.name && !txnDraft.category && !txnDraft.amount) return;
-    setForm(f => ({ ...f, transactions: [...(f.transactions || []), txnDraft] }));
-    setTxnDraft(emptyTxn);
-  };
-
-  const handleRowClick = (card) => navigate(`/credit-cards/${card.id}`);
 
   return (
-    <Box>
-      <Typography variant="h4" mb={3} fontWeight={700} color="primary.main">Credit Cards</Typography>
-      <Tooltip title="Add Credit Card">
-        <Fab color="primary" aria-label="add" onClick={() => handleOpen()} sx={{ mb: 3, position: 'fixed', bottom: 32, right: 32, zIndex: 1000 }}>
-          <AddIcon />
-        </Fab>
-      </Tooltip>
-      <Box mb={2} display="flex" gap={2} alignItems="center">
-        <TextField
-          label="Filter by Name or Bank"
-          value={filter}
-          onChange={handleFilterChange}
-          InputProps={{
-            startAdornment: <InputAdornment position="start">🔍</InputAdornment>,
-          }}
-          size="small"
-          sx={{ width: 300 }}
-        />
-      </Box>
-      {loading ? <CircularProgress /> : (
-        <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3, maxHeight: 520 }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell>Icon</TableCell>
-                <TableCell sortDirection={orderBy === 'name' ? order : false}>
-                  <TableSortLabel
-                    active={orderBy === 'name'}
-                    direction={orderBy === 'name' ? order : 'asc'}
-                    onClick={() => handleRequestSort('name')}
-                  >
-                    Name
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sortDirection={orderBy === 'cardNumber' ? order : false}>
-                  <TableSortLabel
-                    active={orderBy === 'cardNumber'}
-                    direction={orderBy === 'cardNumber' ? order : 'asc'}
-                    onClick={() => handleRequestSort('cardNumber')}
-                  >
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Credit Cards</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your credit cards and track spending</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <FaUpload className="w-4 h-4" />
+            Import Statement
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            <FaPlus className="w-4 h-4" />
+            Add Card
+          </button>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Credit Limit</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                ₹{totalCreditLimit.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+              <FaCreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Balance</p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                ₹{totalBalance.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
+              <FaExclamationTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Available Credit</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                ₹{totalAvailable.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+              <FaEye className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Utilization Rate</p>
+              <p className={`text-2xl font-bold ${utilizationRate > 30 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                {utilizationRate.toFixed(1)}%
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+              <FaChartPie className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Credit Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {creditCards?.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaCreditCard className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No credit cards yet</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">Add your first credit card to start tracking</p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              Add Credit Card
+            </button>
+          </div>
+        ) : (
+          creditCards?.map((card) => {
+            const utilization = card.creditLimit > 0 ? (card.currentBalance / card.creditLimit) * 100 : 0;
+            const isOverLimit = card.currentBalance > card.creditLimit;
+
+            return (
+              <div key={card.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                {/* Credit Card Design */}
+                <div className={`relative h-48 bg-gradient-to-r ${getCardColor(card.cardType)} p-6 text-white`}>
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="text-sm opacity-80">{getCardLogo(card.cardType)}</div>
+                    <div className="flex items-center gap-2">
+                      <button className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors">
+                        {showBalances ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <div className="text-sm opacity-80 mb-1">Card Number</div>
+                    <div className="text-lg font-mono">
+                      {showBalances ? card.cardNumber?.replace(/(\d{4})/g, '$1 ').trim() : '•••• •••• •••• ••••'}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm opacity-80 mb-1">Cardholder</div>
+                      <div className="font-medium">{card.cardName || 'Card Holder'}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm opacity-80 mb-1">Bank</div>
+                      <div className="font-medium">{card.bankName || 'Bank'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Details */}
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{card.cardName}</h3>
+                    <div className="flex items-center gap-2">
+                      <button className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        <FaEdit className="w-4 h-4" />
+                      </button>
+                      <button className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                        <FaTrash className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Credit Limit</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        ₹{card.creditLimit?.toLocaleString() || '0'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Current Balance</span>
+                      <span className={`text-sm font-medium ${isOverLimit ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+                        ₹{card.currentBalance?.toLocaleString() || '0'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Available Credit</span>
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                        ₹{Math.max(0, (card.creditLimit || 0) - (card.currentBalance || 0)).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Utilization Bar */}
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Utilization</span>
+                      <span className={`text-sm font-medium ${utilization > 30 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                        {utilization.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          utilization > 30 ? 'bg-red-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${Math.min(utilization, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Due Date Warning */}
+                  {card.dueDate && (
+                    <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <FaCalendarAlt className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                        <div>
+                          <div className="text-sm font-medium text-yellow-800 dark:text-yellow-400">Payment Due</div>
+                          <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                            {new Date(card.dueDate).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Add Credit Card Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add New Credit Card</h3>
+            </div>
+            <div className="p-6">
+              <form className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Card Name
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter card name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Card Number
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sortDirection={orderBy === 'bank' ? order : false}>
-                  <TableSortLabel
-                    active={orderBy === 'bank'}
-                    direction={orderBy === 'bank' ? order : 'asc'}
-                    onClick={() => handleRequestSort('bank')}
-                  >
-                    Bank
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sortDirection={orderBy === 'balance' ? order : false}>
-                  <TableSortLabel
-                    active={orderBy === 'balance'}
-                    direction={orderBy === 'balance' ? order : 'asc'}
-                    onClick={() => handleRequestSort('balance')}
-                  >
-                    Balance
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sortDirection={orderBy === 'creditLimit' ? order : false}>
-                  <TableSortLabel
-                    active={orderBy === 'creditLimit'}
-                    direction={orderBy === 'creditLimit' ? order : 'asc'}
-                    onClick={() => handleRequestSort('creditLimit')}
-                  >
-                    Credit Limit
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedCards.map((card, idx) => (
-                <TableRow key={card.id} hover sx={{ backgroundColor: idx % 2 === 0 ? 'background.default' : 'action.hover', transition: 'background 0.3s', cursor: 'pointer' }} onClick={() => handleRowClick(card)}>
-                  <TableCell><Avatar sx={{ bgcolor: 'background.default', width: 32, height: 32, mx: 'auto' }}><FaCreditCard size={18} color="#d32f2f" /></Avatar></TableCell>
-                  <TableCell>{card.cardName || card.name || '-'}</TableCell>
-                  <TableCell>{card.cardNumber || '-'}</TableCell>
-                  <TableCell>{card.bank ? (
-                    <Chip
-                      label={card.bank}
-                      sx={{
-                        bgcolor: BANK_COLORS[card.bank]?.bgColor,
-                        color: BANK_COLORS[card.bank]?.color,
-                        fontWeight: 600,
-                        fontSize: '0.875rem',
-                        '& .MuiChip-label': { px: 1.5 }
-                      }}
-                      size="small"
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="1234 5678 9012 3456"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Credit Limit
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0.00"
                     />
-                  ) : '-'}</TableCell>
-                  <TableCell>₹{card.totalPaymentDue !== undefined && card.totalPaymentDue !== null && card.totalPaymentDue !== '' ? card.totalPaymentDue : '-'}</TableCell>
-                  <TableCell>{card.creditLimit !== undefined && card.creditLimit !== null && card.creditLimit !== '' ? card.creditLimit : '-'}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleOpen(card)}><EditIcon /></IconButton>
-                    <IconButton onClick={() => handleDelete(card.id)} color="error"><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {paginatedCards.length === 0 && (
-                <TableRow><TableCell colSpan={7} align="center">No credit cards found</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Current Balance
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Bank Name
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter bank name"
+                  />
+                </div>
+              </form>
+            </div>
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                Add Card
+              </button>
+            </div>
+          </div>
+        </div>
       )}
-      <TablePagination
-        component="div"
-        count={sortedFilteredCards.length}
-        page={page}
-        onPageChange={(e, newPage) => setPage(newPage)}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={e => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
-        rowsPerPageOptions={[5, 10, 25, 50]}
-        sx={{ mt: 1 }}
-      />
-      {error && <Typography color="error">{error}</Typography>}
-      <CreditCardEditDialog
-        open={open}
-        onClose={handleClose}
-        card={editCard}
-        onSave={handleSave}
-        loading={loading}
-      />
-    </Box>
+    </div>
   );
 };
 

@@ -1,247 +1,291 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { fetchAccounts } from '../slices/accountsSlice';
 import { fetchTransactions } from '../slices/transactionsSlice';
-import { fetchBudgets, updateBudget } from '../slices/budgetsSlice';
-import { fetchSpendingSummary, fetchCategoryBreakdown } from '../slices/reportsSlice';
-import { Box, Typography, Grid, Paper, CircularProgress, useTheme, Card, CardContent, Avatar, IconButton } from '@mui/material';
-import { FaCalendarAlt, FaWallet, FaPiggyBank, FaChartPie } from 'react-icons/fa';
-import { MdOutlineSavings } from 'react-icons/md';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { Edit as EditIcon, Save as SaveIcon, Close as CloseIcon } from '@mui/icons-material';
-import log from 'loglevel';
+import { fetchBudgets } from '../slices/budgetsSlice';
+import { 
+  FaWallet, 
+  FaCreditCard, 
+  FaChartLine, 
+  FaPiggyBank,
+  FaArrowUp,
+  FaArrowDown,
+  FaDollarSign,
+  FaCalendarAlt,
+  FaClock
+} from 'react-icons/fa';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const DashboardPage = () => {
   const dispatch = useDispatch();
-  const { items: accounts } = useSelector((state) => state.accounts);
-  const { items: transactions } = useSelector((state) => state.transactions);
-  const { items: budgets } = useSelector((state) => state.budgets);
-  const { spendingSummary, categoryBreakdown, loading } = useSelector((state) => state.reports);
-  const theme = useTheme();
-  const [editingField, setEditingField] = useState(null);
-  const [fieldDraft, setFieldDraft] = useState('');
-  const [saving, setSaving] = useState(false);
+  const { accounts } = useSelector((state) => state.accounts);
+  const { transactions } = useSelector((state) => state.transactions);
+  const { budgets } = useSelector((state) => state.budgets);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    dispatch(fetchAccounts());
-    dispatch(fetchTransactions());
-    dispatch(fetchBudgets());
-    dispatch(fetchSpendingSummary());
-    dispatch(fetchCategoryBreakdown());
+    const loadDashboardData = async () => {
+      try {
+        await Promise.all([
+          dispatch(fetchAccounts()),
+          dispatch(fetchTransactions()),
+          dispatch(fetchBudgets())
+        ]);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboardData();
   }, [dispatch]);
 
-  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress size={48} /></Box>;
+  // Calculate summary data
+  const totalBalance = accounts?.reduce((sum, account) => sum + (account.balance || 0), 0) || 0;
+  const totalIncome = transactions?.filter(t => t.type === 'income').reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  const totalExpenses = transactions?.filter(t => t.type === 'expense').reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  const activeBudgets = budgets?.filter(b => b.status === 'active').length || 0;
 
-  const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-  const totalSpending = spendingSummary.length > 0 ? spendingSummary[0].expense : 0;
-  const totalIncome = spendingSummary.length > 0 ? spendingSummary[0].income : 0;
-  const budget = budgets.length > 0 ? budgets[0].total_amount : 0;
-  const budgetSpent = budgets.length > 0 ? budgets[0].spent_amount : 0;
-
-  const summaryCards = [
-    {
-      label: 'Current Month',
-      value: currentMonth,
-      icon: <FaCalendarAlt size={28} color={theme.palette.primary.main} />,
-      color: 'primary.main',
-    },
-    {
-      label: 'Total Spending',
-      value: `₹${totalSpending}`,
-      icon: <FaWallet size={28} color={theme.palette.error.main} />,
-      color: 'error.main',
-    },
-    {
-      label: 'Total Income',
-      value: `₹${totalIncome}`,
-      icon: <MdOutlineSavings size={32} color={theme.palette.success.main} />,
-      color: 'success.main',
-    },
-    {
-      label: 'Budget',
-      value: `₹${budget}`,
-      icon: <FaPiggyBank size={28} color={theme.palette.info.main} />,
-      color: 'info.main',
-      extra: <Typography variant="body2">Spent: ₹{budgetSpent}</Typography>,
-    },
+  // Sample chart data
+  const monthlyData = [
+    { month: 'Jan', income: 4000, expenses: 2400 },
+    { month: 'Feb', income: 3000, expenses: 1398 },
+    { month: 'Mar', income: 2000, expenses: 9800 },
+    { month: 'Apr', income: 2780, expenses: 3908 },
+    { month: 'May', income: 1890, expenses: 4800 },
+    { month: 'Jun', income: 2390, expenses: 3800 },
   ];
 
-  const handleFieldEdit = (field, value) => {
-    setEditingField(field);
-    setFieldDraft(value);
-  };
+  const categoryData = [
+    { name: 'Food', value: 400, color: '#8884d8' },
+    { name: 'Transport', value: 300, color: '#82ca9d' },
+    { name: 'Shopping', value: 300, color: '#ffc658' },
+    { name: 'Bills', value: 200, color: '#ff7300' },
+  ];
 
-  const handleFieldSave = async (field) => {
-    setSaving(true);
-    if (field === 'budget' && budgets.length > 0) {
-      await dispatch(updateBudget({ id: budgets[0].id, budget: { ...budgets[0], total_amount: Number(fieldDraft) } }));
-    }
-    setEditingField(null);
-    setFieldDraft('');
-    setSaving(false);
-  };
-
-  const handleFieldCancel = () => {
-    setEditingField(null);
-    setFieldDraft('');
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <Box sx={{
-      background: 'linear-gradient(135deg, #e3f0ff 0%, #f8fbff 100%)',
-      minHeight: '100vh',
-      p: { xs: 1, sm: 2, md: 4 }
-    }}>
-      <Typography variant="h4" mb={3} fontWeight={700} color="primary.main">Dashboard</Typography>
-      <Grid container spacing={3}>
-        {summaryCards.map((card, idx) => (
-          <Grid item xs={12} sm={6} md={3} key={card.label}>
-            <Card
-              sx={{
-                borderRadius: 3,
-                boxShadow: 4,
-                p: 0,
-                background: theme.palette.background.paper,
-                transition: 'transform 0.2s, box-shadow 0.2s, background 0.5s',
-                '&:hover': {
-                  boxShadow: 8,
-                  transform: 'scale(1.04)',
-                  background: 'linear-gradient(135deg, #e3f0ff 0%, #f8fbff 100%)',
-                },
-              }}
-            >
-              <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
-                <Avatar sx={{ bgcolor: card.color, width: 48, height: 48, mb: 1, boxShadow: 2 }}>
-                  {card.icon}
-                </Avatar>
-                <Typography variant="subtitle2" color="text.secondary" mb={0.5}>{card.label}</Typography>
-                {/* Inline edit for Budget value as an example */}
-                {card.label === 'Budget' ? (
-                  editingField === 'budget' ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <input
-                        type="number"
-                        value={fieldDraft}
-                        onChange={e => setFieldDraft(e.target.value)}
-                        style={{ fontWeight: 600, fontSize: 20, width: 90, borderRadius: 6, border: '1px solid #ccc', padding: 4 }}
-                      />
-                      <IconButton size="small" color="primary" onClick={() => handleFieldSave('budget')} disabled={saving}><SaveIcon /></IconButton>
-                      <IconButton size="small" onClick={handleFieldCancel}><CloseIcon /></IconButton>
-                    </Box>
-                  ) : (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="h6" fontWeight={600} mb={card.extra ? 0 : 1} sx={{ cursor: 'pointer' }} onClick={() => handleFieldEdit('budget', budget)}>{card.value}</Typography>
-                      <IconButton size="small" onClick={() => handleFieldEdit('budget', budget)}><EditIcon fontSize="small" /></IconButton>
-                    </Box>
-                  )
-                ) : (
-                  <Typography variant="h6" fontWeight={600} mb={card.extra ? 0 : 1}>{card.value}</Typography>
-                )}
-                {card.extra}
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400">Welcome back! Here's your financial overview.</p>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <FaCalendarAlt className="w-4 h-4" />
+          <span>{new Date().toLocaleDateString()}</span>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Total Balance */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Balance</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                ₹{totalBalance.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+              <FaWallet className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <FaArrowUp className="w-4 h-4 text-green-500 mr-1" />
+            <span className="text-green-600 dark:text-green-400">+12.5%</span>
+            <span className="text-gray-500 dark:text-gray-400 ml-1">from last month</span>
+          </div>
+        </div>
+
+        {/* Total Income */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Income</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                ₹{totalIncome.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+              <FaArrowUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <FaArrowUp className="w-4 h-4 text-green-500 mr-1" />
+            <span className="text-green-600 dark:text-green-400">+8.2%</span>
+            <span className="text-gray-500 dark:text-gray-400 ml-1">from last month</span>
+          </div>
+        </div>
+
+        {/* Total Expenses */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Expenses</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                ₹{totalExpenses.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
+              <FaArrowDown className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <FaArrowDown className="w-4 h-4 text-red-500 mr-1" />
+            <span className="text-red-600 dark:text-red-400">+3.1%</span>
+            <span className="text-gray-500 dark:text-gray-400 ml-1">from last month</span>
+          </div>
+        </div>
+
+        {/* Active Budgets */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Budgets</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeBudgets}</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+              <FaPiggyBank className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-sm">
+            <FaClock className="w-4 h-4 text-purple-500 mr-1" />
+            <span className="text-purple-600 dark:text-purple-400">On track</span>
+            <span className="text-gray-500 dark:text-gray-400 ml-1">this month</span>
+          </div>
+        </div>
+      </div>
+
       {/* Charts Section */}
-      <Grid container spacing={3} mt={2}>
-        <Grid item xs={12} md={7}>
-          <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3, height: 340 }}>
-            <Typography variant="subtitle1" fontWeight={600} mb={2}>Spending Over Time</Typography>
-            {spendingSummary.length === 0 ? (
-              <Box sx={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
-                No spending data available.
-              </Box>
-            ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={spendingSummary} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="expense" fill={theme.palette.error.main} name="Spending" />
-                  <Bar dataKey="income" fill={theme.palette.success.main} name="Income" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={5}>
-          <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3, height: 340, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography variant="subtitle1" fontWeight={600} mb={2}>Category Breakdown</Typography>
-            {categoryBreakdown.length === 0 ? (
-              <Box sx={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'text.secondary' }}>
-                No category data available.
-              </Box>
-            ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie
-                    data={categoryBreakdown}
-                    dataKey="total"
-                    nameKey="category"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={70}
-                    fill={theme.palette.primary.main}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                  >
-                    {categoryBreakdown.map((entry, idx) => (
-                      <Cell key={`cell-${idx}`} fill={theme.palette.secondary.main} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </Paper>
-        </Grid>
-      </Grid>
-      {/* Category Breakdown Cards */}
-      <Box mt={5}>
-        <Typography variant="h6" fontWeight={600} mb={2} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FaChartPie color={theme.palette.primary.main} /> Category Breakdown
-        </Typography>
-        <Grid container spacing={2}>
-          {categoryBreakdown.length === 0 ? (
-            <Grid item xs={12}>
-              <Paper sx={{ p: 3, borderRadius: 2, boxShadow: 2, textAlign: 'center', color: 'text.secondary' }}>
-                No category breakdown data available.
-              </Paper>
-            </Grid>
-          ) : (
-            categoryBreakdown.map((cat) => (
-              <Grid item xs={12} sm={6} md={4} key={cat.category}>
-                <Paper sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  boxShadow: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                  background: theme.palette.background.paper,
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    boxShadow: 6,
-                    transform: 'scale(1.03)',
-                    background: 'linear-gradient(135deg, #e3f0ff 0%, #f8fbff 100%)',
-                  },
-                }}>
-                  <Avatar sx={{ bgcolor: theme.palette.secondary.main, width: 36, height: 36, fontSize: 18, fontWeight: 700 }}>
-                    {cat.category[0]}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight={500}>{cat.category}</Typography>
-                    <Typography variant="body2" color="text.secondary">₹{cat.total}</Typography>
-                  </Box>
-                </Paper>
-              </Grid>
-            ))
-          )}
-        </Grid>
-      </Box>
-    </Box>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Cash Flow Chart */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cash Flow</h3>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-gray-600 dark:text-gray-400">Income</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span className="text-gray-600 dark:text-gray-400">Expenses</span>
+              </div>
+            </div>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="month" stroke="#6B7280" />
+                <YAxis stroke="#6B7280" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1F2937', 
+                    border: 'none', 
+                    borderRadius: '8px',
+                    color: '#F9FAFB'
+                  }}
+                />
+                <Line type="monotone" dataKey="income" stroke="#10B981" strokeWidth={2} />
+                <Line type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Category Breakdown */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Expense Categories</h3>
+            <FaChartLine className="w-5 h-5 text-gray-400" />
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1F2937', 
+                    border: 'none', 
+                    borderRadius: '8px',
+                    color: '#F9FAFB'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Transactions</h3>
+        </div>
+        <div className="p-6">
+          {transactions?.slice(0, 5).map((transaction, index) => (
+            <div key={transaction.id || index} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  transaction.type === 'income' 
+                    ? 'bg-green-100 dark:bg-green-900/20' 
+                    : 'bg-red-100 dark:bg-red-900/20'
+                }`}>
+                  {transaction.type === 'income' ? (
+                    <FaArrowUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  ) : (
+                    <FaArrowDown className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">{transaction.description || 'Transaction'}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {transaction.categoryName || 'Uncategorized'}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className={`font-semibold ${
+                  transaction.type === 'income' 
+                    ? 'text-green-600 dark:text-green-400' 
+                    : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {transaction.type === 'income' ? '+' : '-'}₹{Math.abs(transaction.amount || 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {new Date(transaction.transactionDate).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -5,6 +5,7 @@ import transactionsReducer from './slices/transactionsSlice';
 import reportsReducer from './slices/reportsSlice';
 import authReducer from './slices/authSlice';
 import categoriesReducer from './slices/categoriesSlice';
+import creditCardsReducer from './slices/creditCardsSlice';
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     reports: reportsReducer,
     auth: authReducer,
     categories: categoriesReducer,
+    creditCards: creditCardsReducer,
   },
 });
 

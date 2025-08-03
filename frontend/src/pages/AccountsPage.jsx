@@ -1,419 +1,271 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchAccounts, createAccount, updateAccount, deleteAccount } from '../slices/accountsSlice';
-import { Box, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, CircularProgress, TablePagination, Grid, Card, CardContent, Fab, Tooltip, Avatar, FormControl, InputLabel, Select, MenuItem, ListSubheader, Tabs, Tab, RadioGroup, FormControlLabel, Radio, TableSortLabel, InputAdornment } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { FaUniversity, FaMoneyBillWave, FaCreditCard, FaWallet } from 'react-icons/fa';
-import AddIcon from '@mui/icons-material/Add';
-import api from '../api';
-import log from 'loglevel';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchAccounts } from '../slices/accountsSlice';
+import { 
+  FaWallet, 
+  FaPlus, 
+  FaEdit, 
+  FaTrash, 
+  FaEye, 
+  FaEyeSlash,
+  FaBuilding,
+  FaCreditCard,
+  FaUniversity,
+  FaPiggyBank
+} from 'react-icons/fa';
 
 const AccountsPage = () => {
   const dispatch = useDispatch();
-  const accounts = useSelector((state) => Array.isArray(state.accounts.items) ? state.accounts.items : []);
-  const loading = useSelector((state) => state.accounts.loading);
-  const error = useSelector((state) => state.accounts.error);
-  const [open, setOpen] = useState(false);
-  const [editAccount, setEditAccount] = useState(null);
-  const [form, setForm] = useState({
-    name: '',
-    type: '',
-    bank: '',
-    balance: '',
-    cardNumber: '',
-    expiry: '',
-    cvv: '',
-    issuer: '',
-    accountNumber: '',
-    ifsc: '',
-    branch: '',
-    pdfPassword: ''
-  });
-  const [formErrors, setFormErrors] = useState({});
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [creditCardEntryMode, setCreditCardEntryMode] = useState('manual');
-  const [order, setOrder] = useState('asc');
-  const [orderBy, setOrderBy] = useState('name');
-  const [filter, setFilter] = useState('');
-
-  const accountTypes = [
-    "Savings",
-    "Current",
-    "Cash",
-    "Other"
-  ];
-  const bankNames = [
-    "State Bank of India",
-    "HDFC Bank",
-    "ICICI Bank",
-    "Axis Bank",
-    "Punjab National Bank",
-    "Bank of Baroda",
-    "Kotak Mahindra Bank",
-    "IndusInd Bank",
-    "Yes Bank",
-    "IDFC FIRST Bank"
-  ];
+  const { accounts, loading } = useSelector((state) => state.accounts);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showBalances, setShowBalances] = useState(true);
 
   useEffect(() => {
-    dispatch(fetchAccounts({ page: page + 1, limit: rowsPerPage }));
-  }, [dispatch, page, rowsPerPage]);
+    dispatch(fetchAccounts());
+  }, [dispatch]);
 
-  const handleOpen = (account = null) => {
-    setEditAccount(account);
-    setForm(account ? {
-      ...account,
-      bank: account.bank || '',
-      cardNumber: account.cardNumber || '',
-      expiry: account.expiry || '',
-      cvv: account.cvv || '',
-      issuer: account.issuer || '',
-      accountNumber: account.accountNumber || '',
-      ifsc: account.ifsc || '',
-      branch: account.branch || '',
-      pdfPassword: account.pdfPassword || ''
-    } : {
-      name: '',
-      type: '',
-      bank: '',
-      balance: '',
-      cardNumber: '',
-      expiry: '',
-      cvv: '',
-      issuer: '',
-      accountNumber: '',
-      ifsc: '',
-      branch: '',
-      pdfPassword: ''
-    });
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setEditAccount(null);
-    setForm({ name: '', type: '', bank: '', balance: '', cardNumber: '', expiry: '', cvv: '', issuer: '', accountNumber: '', ifsc: '', branch: '', pdfPassword: '' });
-  };
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const validateForm = () => {
-    const errors = {};
-    if (!form.name) errors.name = 'Name is required.';
-    if (!form.type) errors.type = 'Type is required.';
-    if (["Savings", "Current", "Credit Card"].includes(form.type) && !form.bank) errors.bank = 'Bank is required.';
-    if (form.balance === '' || isNaN(form.balance)) errors.balance = 'Balance must be a number.';
-    if (form.type === 'Credit Card') {
-      if (!form.cardNumber) errors.cardNumber = 'Card Number is required.';
-      if (!form.expiry) errors.expiry = 'Expiry Date is required.';
-      if (!form.cvv) errors.cvv = 'CVV is required.';
+  const getAccountIcon = (accountType) => {
+    switch (accountType?.toLowerCase()) {
+      case 'credit':
+        return <FaCreditCard className="w-5 h-5" />;
+      case 'investment':
+        return <FaPiggyBank className="w-5 h-5" />;
+      case 'business':
+        return <FaBuilding className="w-5 h-5" />;
+      default:
+        return <FaUniversity className="w-5 h-5" />;
     }
-    if (["Savings", "Current"].includes(form.type)) {
-      if (!form.accountNumber) errors.accountNumber = 'Account Number is required.';
-      if (!form.ifsc) errors.ifsc = 'IFSC Code is required.';
+  };
+
+  const getAccountColor = (accountType) => {
+    switch (accountType?.toLowerCase()) {
+      case 'credit':
+        return 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400';
+      case 'investment':
+        return 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400';
+      case 'business':
+        return 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400';
+      default:
+        return 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400';
     }
-    return errors;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const errors = validateForm();
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-    if (editAccount) {
-      dispatch(updateAccount({ id: editAccount.id, account: form }));
-    } else {
-      dispatch(createAccount(form));
-    }
-    handleClose();
-    log.info('Submitting account form', form);
-  };
+  const totalBalance = accounts?.reduce((sum, account) => sum + (account.balance || 0), 0) || 0;
+  const totalAccounts = accounts?.length || 0;
 
-  const handleDelete = (id) => {
-    dispatch(deleteAccount(id));
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleFilterChange = (e) => {
-    setFilter(e.target.value);
-    setPage(0);
-  };
-
-  function descendingComparator(a, b, orderBy) {
-    if (b[orderBy] < a[orderBy]) return -1;
-    if (b[orderBy] > a[orderBy]) return 1;
-    return 0;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
-  function getComparator(order, orderBy) {
-    return order === 'desc'
-      ? (a, b) => descendingComparator(a, b, orderBy)
-      : (a, b) => -descendingComparator(a, b, orderBy);
-  }
-  function applySortFilter(array, comparator, filter) {
-    const stabilized = array.map((el, idx) => [el, idx]);
-    stabilized.sort((a, b) => {
-      const order = comparator(a[0], b[0]);
-      if (order !== 0) return order;
-      return a[1] - b[1];
-    });
-    let filtered = stabilized.map((el) => el[0]);
-    if (filter) {
-      filtered = filtered.filter((acc) =>
-        acc.name?.toLowerCase().includes(filter.toLowerCase()) ||
-        acc.type?.toLowerCase().includes(filter.toLowerCase())
-      );
-    }
-    return filtered;
-  }
-  const sortedFilteredAccounts = applySortFilter(accounts, getComparator(order, orderBy), filter);
-  const paginatedAccounts = sortedFilteredAccounts.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  // Helper to get icon by account type
-  const getAccountIcon = (type) => {
-    switch ((type || '').toLowerCase()) {
-      case 'bank': return <FaUniversity size={24} color="#1976d2" />;
-      case 'cash': return <FaMoneyBillWave size={24} color="#43a047" />;
-      case 'credit': return <FaCreditCard size={24} color="#d32f2f" />;
-      default: return <FaWallet size={24} color="#616161" />;
-    }
-  };
-
-  // Handler for credit card bill upload
-  const handleBillUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('password', form.pdfPassword || '');
-    try {
-      const res = await api.post('/api/extract-credit-card-info', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setForm((prev) => ({
-        ...prev,
-        ...res.data // expects backend to return cardNumber, expiry, issuer, etc.
-      }));
-    } catch (err) {
-      // Optionally show error to user
-      alert('Failed to extract credit card info from PDF.');
-      log.error('API error', err);
-    }
-  };
 
   return (
-    <Box>
-      <Typography variant="h4" mb={3} fontWeight={700} color="primary.main">Accounts</Typography>
-      <Tooltip title="Add Account">
-        <Fab color="primary" aria-label="add" onClick={() => handleOpen()} sx={{ mb: 3, position: 'fixed', bottom: 32, right: 32, zIndex: 1000 }}>
-          <AddIcon />
-        </Fab>
-      </Tooltip>
-      <Box mb={2} display="flex" gap={2} alignItems="center">
-        <TextField
-          label="Filter by Name or Type"
-          value={filter}
-          onChange={handleFilterChange}
-          InputProps={{
-            startAdornment: <InputAdornment position="start">🔍</InputAdornment>,
-          }}
-          size="small"
-          sx={{ width: 300 }}
-        />
-      </Box>
-      {loading ? <CircularProgress /> : (
-        <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: 3, maxHeight: 520 }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell>Icon</TableCell>
-                <TableCell sortDirection={orderBy === 'name' ? order : false}>
-                  <TableSortLabel
-                    active={orderBy === 'name'}
-                    direction={orderBy === 'name' ? order : 'asc'}
-                    onClick={() => handleRequestSort('name')}
-                  >
-                    Name
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell sortDirection={orderBy === 'type' ? order : false}>
-                  <TableSortLabel
-                    active={orderBy === 'type'}
-                    direction={orderBy === 'type' ? order : 'asc'}
-                    onClick={() => handleRequestSort('type')}
-                  >
-                    Type
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>Bank</TableCell>
-                <TableCell sortDirection={orderBy === 'balance' ? order : false}>
-                  <TableSortLabel
-                    active={orderBy === 'balance'}
-                    direction={orderBy === 'balance' ? order : 'asc'}
-                    onClick={() => handleRequestSort('balance')}
-                  >
-                    Balance
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>Account Number</TableCell>
-                <TableCell>IFSC</TableCell>
-                <TableCell>Branch</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedAccounts.map((account, idx) => (
-                <TableRow key={account.id} hover sx={{ backgroundColor: idx % 2 === 0 ? 'background.default' : 'action.hover', transition: 'background 0.3s' }}>
-                  <TableCell>{getAccountIcon(account.type)}</TableCell>
-                  <TableCell>{account.name}</TableCell>
-                  <TableCell>{account.type}</TableCell>
-                  <TableCell>{account.bank}</TableCell>
-                  <TableCell>₹{account.balance}</TableCell>
-                  <TableCell>{account.accountNumber || '-'}</TableCell>
-                  <TableCell>{account.ifsc || '-'}</TableCell>
-                  <TableCell>{account.branch || '-'}</TableCell>
-                  <TableCell>
-                    <IconButton onClick={() => handleOpen(account)}><EditIcon /></IconButton>
-                    <IconButton onClick={() => handleDelete(account.id)} color="error"><DeleteIcon /></IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {paginatedAccounts.length === 0 && (
-                <TableRow><TableCell colSpan={9} align="center">No accounts found</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-      <TablePagination
-        component="div"
-        count={sortedFilteredAccounts.length}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[5, 10, 25, 50]}
-        sx={{ mt: 1 }}
-      />
-      {error && <Typography color="error">{error}</Typography>}
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{editAccount ? 'Edit Account' : 'Add Account'}</DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent>
-            <TextField
-              label="Name"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              required
-              error={!!formErrors.name}
-              helperText={formErrors.name}
-            />
-            <FormControl fullWidth margin="normal" required error={!!formErrors.type}>
-              <InputLabel>Account Type</InputLabel>
-              <Select
-                label="Account Type"
-                name="type"
-                value={form.type}
-                onChange={handleChange}
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Accounts</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your financial accounts</p>
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        >
+          <FaPlus className="w-4 h-4" />
+          Add Account
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Balance</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                ₹{totalBalance.toLocaleString()}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+              <FaWallet className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Accounts</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalAccounts}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+              <FaBuilding className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Accounts</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {accounts?.filter(acc => acc.accountStatus === 'active').length || 0}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
+              <FaCreditCard className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Accounts List */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">All Accounts</h3>
+            <button
+              onClick={() => setShowBalances(!showBalances)}
+              className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              {showBalances ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+              {showBalances ? 'Hide' : 'Show'} Balances
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {accounts?.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaWallet className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No accounts yet</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">Get started by adding your first account</p>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
-                {accountTypes.map((type) => (
-                  <MenuItem key={type} value={type}>{type}</MenuItem>
-                ))}
-              </Select>
-              {formErrors.type && <Typography color="error" variant="caption">{formErrors.type}</Typography>}
-            </FormControl>
-            {["Savings", "Current", "Credit Card"].includes(form.type) && (
-              <FormControl fullWidth margin="normal" required error={!!formErrors.bank}>
-                <InputLabel>Bank</InputLabel>
-                <Select
-                  label="Bank"
-                  name="bank"
-                  value={form.bank || ""}
-                  onChange={handleChange}
+                Add Account
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {accounts?.map((account) => (
+                <div
+                  key={account.id}
+                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
                 >
-                  {bankNames.map((bank) => (
-                    <MenuItem key={bank} value={bank}>{bank}</MenuItem>
-                  ))}
-                </Select>
-                {formErrors.bank && <Typography color="error" variant="caption">{formErrors.bank}</Typography>}
-              </FormControl>
-            )}
-            <TextField
-              label="Balance"
-              name="balance"
-              type="number"
-              value={form.balance}
-              onChange={handleChange}
-              fullWidth
-              margin="normal"
-              required
-              error={!!formErrors.balance}
-              helperText={formErrors.balance}
-            />
-            {["Savings", "Current"].includes(form.type) && (
-              <>
-                <TextField
-                  label="Account Number"
-                  name="accountNumber"
-                  value={form.accountNumber}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  required
-                  error={!!formErrors.accountNumber}
-                  helperText={formErrors.accountNumber}
-                />
-                <TextField
-                  label="IFSC Code"
-                  name="ifsc"
-                  value={form.ifsc}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  required
-                  error={!!formErrors.ifsc}
-                  helperText={formErrors.ifsc}
-                />
-                <TextField
-                  label="Branch"
-                  name="branch"
-                  value={form.branch}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  error={!!formErrors.branch}
-                  helperText={formErrors.branch}
-                />
-              </>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleClose}>Cancel</Button>
-            <Button type="submit" variant="contained">{editAccount ? 'Update' : 'Create'}</Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-    </Box>
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${getAccountColor(account.accountTypeName)}`}>
+                      {getAccountIcon(account.accountTypeName)}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">{account.accountName}</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {account.institutionName} • {account.accountNumberMasked}
+                      </p>
+                      <div className="flex items-center gap-4 mt-1">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          account.accountStatus === 'active' 
+                            ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-400'
+                        }`}>
+                          {account.accountStatus}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {account.accountTypeName}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900 dark:text-white">
+                        {showBalances ? `₹${(account.balance || 0).toLocaleString()}` : '••••••'}
+                      </p>
+                      {account.availableBalance !== undefined && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Available: {showBalances ? `₹${account.availableBalance.toLocaleString()}` : '••••••'}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                        <FaEdit className="w-4 h-4" />
+                      </button>
+                      <button className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                        <FaTrash className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Add Account Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add New Account</h3>
+            </div>
+            <div className="p-6">
+              <form className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Account Name
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter account name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Account Type
+                  </label>
+                  <select className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option>Checking</option>
+                    <option>Savings</option>
+                    <option>Credit Card</option>
+                    <option>Investment</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Balance
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0.00"
+                  />
+                </div>
+              </form>
+            </div>
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                Add Account
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

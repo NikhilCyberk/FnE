@@ -24,7 +24,7 @@ export const deleteBudget = createAsyncThunk('budgets/deleteBudget', async (id) 
 const budgetsSlice = createSlice({
   name: 'budgets',
   initialState: {
-    items: [],
+    budgets: [],
     loading: false,
     error: null,
   },
@@ -37,21 +37,21 @@ const budgetsSlice = createSlice({
       })
       .addCase(fetchBudgets.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.budgets = action.payload;
       })
       .addCase(fetchBudgets.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
       .addCase(createBudget.fulfilled, (state, action) => {
-        state.items.push(action.payload);
+        state.budgets.push(action.payload);
       })
       .addCase(updateBudget.fulfilled, (state, action) => {
-        const idx = state.items.findIndex(b => b.id === action.payload.id);
-        if (idx !== -1) state.items[idx] = action.payload;
+        const idx = state.budgets.findIndex(b => b.id === action.payload.id);
+        if (idx !== -1) state.budgets[idx] = action.payload;
       })
       .addCase(deleteBudget.fulfilled, (state, action) => {
-        state.items = state.items.filter(b => b.id !== action.payload);
+        state.budgets = state.budgets.filter(b => b.id !== action.payload);
       });
   },
 });
