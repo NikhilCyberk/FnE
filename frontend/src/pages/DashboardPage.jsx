@@ -86,7 +86,7 @@ const DashboardPage = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3} className="animate-fade-in-up" sx={{ animationDelay: '100ms' }}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <DashboardSummaryCard
             title="Total Balance"
             value={`₹${totalBalance.toLocaleString()}`}
@@ -95,7 +95,7 @@ const DashboardPage = () => {
             trend={{ icon: <TrendingUp color="success" fontSize="small" />, value: '+12.5%', label: 'from last month', color: 'success.main' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <DashboardSummaryCard
             title="Total Income"
             value={`₹${totalIncome.toLocaleString()}`}
@@ -104,7 +104,7 @@ const DashboardPage = () => {
             trend={{ icon: <TrendingUp color="success" fontSize="small" />, value: '+8.2%', label: 'from last month', color: 'success.main' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <DashboardSummaryCard
             title="Total Expenses"
             value={`₹${totalExpenses.toLocaleString()}`}
@@ -113,7 +113,7 @@ const DashboardPage = () => {
             trend={{ icon: <TrendingDown color="error" fontSize="small" />, value: '+3.1%', label: 'from last month', color: 'error.main' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <DashboardSummaryCard
             title="Active Budgets"
             value={activeBudgets}
@@ -126,10 +126,10 @@ const DashboardPage = () => {
 
       {/* Charts Section */}
       <Grid container spacing={3} className="animate-fade-in-up" sx={{ animationDelay: '200ms' }}>
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <DashboardCashFlowChart data={monthlyData} />
         </Grid>
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <DashboardCategoryChart data={categoryData} />
         </Grid>
       </Grid>

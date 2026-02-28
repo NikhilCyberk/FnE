@@ -50,7 +50,7 @@ const AccountsPage = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <SummaryCard
             title="Total Balance"
             value={`₹${totalBalance.toLocaleString()}`}
@@ -59,7 +59,7 @@ const AccountsPage = () => {
           />
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <SummaryCard
             title="Total Accounts"
             value={totalAccounts}
@@ -68,7 +68,7 @@ const AccountsPage = () => {
           />
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <SummaryCard
             title="Active Accounts"
             value={activeAccounts}

@@ -88,7 +88,7 @@ const TransactionsPage = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <SummaryCard
             title="Total Income"
             value={`₹${totalIncome.toLocaleString()}`}
@@ -96,7 +96,7 @@ const TransactionsPage = () => {
             colorConfig={{ bg: 'success.light', iconColor: 'success.dark', valueColor: 'success.main' }}
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <SummaryCard
             title="Total Expenses"
             value={`₹${totalExpenses.toLocaleString()}`}
@@ -104,7 +104,7 @@ const TransactionsPage = () => {
             colorConfig={{ bg: 'error.light', iconColor: 'error.dark', valueColor: 'error.main' }}
           />
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <SummaryCard
             title="Net Amount"
             value={`₹${netAmount.toLocaleString()}`}

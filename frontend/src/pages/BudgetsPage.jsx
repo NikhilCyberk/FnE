@@ -65,7 +65,7 @@ const BudgetsPage = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SummaryCard
             title="Total Budgets"
             value={totalBudgets}
@@ -73,7 +73,7 @@ const BudgetsPage = () => {
             colorConfig={{ bg: 'info.light', iconColor: 'info.dark' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SummaryCard
             title="Active Budgets"
             value={activeBudgets}
@@ -81,7 +81,7 @@ const BudgetsPage = () => {
             colorConfig={{ bg: 'success.light', iconColor: 'success.dark' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SummaryCard
             title="Total Budgeted"
             value={`₹${totalBudgeted.toLocaleString()}`}
@@ -89,7 +89,7 @@ const BudgetsPage = () => {
             colorConfig={{ bg: 'secondary.light', iconColor: 'secondary.dark' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SummaryCard
             title="Total Spent"
             value={`₹${totalSpent.toLocaleString()}`}
@@ -102,7 +102,7 @@ const BudgetsPage = () => {
       {/* Budgets Grid */}
       <Grid container spacing={3}>
         {!budgets || budgets.length === 0 ? (
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper sx={{ textAlign: 'center', py: 8, borderRadius: 3 }} elevation={1}>
               <Avatar sx={{ width: 80, height: 80, mx: 'auto', mb: 2, bgcolor: 'action.hover' }}>
                 <Savings fontSize="large" color="action" />
@@ -116,7 +116,7 @@ const BudgetsPage = () => {
           </Grid>
         ) : (
           budgets.map((budget) => (
-            <Grid item xs={12} md={6} lg={4} key={budget.id}>
+            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={budget.id}>
               <BudgetCard budget={budget} getBudgetStatus={getBudgetStatus} />
             </Grid>
           ))

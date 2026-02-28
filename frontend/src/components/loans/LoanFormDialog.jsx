@@ -11,6 +11,7 @@ const initialForm = {
     end_date: '',
     emi_amount: '',
     remaining_balance: '',
+    penalty_amount: '',
     status: 'Active'
 };
 
@@ -44,7 +45,14 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave(form);
+        // Send only editable scalar fields — never send JSONB arrays like
+        // loan_schedule, transactions, penalty_history which live in the DB.
+        const { lender_name, loan_type, loan_amount, interest_rate, start_date, end_date,
+            emi_amount, remaining_balance, penalty_amount, status, next_emi_due_date } = form;
+        onSave({
+            lender_name, loan_type, loan_amount, interest_rate, start_date, end_date,
+            emi_amount, remaining_balance, penalty_amount, status, next_emi_due_date
+        });
     };
 
     const isEditMode = Boolean(loan);
@@ -60,7 +68,7 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
             <form onSubmit={handleSubmit}>
                 <DialogContent dividers>
                     <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Lender Name"
@@ -72,7 +80,7 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
                                 placeholder="e.g. HDFC Bank"
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 select
@@ -80,6 +88,7 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
                                 name="loan_type"
                                 value={form.loan_type}
                                 onChange={handleChange}
+                                defaultValue="Personal" // Added defaultValue
                                 size="small"
                             >
                                 {LOAN_TYPES.map(type => (
@@ -88,7 +97,7 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
                             </TextField>
                         </Grid>
 
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
                                 fullWidth
                                 label="Total Loan Amount (₹)"
@@ -101,7 +110,7 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
                                 inputProps={{ min: 0, step: "any" }}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
                                 fullWidth
                                 label="Remaining Balance (₹)"
@@ -115,11 +124,23 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
                                 helperText={!isEditMode && form.loan_amount && form.remaining_balance === '' ? 'Leave blank if same as total' : ''}
                             />
                         </Grid>
-
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
                                 fullWidth
-                                label="Interest Rate (% p.a.)"
+                                label="Next EMI Due Date"
+                                name="next_emi_due_date"
+                                type="date"
+                                value={form.next_emi_due_date ? form.next_emi_due_date.substring(0, 10) : ''}
+                                onChange={handleChange}
+                                size="small"
+                                InputLabelProps={{ shrink: true }}
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                                fullWidth
+                                label="Interest Rate (%)"
                                 name="interest_rate"
                                 type="number"
                                 value={form.interest_rate}
@@ -129,7 +150,7 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
                                 inputProps={{ min: 0, step: "any" }}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="Monthly EMI (₹)"
@@ -143,7 +164,21 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
                             />
                         </Grid>
 
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 4 }}>
+                            <TextField
+                                fullWidth
+                                label="Total Penalties (₹)"
+                                name="penalty_amount"
+                                type="number"
+                                value={form.penalty_amount}
+                                onChange={handleChange}
+                                size="small"
+                                inputProps={{ min: 0, step: "any" }}
+                                helperText="Late fees"
+                            />
+                        </Grid>
+
+                        <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
                                 fullWidth
                                 label="Start Date"
@@ -156,7 +191,7 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
                                 InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label="End Date"
@@ -171,7 +206,7 @@ const LoanFormDialog = ({ open, onClose, onSave, loan = null }) => {
                         </Grid>
 
                         {isEditMode && (
-                            <Grid item xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <TextField
                                     fullWidth
                                     select

@@ -29,7 +29,7 @@ const BudgetFormDialog = ({ showAddModal, setShowAddModal }) => {
                     variant="outlined"
                 />
                 <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                         <TextField
                             fullWidth
                             label="Start Date"
@@ -38,7 +38,7 @@ const BudgetFormDialog = ({ showAddModal, setShowAddModal }) => {
                             variant="outlined"
                         />
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                         <TextField
                             fullWidth
                             label="End Date"

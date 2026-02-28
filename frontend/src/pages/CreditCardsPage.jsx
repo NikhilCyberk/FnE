@@ -60,7 +60,7 @@ const CreditCardsPage = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SummaryCard
             title="Total Credit Limit"
             value={`₹${totalCreditLimit.toLocaleString()}`}
@@ -68,7 +68,7 @@ const CreditCardsPage = () => {
             colorConfig={{ bg: 'info.light', iconColor: 'info.dark' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SummaryCard
             title="Total Balance"
             value={`₹${totalBalance.toLocaleString()}`}
@@ -76,7 +76,7 @@ const CreditCardsPage = () => {
             colorConfig={{ bg: 'error.light', iconColor: 'error.dark', valueColor: 'error.main' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SummaryCard
             title="Available Credit"
             value={`₹${Math.max(0, totalAvailable).toLocaleString()}`}
@@ -84,7 +84,7 @@ const CreditCardsPage = () => {
             colorConfig={{ bg: 'success.light', iconColor: 'success.dark', valueColor: 'success.main' }}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SummaryCard
             title="Utilization Rate"
             value={`${utilizationRate.toFixed(1)}%`}
@@ -97,7 +97,7 @@ const CreditCardsPage = () => {
       {/* Credit Cards Grid */}
       <Grid container spacing={3}>
         {!creditCards || creditCards.length === 0 ? (
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper sx={{ textAlign: 'center', py: 8, borderRadius: 3 }} elevation={1}>
               <Avatar sx={{ width: 80, height: 80, mx: 'auto', mb: 2, bgcolor: 'action.hover' }}>
                 <CreditCard fontSize="large" color="action" />
@@ -111,7 +111,7 @@ const CreditCardsPage = () => {
           </Grid>
         ) : (
           creditCards.map((card) => (
-            <Grid item xs={12} md={6} lg={4} key={card.id}>
+            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={card.id}>
               <CreditCardItem
                 card={card}
                 showBalances={showBalances}

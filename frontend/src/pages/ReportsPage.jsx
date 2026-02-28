@@ -81,11 +81,11 @@ const ReportsPage = () => {
       {/* Filters */}
       <Paper sx={{ p: 3, borderRadius: 3 }} elevation={1}>
         <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={2} display="flex" alignItems="center" gap={1}>
+          <Grid size={{ xs: 12, md: 2 }} display="flex" alignItems="center" gap={1}>
             <FilterList color="action" />
             <Typography fontWeight="medium">Filters:</Typography>
           </Grid>
-          <Grid item xs={12} sm={6} md={5}>
+          <Grid size={{ xs: 12, sm: 6, md: 5 }}>
             <TextField
               select
               fullWidth
@@ -100,7 +100,7 @@ const ReportsPage = () => {
               <MenuItem value="year">This Year</MenuItem>
             </TextField>
           </Grid>
-          <Grid item xs={12} sm={6} md={5}>
+          <Grid size={{ xs: 12, sm: 6, md: 5 }}>
             <TextField
               select
               fullWidth
@@ -119,7 +119,7 @@ const ReportsPage = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Total Income"
             value={`₹${totalIncome.toLocaleString()}`}
@@ -128,7 +128,7 @@ const ReportsPage = () => {
           />
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Total Expenses"
             value={`₹${totalExpenses.toLocaleString()}`}
@@ -137,7 +137,7 @@ const ReportsPage = () => {
           />
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Net Amount"
             value={`₹${netAmount.toLocaleString()}`}
@@ -153,16 +153,16 @@ const ReportsPage = () => {
 
       {/* Charts Section */}
       <Grid container spacing={3}>
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <CashFlowChart data={monthlyData} tooltipStyle={tooltipStyle} />
         </Grid>
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <ExpenseCategoryChart data={categoryData} tooltipStyle={tooltipStyle} />
         </Grid>
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <TopExpensesList topExpenses={topExpenses} />
         </Grid>
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <MonthlyComparisonChart data={monthlyData} tooltipStyle={tooltipStyle} />
         </Grid>
       </Grid>

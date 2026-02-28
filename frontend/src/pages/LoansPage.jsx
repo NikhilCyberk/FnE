@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchLoans, createLoan, updateLoan } from '../slices/loansSlice';
+import { fetchLoans, createLoan, updateLoan, deleteLoan } from '../slices/loansSlice';
 import {
     Box, Typography, Button, Grid, CircularProgress,
     Alert, Snackbar, Dialog, DialogTitle, DialogContent,
@@ -19,8 +19,13 @@ const LoansPage = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedLoan, setSelectedLoan] = useState(null);
     const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+    const [penaltyDialogOpen, setPenaltyDialogOpen] = useState(false);
+    const [deleteConfirmLoan, setDeleteConfirmLoan] = useState(null);
     const [paymentAmount, setPaymentAmount] = useState('');
+    const [penaltyAmountInput, setPenaltyAmountInput] = useState('');
+    const [penaltyDateInput, setPenaltyDateInput] = useState('');
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         if (status === 'idle') {
@@ -65,16 +70,24 @@ const LoansPage = () => {
         setPaymentAmount('');
     };
 
+    const handleOpenPenalty = (loan) => {
+        setSelectedLoan(loan);
+        setPenaltyAmountInput('');
+        setPenaltyDateInput(loan.next_emi_due_date ? loan.next_emi_due_date.substring(0, 10) : new Date().toISOString().substring(0, 10));
+        setPenaltyDialogOpen(true);
+    };
+
+    const handleClosePenalty = () => {
+        setPenaltyDialogOpen(false);
+        setSelectedLoan(null);
+        setPenaltyAmountInput('');
+        setPenaltyDateInput('');
+    };
+
     const handleRecordPayment = async () => {
         if (!selectedLoan || !paymentAmount) return;
-
-        const currentBalance = parseFloat(selectedLoan.remaining_balance);
         const payment = parseFloat(paymentAmount);
-
-        let newBalance = currentBalance - payment;
-        if (newBalance < 0) newBalance = 0;
-
-        // If loan is fully paid, prompt or auto-close it
+        const newBalance = Math.max(parseFloat(selectedLoan.remaining_balance) - payment, 0);
         const newStatus = newBalance === 0 ? 'Closed' : selectedLoan.status;
 
         try {
@@ -82,10 +95,14 @@ const LoansPage = () => {
                 id: selectedLoan.id,
                 data: {
                     ...selectedLoan,
+                    _action: 'payment',
+                    _payment_amount: payment,
+                    status: newStatus,
                     remaining_balance: newBalance,
-                    status: newStatus
                 }
             })).unwrap();
+            // Refresh loans list so summary stats update
+            dispatch(fetchLoans());
             showToast(`Recorded payment of ₹${payment}. New balance: ₹${newBalance}`, 'success');
             handleClosePayment();
         } catch (err) {
@@ -93,8 +110,49 @@ const LoansPage = () => {
         }
     };
 
+    const handleRecordPenalty = async () => {
+        if (!selectedLoan || !penaltyAmountInput || !penaltyDateInput) return;
+
+        const penaltyValue = parseFloat(penaltyAmountInput);
+        const currentPenaltyTotal = parseFloat(selectedLoan.penalty_amount || 0);
+        const newPenaltyTotal = currentPenaltyTotal + penaltyValue;
+
+        try {
+            await dispatch(updateLoan({
+                id: selectedLoan.id,
+                data: {
+                    ...selectedLoan,
+                    _action: 'penalty',
+                    _penalty_amount_new: penaltyValue,
+                    _penalty_date: penaltyDateInput,
+                    penalty_amount: newPenaltyTotal,
+                }
+            })).unwrap();
+            // Refresh loans list so summary stats update
+            dispatch(fetchLoans());
+            showToast(`Added penalty of ₹${penaltyValue} for EMI on ${penaltyDateInput}.`, 'warning');
+            handleClosePenalty();
+        } catch (err) {
+            showToast(err || 'Failed to add penalty', 'error');
+        }
+    };
+
     const showToast = (message, severity = 'success') => {
         setToast({ open: true, message, severity });
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirmLoan) return;
+        setDeleting(true);
+        try {
+            await dispatch(deleteLoan(deleteConfirmLoan.id)).unwrap();
+            showToast(`"${deleteConfirmLoan.lender_name}" loan deleted`, 'success');
+            setDeleteConfirmLoan(null);
+        } catch (err) {
+            showToast(err || 'Failed to delete loan', 'error');
+        } finally {
+            setDeleting(false);
+        }
     };
 
     // Calculate Summary Metrics
@@ -134,7 +192,7 @@ const LoansPage = () => {
             {status === 'succeeded' && (
                 <>
                     <Grid container spacing={3} sx={{ mb: 4 }}>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                             <SummaryCard
                                 title="Active Loans"
                                 value={activeLoans.length.toString()}
@@ -143,7 +201,7 @@ const LoansPage = () => {
                                 bgColor="primary.light"
                             />
                         </Grid>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                             <SummaryCard
                                 title="Total Outstanding Debt"
                                 value={`₹${totalDebt.toLocaleString('en-IN')}`}
@@ -153,7 +211,7 @@ const LoansPage = () => {
                                 subtitle="Across all active loans"
                             />
                         </Grid>
-                        <Grid item xs={12} md={4}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                             <SummaryCard
                                 title="Total Monthly EMI"
                                 value={`₹${totalMonthlyEMI.toLocaleString('en-IN')}`}
@@ -176,11 +234,13 @@ const LoansPage = () => {
                     ) : (
                         <Grid container spacing={3}>
                             {loans.map(loan => (
-                                <Grid item xs={12} md={6} lg={4} key={loan.id}>
+                                <Grid size={{ xs: 12, md: 6, lg: 4 }} key={loan.id}>
                                     <LoanCard
                                         loan={loan}
                                         onEdit={handleOpenForm}
                                         onRecordPayment={handleOpenPayment}
+                                        onAddPenalty={handleOpenPenalty}
+                                        onDelete={(l) => setDeleteConfirmLoan(l)}
                                     />
                                 </Grid>
                             ))}
@@ -220,6 +280,63 @@ const LoansPage = () => {
                     <Button onClick={handleClosePayment} color="inherit">Cancel</Button>
                     <Button onClick={handleRecordPayment} variant="contained" disabled={!paymentAmount || paymentAmount <= 0}>
                         Confirm Payment
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Record Penalty Dialog */}
+            <Dialog open={penaltyDialogOpen} onClose={handleClosePenalty}>
+                <DialogTitle>Add Late Penalty</DialogTitle>
+                <DialogContent>
+                    <DialogContentText mb={2}>
+                        Enter the penalty/late fee applied to your {selectedLoan?.lender_name} loan.
+                        This will increase your remaining balance.
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        fullWidth
+                        label="Penalty Amount"
+                        type="number"
+                        value={penaltyAmountInput}
+                        onChange={(e) => setPenaltyAmountInput(e.target.value)}
+                        InputProps={{
+                            startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+                        }}
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="EMI Due Date"
+                        type="date"
+                        value={penaltyDateInput}
+                        onChange={(e) => setPenaltyDateInput(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                        helperText="The specific EMI date this penalty applies to."
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClosePenalty} color="inherit">Cancel</Button>
+                    <Button onClick={handleRecordPenalty} variant="contained" color="error" disabled={!penaltyAmountInput || penaltyAmountInput <= 0 || !penaltyDateInput}>
+                        Add Penalty
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete Confirm Dialog */}
+            <Dialog open={Boolean(deleteConfirmLoan)} onClose={() => setDeleteConfirmLoan(null)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ color: 'error.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    Delete Loan?
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to permanently delete the <strong>{deleteConfirmLoan?.lender_name}</strong> loan?
+                        This will remove all associated transactions and cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteConfirmLoan(null)} color="inherit">Cancel</Button>
+                    <Button onClick={handleConfirmDelete} variant="contained" color="error" disabled={deleting}>
+                        {deleting ? 'Deleting…' : 'Yes, Delete'}
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -6,6 +6,7 @@ const authenticateToken = require('../middleware/authMiddleware');
 router.use(authenticateToken);
 
 router.get('/', loansController.getLoans);
+router.get('/:id', loansController.getLoan);
 router.post('/', loansController.createLoan);
 router.put('/:id', loansController.updateLoan);
 router.delete('/:id', loansController.deleteLoan);

@@ -79,7 +79,7 @@ const CreditCardDetailPage = () => {
 
       <Grid container spacing={4}>
         {/* Credit Card Display */}
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <CreditCardVisual
             card={selectedCard}
             showBalances={showBalances}
@@ -89,11 +89,11 @@ const CreditCardDetailPage = () => {
         </Grid>
 
         {/* Card Details */}
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Box display="flex" flexDirection="column" gap={3}>
             {/* Summary Cards */}
             <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <SummaryCard
                   title="Credit Limit"
                   value={`₹${limit.toLocaleString()}`}
@@ -101,7 +101,7 @@ const CreditCardDetailPage = () => {
                   colorConfig={{ bg: 'info.light', iconColor: 'info.dark' }}
                 />
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <SummaryCard
                   title="Current Balance"
                   value={`₹${balance.toLocaleString()}`}
@@ -109,7 +109,7 @@ const CreditCardDetailPage = () => {
                   colorConfig={{ bg: 'error.light', iconColor: 'error.dark', valueColor: isOverLimit ? 'error.main' : 'text.primary' }}
                 />
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <SummaryCard
                   title="Available Credit"
                   value={`₹${Math.max(0, limit - balance).toLocaleString()}`}
@@ -147,7 +147,7 @@ const CreditCardDetailPage = () => {
                 <Typography variant="h6" fontWeight="bold" mb={2}>Payment Information</Typography>
                 <Grid container spacing={2}>
                   {selectedCard.dueDate && (
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Box bgcolor="warning.light" p={2} borderRadius={2} display="flex" alignItems="center" gap={2}>
                         <CalendarToday sx={{ color: 'warning.dark' }} />
                         <Box>
@@ -160,7 +160,7 @@ const CreditCardDetailPage = () => {
                     </Grid>
                   )}
                   {selectedCard.minimumPayment && (
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Box bgcolor="info.light" p={2} borderRadius={2} display="flex" alignItems="center" gap={2}>
                         <CreditCard sx={{ color: 'info.dark' }} />
                         <Box>

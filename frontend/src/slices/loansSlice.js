@@ -10,6 +10,15 @@ export const fetchLoans = createAsyncThunk('loans/fetchLoans', async (_, { rejec
     }
 });
 
+export const fetchLoan = createAsyncThunk('loans/fetchLoan', async (id, { rejectWithValue }) => {
+    try {
+        const response = await api.get(`/api/loans/${id}`);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data?.error || 'Failed to fetch loan');
+    }
+});
+
 export const createLoan = createAsyncThunk('loans/createLoan', async (loanData, { rejectWithValue }) => {
     try {
         const response = await api.post('/api/loans', loanData);
@@ -41,17 +50,21 @@ const loansSlice = createSlice({
     name: 'loans',
     initialState: {
         loans: [],
+        selectedLoan: null,
         status: 'idle',
         error: null,
     },
     reducers: {
         clearLoansError: (state) => {
             state.error = null;
+        },
+        clearSelectedLoan: (state) => {
+            state.selectedLoan = null;
         }
     },
     extraReducers: (builder) => {
         builder
-            // Fetch
+            // Fetch all
             .addCase(fetchLoans.pending, (state) => {
                 state.status = 'loading';
                 state.error = null;
@@ -64,6 +77,10 @@ const loansSlice = createSlice({
                 state.status = 'failed';
                 state.error = action.payload;
             })
+            // Fetch single
+            .addCase(fetchLoan.fulfilled, (state, action) => {
+                state.selectedLoan = action.payload;
+            })
             // Create
             .addCase(createLoan.fulfilled, (state, action) => {
                 state.loans.unshift(action.payload);
@@ -74,6 +91,9 @@ const loansSlice = createSlice({
                 if (index !== -1) {
                     state.loans[index] = action.payload;
                 }
+                if (state.selectedLoan?.id === action.payload.id) {
+                    state.selectedLoan = action.payload;
+                }
             })
             // Delete
             .addCase(deleteLoan.fulfilled, (state, action) => {
@@ -82,5 +102,5 @@ const loansSlice = createSlice({
     }
 });
 
-export const { clearLoansError } = loansSlice.actions;
+export const { clearLoansError, clearSelectedLoan } = loansSlice.actions;
 export default loansSlice.reducer;

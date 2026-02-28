@@ -10,7 +10,7 @@ const TransactionFilters = ({
     return (
         <Paper sx={{ p: 2, borderRadius: 3 }} elevation={1}>
             <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <TextField
                         fullWidth
                         size="small"
@@ -22,7 +22,7 @@ const TransactionFilters = ({
                         }}
                     />
                 </Grid>
-                <Grid item xs={6} md={3}>
+                <Grid size={{ xs: 6, md: 3 }}>
                     <TextField
                         select
                         fullWidth
@@ -37,7 +37,7 @@ const TransactionFilters = ({
                         <MenuItem value="transfer">Transfer</MenuItem>
                     </TextField>
                 </Grid>
-                <Grid item xs={6} md={3}>
+                <Grid size={{ xs: 6, md: 3 }}>
                     <TextField
                         select
                         fullWidth
@@ -52,7 +52,7 @@ const TransactionFilters = ({
                         <MenuItem value="failed">Failed</MenuItem>
                     </TextField>
                 </Grid>
-                <Grid item xs={12} md={2} display="flex" justifyContent="flex-end">
+                <Grid size={{ xs: 12, md: 2 }} display="flex" justifyContent="flex-end">
                     <Button variant="outlined" startIcon={<Download />} fullWidth>
                         Export
                     </Button>
