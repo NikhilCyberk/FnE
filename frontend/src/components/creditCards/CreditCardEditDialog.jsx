@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, FormControl, InputLabel, Select, MenuItem, RadioGroup, FormControlLabel, Radio, Typography, Box, Snackbar, Alert, CircularProgress
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, FormControl, InputLabel, Select, MenuItem, RadioGroup, FormControlLabel, Radio, Typography, Box, Snackbar, Alert, CircularProgress,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper
 } from '@mui/material';
-import api from '../api';
+import { Delete as DeleteIcon, Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon, Add as AddIcon } from '@mui/icons-material';
+import api from '../../api';
 
 // Bank colors and information
 const BANK_COLORS = {
@@ -68,7 +70,7 @@ const CreditCardEditDialog = ({ open, onClose, card, onSave, loading: externalLo
 
   useEffect(() => {
     if (card) {
-      setForm({ ...form, ...card });
+      setForm(prev => ({ ...prev, ...card }));
     } else {
       setForm({
         name: '', bank: '', balance: '', cardNumber: '', expiry: '', cvv: '', issuer: '', pdfPassword: '',
@@ -172,7 +174,7 @@ const CreditCardEditDialog = ({ open, onClose, card, onSave, loading: externalLo
           }
         });
         // Parse number fields as numbers or empty string
-        const numFields = ['creditLimit','availableCreditLimit','availableCashLimit','totalPaymentDue','minPaymentDue'];
+        const numFields = ['creditLimit', 'availableCreditLimit', 'availableCashLimit', 'totalPaymentDue', 'minPaymentDue'];
         numFields.forEach(f => {
           if (newForm[f] !== undefined && newForm[f] !== null && newForm[f] !== '') {
             const n = String(newForm[f]).replace(/,/g, '');
@@ -409,63 +411,67 @@ const CreditCardEditDialog = ({ open, onClose, card, onSave, loading: externalLo
                 <TextField label="Statement Generation Date" name="statementGenDate" value={form.statementGenDate || ''} onChange={handleChange} fullWidth margin="dense" type="date" InputLabelProps={{ shrink: true }} />
               </Box>
               <Typography variant="subtitle1" gutterBottom>Transactions</Typography>
-              <Box sx={{ maxHeight: 200, overflow: 'auto', mb: 2 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Date</th>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Details</th>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Name</th>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Category</th>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Amount</th>
-                      <th style={{ border: '1px solid #ccc', padding: 4 }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+              <TableContainer component={Paper} sx={{ maxHeight: 300, mb: 2 }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Details</TableCell>
+                      <TableCell>Name</TableCell>
+                      <TableCell>Category</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {(form.transactions || []).length === 0 && (
-                      <tr><td colSpan={6} style={{ textAlign: 'center' }}>No transactions found</td></tr>
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">No transactions found</TableCell>
+                      </TableRow>
                     )}
                     {(form.transactions || []).map((txn, idx) => (
-                      <tr key={idx}>
+                      <TableRow key={idx}>
                         {editTxnIdx === idx ? (
                           <>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="date" name="date" value={txnDraft.date} onChange={handleTxnDraftChange} /></td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="text" name="details" value={txnDraft.details} onChange={handleTxnDraftChange} /></td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="text" name="name" value={txnDraft.name} onChange={handleTxnDraftChange} /></td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="text" name="category" value={txnDraft.category} onChange={handleTxnDraftChange} /></td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="number" name="amount" value={txnDraft.amount} onChange={handleTxnDraftChange} /></td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}>
-                              <button type="button" onClick={() => handleTxnSave(idx)}>Save</button>
-                              <button type="button" onClick={() => setEditTxnIdx(null)}>Cancel</button>
-                            </td>
+                            <TableCell><TextField type="date" name="date" size="small" value={txnDraft.date} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                            <TableCell><TextField type="text" name="details" size="small" value={txnDraft.details} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                            <TableCell><TextField type="text" name="name" size="small" value={txnDraft.name} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                            <TableCell><TextField type="text" name="category" size="small" value={txnDraft.category} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                            <TableCell><TextField type="number" name="amount" size="small" value={txnDraft.amount} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                            <TableCell>
+                              <IconButton onClick={() => handleTxnSave(idx)} color="primary" size="small"><SaveIcon fontSize="small" /></IconButton>
+                              <IconButton onClick={() => setEditTxnIdx(null)} color="error" size="small"><CancelIcon fontSize="small" /></IconButton>
+                            </TableCell>
                           </>
                         ) : (
                           <>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}>{txn.date}</td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}>{txn.details}</td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}>{txn.name}</td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}>{txn.category}</td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}>{txn.amount}</td>
-                            <td style={{ border: '1px solid #ccc', padding: 4 }}>
-                              <button type="button" onClick={() => handleTxnEdit(idx)}>Edit</button>
-                              <button type="button" onClick={() => handleTxnDelete(idx)}>Delete</button>
-                            </td>
+                            <TableCell>{txn.date}</TableCell>
+                            <TableCell>{txn.details}</TableCell>
+                            <TableCell>{txn.name}</TableCell>
+                            <TableCell>{txn.category}</TableCell>
+                            <TableCell>{txn.amount}</TableCell>
+                            <TableCell>
+                              <IconButton onClick={() => handleTxnEdit(idx)} color="primary" size="small"><EditIcon fontSize="small" /></IconButton>
+                              <IconButton onClick={() => handleTxnDelete(idx)} color="error" size="small"><DeleteIcon fontSize="small" /></IconButton>
+                            </TableCell>
                           </>
                         )}
-                      </tr>
+                      </TableRow>
                     ))}
                     {/* Add new transaction row */}
-                    <tr>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="date" name="date" value={txnDraft.date} onChange={handleTxnDraftChange} /></td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="text" name="details" value={txnDraft.details} onChange={handleTxnDraftChange} /></td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="text" name="name" value={txnDraft.name} onChange={handleTxnDraftChange} /></td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="text" name="category" value={txnDraft.category} onChange={handleTxnDraftChange} /></td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}><input type="number" name="amount" value={txnDraft.amount} onChange={handleTxnDraftChange} /></td>
-                      <td style={{ border: '1px solid #ccc', padding: 4 }}><button type="button" onClick={handleTxnAdd}>Add</button></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </Box>
+                    <TableRow>
+                      <TableCell><TextField type="date" name="date" size="small" value={txnDraft.date} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                      <TableCell><TextField type="text" name="details" size="small" value={txnDraft.details} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                      <TableCell><TextField type="text" name="name" size="small" value={txnDraft.name} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                      <TableCell><TextField type="text" name="category" size="small" value={txnDraft.category} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                      <TableCell><TextField type="number" name="amount" size="small" value={txnDraft.amount} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
+                      <TableCell>
+                        <IconButton onClick={handleTxnAdd} color="success" size="small"><AddIcon fontSize="small" /></IconButton>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                 <Button onClick={handleCancelPreview}>Cancel</Button>
                 <Button variant="contained" onClick={handleAddAfterPreview}>Save</Button>

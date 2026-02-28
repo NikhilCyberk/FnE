@@ -1,22 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchTransactions } from '../slices/transactionsSlice';
-import { 
-  FaChartPie, 
-  FaChartLine, 
-  FaChartBar, 
-  FaDownload, 
-  FaCalendarAlt,
-  FaFilter,
-  FaDollarSign,
-  FaArrowUp,
-  FaArrowDown
-} from 'react-icons/fa';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import { Box, Typography, Grid, Paper, Button, MenuItem, TextField, useTheme } from '@mui/material';
+import { Download, FilterList, AttachMoney, ArrowUpward, ArrowDownward } from '@mui/icons-material';
+
+import SummaryCard from '../components/common/SummaryCard';
+import CashFlowChart from '../components/reports/CashFlowChart';
+import ExpenseCategoryChart from '../components/reports/ExpenseCategoryChart';
+import TopExpensesList from '../components/reports/TopExpensesList';
+import MonthlyComparisonChart from '../components/reports/MonthlyComparisonChart';
 
 const ReportsPage = () => {
   const dispatch = useDispatch();
-  const { transactions, loading } = useSelector((state) => state.transactions);
+  const theme = useTheme();
+  const { transactions } = useSelector((state) => state.transactions);
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedType, setSelectedType] = useState('all');
 
@@ -51,241 +48,126 @@ const ReportsPage = () => {
     { category: 'Entertainment', amount: 900, percentage: 9 },
   ];
 
-  const totalIncome = transactions?.filter(t => t.type === 'income').reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-  const totalExpenses = transactions?.filter(t => t.type === 'expense').reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+  const totalIncome = transactions?.filter(t => t.type === 'income').reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
+  const totalExpenses = transactions?.filter(t => t.type === 'expense').reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
   const netAmount = totalIncome - totalExpenses;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  // Custom Tooltip style for charts
+  const tooltipStyle = {
+    backgroundColor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: '8px',
+    color: theme.palette.text.primary,
+    boxShadow: theme.shadows[3]
+  };
 
   return (
-    <div className="space-y-6">
+    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reports</h1>
-          <p className="text-gray-600 dark:text-gray-400">Analyze your financial data and trends</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-          <FaDownload className="w-4 h-4" />
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Box>
+          <Typography variant="h4" fontWeight="bold">Reports</Typography>
+          <Typography color="text.secondary">Analyze your financial data and trends</Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          startIcon={<Download />}
+          sx={{ borderRadius: 2 }}
+        >
           Export Report
-        </button>
-      </div>
+        </Button>
+      </Box>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex items-center gap-2">
-            <FaFilter className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filters:</span>
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Period</label>
-              <select
-                value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="quarter">This Quarter</option>
-                <option value="year">This Year</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Transactions</option>
-                <option value="income">Income Only</option>
-                <option value="expense">Expenses Only</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Paper sx={{ p: 3, borderRadius: 3 }} elevation={1}>
+        <Grid container spacing={3} alignItems="center">
+          <Grid item xs={12} md={2} display="flex" alignItems="center" gap={1}>
+            <FilterList color="action" />
+            <Typography fontWeight="medium">Filters:</Typography>
+          </Grid>
+          <Grid item xs={12} sm={6} md={5}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              label="Period"
+            >
+              <MenuItem value="week">This Week</MenuItem>
+              <MenuItem value="month">This Month</MenuItem>
+              <MenuItem value="quarter">This Quarter</MenuItem>
+              <MenuItem value="year">This Year</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6} md={5}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              label="Type"
+            >
+              <MenuItem value="all">All Transactions</MenuItem>
+              <MenuItem value="income">Income Only</MenuItem>
+              <MenuItem value="expense">Expenses Only</MenuItem>
+            </TextField>
+          </Grid>
+        </Grid>
+      </Paper>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Income</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                ₹{totalIncome.toLocaleString()}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-              <FaArrowUp className="w-6 h-6 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </div>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <SummaryCard
+            title="Total Income"
+            value={`₹${totalIncome.toLocaleString()}`}
+            icon={<ArrowUpward />}
+            colorConfig={{ bg: 'success.light', iconColor: 'success.dark', valueColor: 'success.main' }}
+          />
+        </Grid>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Expenses</p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                ₹{totalExpenses.toLocaleString()}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-              <FaArrowDown className="w-6 h-6 text-red-600 dark:text-red-400" />
-            </div>
-          </div>
-        </div>
+        <Grid item xs={12} md={4}>
+          <SummaryCard
+            title="Total Expenses"
+            value={`₹${totalExpenses.toLocaleString()}`}
+            icon={<ArrowDownward />}
+            colorConfig={{ bg: 'error.light', iconColor: 'error.dark', valueColor: 'error.main' }}
+          />
+        </Grid>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Net Amount</p>
-              <p className={`text-2xl font-bold ${netAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                ₹{netAmount.toLocaleString()}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-              <FaDollarSign className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </div>
-      </div>
+        <Grid item xs={12} md={4}>
+          <SummaryCard
+            title="Net Amount"
+            value={`₹${netAmount.toLocaleString()}`}
+            icon={<AttachMoney />}
+            colorConfig={{
+              bg: 'primary.light',
+              iconColor: 'primary.dark',
+              valueColor: netAmount >= 0 ? "success.main" : "error.main"
+            }}
+          />
+        </Grid>
+      </Grid>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Cash Flow Chart */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cash Flow</h3>
-            <FaChartLine className="w-5 h-5 text-gray-400" />
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="month" stroke="#6B7280" />
-                <YAxis stroke="#6B7280" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1F2937', 
-                    border: 'none', 
-                    borderRadius: '8px',
-                    color: '#F9FAFB'
-                  }}
-                />
-                <Line type="monotone" dataKey="income" stroke="#10B981" strokeWidth={2} />
-                <Line type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={2} />
-                <Line type="monotone" dataKey="net" stroke="#3B82F6" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Category Breakdown */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Expense Categories</h3>
-            <FaChartPie className="w-5 h-5 text-gray-400" />
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1F2937', 
-                    border: 'none', 
-                    borderRadius: '8px',
-                    color: '#F9FAFB'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Top Expenses */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top Expenses by Category</h3>
-          <FaChartBar className="w-5 h-5 text-gray-400" />
-        </div>
-        <div className="space-y-4">
-          {topExpenses.map((expense, index) => (
-            <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-              <div className="flex items-center gap-4">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                  <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{index + 1}</span>
-                </div>
-                <div>
-                  <h4 className="font-medium text-gray-900 dark:text-white">{expense.category}</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{expense.percentage}% of total</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-gray-900 dark:text-white">₹{expense.amount.toLocaleString()}</p>
-                <div className="w-32 bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
-                  <div
-                    className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: `${expense.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Monthly Comparison */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Monthly Comparison</h3>
-          <FaChartBar className="w-5 h-5 text-gray-400" />
-        </div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="month" stroke="#6B7280" />
-              <YAxis stroke="#6B7280" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#1F2937', 
-                  border: 'none', 
-                  borderRadius: '8px',
-                  color: '#F9FAFB'
-                }}
-              />
-              <Bar dataKey="income" fill="#10B981" />
-              <Bar dataKey="expenses" fill="#EF4444" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
+      <Grid container spacing={3}>
+        <Grid item xs={12} lg={6}>
+          <CashFlowChart data={monthlyData} tooltipStyle={tooltipStyle} />
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <ExpenseCategoryChart data={categoryData} tooltipStyle={tooltipStyle} />
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <TopExpensesList topExpenses={topExpenses} />
+        </Grid>
+        <Grid item xs={12} lg={6}>
+          <MonthlyComparisonChart data={monthlyData} tooltipStyle={tooltipStyle} />
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 
-export default ReportsPage; 
+export default ReportsPage;
