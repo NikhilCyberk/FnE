@@ -7,14 +7,14 @@ const DashboardSummaryCard = ({ title, value, icon, iconConfig, trend }) => {
             <CardContent>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                     <Box>
-                        <Typography color="text.secondary" variant="body2" gutterBottom>
+                        <Typography color="text.secondary" variant="subtitle2" gutterBottom>
                             {title}
                         </Typography>
-                        <Typography variant="h5" fontWeight="bold">
+                        <Typography variant="h4" fontWeight="800" className="text-gradient" sx={{ letterSpacing: '-0.025em' }}>
                             {value}
                         </Typography>
                     </Box>
-                    <Avatar sx={iconConfig}>
+                    <Avatar sx={{ ...iconConfig, width: 48, height: 48, borderRadius: 3, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                         {icon}
                     </Avatar>
                 </Box>

@@ -8,7 +8,8 @@ import {
 } from '@mui/material';
 import {
     Menu as MenuIcon, Brightness4, Brightness7, Dashboard as DashboardIcon,
-    AccountBalanceWallet, CreditCard, SwapHoriz, Savings, PieChart, ExitToApp
+    AccountBalanceWallet, CreditCard, SwapHoriz, Savings, PieChart, ExitToApp,
+    RequestQuote
 } from '@mui/icons-material';
 
 const drawerWidth = 260;
@@ -17,6 +18,7 @@ const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
     { label: 'Accounts', path: '/accounts', icon: <AccountBalanceWallet /> },
     { label: 'Credit Cards', path: '/credit-cards', icon: <CreditCard /> },
+    { label: 'Loans', path: '/loans', icon: <RequestQuote /> },
     { label: 'Transactions', path: '/transactions', icon: <SwapHoriz /> },
     { label: 'Budgets', path: '/budgets', icon: <Savings /> },
     { label: 'Reports', path: '/reports', icon: <PieChart /> },
@@ -48,13 +50,14 @@ const MainLayout = ({ children, mode, toggleColorMode }) => {
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <Toolbar sx={{ px: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box sx={{
-                    width: 36, height: 36, borderRadius: 2,
-                    background: 'linear-gradient(45deg, #6366f1 30%, #ec4899 90%)',
+                    width: 36, height: 36, borderRadius: 3,
+                    background: 'linear-gradient(135deg, #4f46e5 0%, #0d9488 100%)',
+                    boxShadow: mode === 'light' ? '0 4px 12px rgba(79, 70, 229, 0.3)' : '0 4px 12px rgba(79, 70, 229, 0.5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>
                     <Typography variant="h6" fontWeight="bold" color="white">F</Typography>
                 </Box>
-                <Typography variant="h6" fontWeight="bold">FinanceEase</Typography>
+                <Typography variant="h6" fontWeight="800" sx={{ letterSpacing: '-0.025em' }}>FinanceEase</Typography>
             </Toolbar>
             <Divider />
 
@@ -67,19 +70,37 @@ const MainLayout = ({ children, mode, toggleColorMode }) => {
                                 onClick={() => handleNav(item.path)}
                                 selected={isActive}
                                 sx={{
-                                    borderRadius: 2,
+                                    borderRadius: 3,
+                                    mb: 0.5,
+                                    transition: 'all 0.2s ease-in-out',
+                                    position: 'relative',
+                                    '&::before': isActive ? {
+                                        content: '""',
+                                        position: 'absolute',
+                                        left: -16,
+                                        top: '10%',
+                                        height: '80%',
+                                        width: 4,
+                                        borderRadius: '0 4px 4px 0',
+                                        backgroundColor: 'primary.main',
+                                    } : {},
                                     '&.Mui-selected': {
-                                        bgcolor: 'primary.light',
-                                        color: 'primary.contrastText',
-                                        '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
-                                        '&:hover': { bgcolor: 'primary.main' }
+                                        bgcolor: mode === 'light' ? 'rgba(79, 70, 229, 0.08)' : 'rgba(79, 70, 229, 0.15)',
+                                        color: 'primary.main',
+                                        '& .MuiListItemIcon-root': { color: 'primary.main' },
+                                        '&:hover': {
+                                            bgcolor: mode === 'light' ? 'rgba(79, 70, 229, 0.12)' : 'rgba(79, 70, 229, 0.2)',
+                                        }
+                                    },
+                                    '&:hover': {
+                                        bgcolor: mode === 'light' ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.04)',
                                     }
                                 }}
                             >
-                                <ListItemIcon sx={{ minWidth: 40, color: isActive ? 'inherit' : 'text.secondary' }}>
+                                <ListItemIcon sx={{ minWidth: 44, color: isActive ? 'inherit' : 'text.secondary', transition: 'color 0.2s' }}>
                                     {item.icon}
                                 </ListItemIcon>
-                                <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: isActive ? 600 : 500 }} />
+                                <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: isActive ? 600 : 500, transition: 'font-weight 0.2s' }} />
                             </ListItemButton>
                         </ListItem>
                     );

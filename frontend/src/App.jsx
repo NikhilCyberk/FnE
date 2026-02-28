@@ -9,6 +9,7 @@ import BudgetsPage from './pages/BudgetsPage';
 import ReportsPage from './pages/ReportsPage';
 import CreditCardsPage from './pages/CreditCardsPage';
 import CreditCardDetailPage from './pages/CreditCardDetailPage';
+import LoansPage from './pages/LoansPage';
 
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { createAppTheme } from './theme';
@@ -46,6 +47,7 @@ function AppContent() {
           <Route path="/accounts" element={<AccountsPage />} />
           <Route path="/credit-cards" element={<CreditCardsPage />} />
           <Route path="/credit-cards/:id" element={<CreditCardDetailPage />} />
+          <Route path="/loans" element={<LoansPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/reports" element={<ReportsPage />} />

@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(90deg, #4f46e5 0%, #0d9488 100%);
+}
+
+.dark .text-gradient {
+  background-image: linear-gradient(90deg, #818cf8 0%, #2dd4bf 100%);
+}

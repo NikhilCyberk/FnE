@@ -120,6 +120,7 @@ dotenv.config();
   app.use('/api/budget-categories', require('./routes/budgetCategories'));
   app.use('/api/user', require('./routes/user'));
   app.use('/api/credit-cards', creditCardRoutes);
+  app.use('/api/loans', require('./routes/loans'));
 
   app.use((err, req, res, next) => {
     logger.error(`Unhandled error: ${err.message}`, { stack: err.stack });

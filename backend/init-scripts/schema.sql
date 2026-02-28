@@ -590,6 +590,26 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 -- CREATE POLICY user_preferences_policy ON user_preferences FOR ALL USING (user_id = current_setting('app.current_user_id', true)::UUID);
 -- CREATE POLICY user_notifications ON notifications FOR ALL USING (user_id = current_setting('app.current_user_id', true)::UUID);
 
+-- Loans table
+CREATE TABLE IF NOT EXISTS loans (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    lender_name VARCHAR(100) NOT NULL,
+    loan_type VARCHAR(50) DEFAULT 'Personal',
+    loan_amount NUMERIC(15, 2) NOT NULL,
+    interest_rate NUMERIC(5, 2) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    emi_amount NUMERIC(15, 2) NOT NULL,
+    remaining_balance NUMERIC(15, 2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'Active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER update_loans_updated_at BEFORE UPDATE ON loans FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE INDEX IF NOT EXISTS idx_loans_user_id ON loans(user_id);
+
 -- VIEWS for common queries
 CREATE VIEW user_account_summary AS
 SELECT 

@@ -10,8 +10,8 @@ const DashboardCategoryChart = ({ data }) => {
         <Card sx={{ height: '100%' }}>
             <CardHeader
                 title="Expense Categories"
-                titleTypographyProps={{ variant: 'h6', fontWeight: 'bold' }}
-                action={<ShowChart color="action" />}
+                titleTypographyProps={{ variant: 'h6', fontWeight: '800', letterSpacing: '-0.025em' }}
+                action={<ShowChart color="disabled" />}
             />
             <CardContent sx={{ height: 350, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -20,11 +20,13 @@ const DashboardCategoryChart = ({ data }) => {
                             data={data}
                             cx="50%"
                             cy="50%"
+                            innerRadius={70}
+                            outerRadius={100}
+                            paddingAngle={5}
+                            dataKey="value"
+                            stroke="none"
                             labelLine={false}
                             label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            outerRadius={100}
-                            fill="#8884d8"
-                            dataKey="value"
                         >
                             {data.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -34,9 +36,11 @@ const DashboardCategoryChart = ({ data }) => {
                             contentStyle={{
                                 backgroundColor: theme.palette.background.paper,
                                 border: `1px solid ${theme.palette.divider}`,
-                                borderRadius: '8px',
-                                color: theme.palette.text.primary
+                                borderRadius: '12px',
+                                color: theme.palette.text.primary,
+                                boxShadow: theme.palette.mode === 'light' ? '0 10px 25px rgba(0,0,0,0.1)' : '0 10px 25px rgba(0,0,0,0.5)',
                             }}
+                            itemStyle={{ fontWeight: 600 }}
                         />
                     </PieChart>
                 </ResponsiveContainer>

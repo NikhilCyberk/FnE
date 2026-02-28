@@ -56,10 +56,10 @@ const DashboardPage = () => {
   ];
 
   const categoryData = [
-    { name: 'Food', value: 400, color: '#8884d8' },
-    { name: 'Transport', value: 300, color: '#82ca9d' },
-    { name: 'Shopping', value: 300, color: '#ffc658' },
-    { name: 'Bills', value: 200, color: '#ff7300' },
+    { name: 'Food', value: 400, color: '#4f46e5' },
+    { name: 'Transport', value: 300, color: '#0d9488' },
+    { name: 'Shopping', value: 300, color: '#f59e0b' },
+    { name: 'Bills', value: 200, color: '#ef4444' },
   ];
 
   if (isLoading) {
@@ -73,19 +73,19 @@ const DashboardPage = () => {
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Page Header */}
-      <Box display="flex" alignItems="center" justifyContent="space-between">
+      <Box display="flex" alignItems="center" justifyContent="space-between" className="animate-fade-in-up" sx={{ animationDelay: '0ms' }}>
         <Box>
-          <Typography variant="h4" fontWeight="bold">Dashboard</Typography>
-          <Typography color="text.secondary">Welcome back! Here's your financial overview.</Typography>
+          <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.025em' }}>Dashboard</Typography>
+          <Typography color="text.secondary" variant="subtitle1" mt={0.5}>Welcome back! Here's your financial overview.</Typography>
         </Box>
-        <Box display="flex" alignItems="center" gap={1} color="text.secondary">
-          <CalendarToday fontSize="small" />
-          <Typography variant="body2">{new Date().toLocaleDateString()}</Typography>
+        <Box display="flex" alignItems="center" gap={1} color="text.secondary" p={1.5} borderRadius={3} bgcolor="background.paper" sx={{ boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+          <CalendarToday fontSize="small" color="primary" />
+          <Typography variant="body2" fontWeight={600}>{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Typography>
         </Box>
       </Box>
 
       {/* Summary Cards */}
-      <Grid container spacing={3}>
+      <Grid container spacing={3} className="animate-fade-in-up" sx={{ animationDelay: '100ms' }}>
         <Grid item xs={12} sm={6} md={3}>
           <DashboardSummaryCard
             title="Total Balance"
@@ -125,7 +125,7 @@ const DashboardPage = () => {
       </Grid>
 
       {/* Charts Section */}
-      <Grid container spacing={3}>
+      <Grid container spacing={3} className="animate-fade-in-up" sx={{ animationDelay: '200ms' }}>
         <Grid item xs={12} lg={8}>
           <DashboardCashFlowChart data={monthlyData} />
         </Grid>
@@ -135,7 +135,9 @@ const DashboardPage = () => {
       </Grid>
 
       {/* Recent Transactions */}
-      <RecentTransactionsList transactions={transactions} />
+      <Box className="animate-fade-in-up" sx={{ animationDelay: '300ms' }}>
+        <RecentTransactionsList transactions={transactions} />
+      </Box>
     </Box>
   );
 };
