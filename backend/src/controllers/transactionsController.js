@@ -2,12 +2,12 @@ const pool = require('../db');
 const logger = require('../logger');
 
 // Enhanced validation helpers
-function isValidAmount(amount) { 
-  return typeof amount === 'number' && !isNaN(amount) && isFinite(amount) && amount !== 0; 
+function isValidAmount(amount) {
+  return typeof amount === 'number' && !isNaN(amount) && isFinite(amount) && amount !== 0;
 }
 
-function isValidType(type) { 
-  return typeof type === 'string' && ['income','expense','transfer'].includes(type); 
+function isValidType(type) {
+  return typeof type === 'string' && ['income', 'expense', 'transfer'].includes(type);
 }
 
 function isValidStatus(status) {
@@ -18,14 +18,14 @@ exports.getTransactions = async (req, res) => {
   logger.info('Get transactions request', { userId: req.user && req.user.userId });
   try {
     const userId = req.user.userId;
-    const { 
-      page = 1, 
-      limit = 50, 
-      startDate, 
-      endDate, 
-      categoryId, 
-      accountId, 
-      type, 
+    const {
+      page = 1,
+      limit = 50,
+      startDate,
+      endDate,
+      categoryId,
+      accountId,
+      type,
       status,
       minAmount,
       maxAmount
@@ -45,53 +45,53 @@ exports.getTransactions = async (req, res) => {
       LEFT JOIN accounts ta ON t.transfer_account_id = ta.id
       WHERE t.user_id = $1
     `;
-    
+
     const params = [userId];
     let paramIndex = 2;
 
-    if (startDate) { 
-      query += ` AND t.transaction_date >= $${paramIndex++}`; 
-      params.push(startDate); 
+    if (startDate) {
+      query += ` AND t.transaction_date >= $${paramIndex++}`;
+      params.push(startDate);
     }
-    if (endDate) { 
-      query += ` AND t.transaction_date <= $${paramIndex++}`; 
-      params.push(endDate); 
+    if (endDate) {
+      query += ` AND t.transaction_date <= $${paramIndex++}`;
+      params.push(endDate);
     }
-    if (categoryId) { 
-      query += ` AND t.category_id = $${paramIndex++}`; 
-      params.push(categoryId); 
+    if (categoryId) {
+      query += ` AND t.category_id = $${paramIndex++}`;
+      params.push(categoryId);
     }
-    if (accountId) { 
-      query += ` AND t.account_id = $${paramIndex++}`; 
-      params.push(accountId); 
+    if (accountId) {
+      query += ` AND t.account_id = $${paramIndex++}`;
+      params.push(accountId);
     }
-    if (type && isValidType(type)) { 
-      query += ` AND t.type = $${paramIndex++}`; 
-      params.push(type); 
+    if (type && isValidType(type)) {
+      query += ` AND t.type = $${paramIndex++}`;
+      params.push(type);
     }
-    if (status && isValidStatus(status)) { 
-      query += ` AND t.status = $${paramIndex++}`; 
-      params.push(status); 
+    if (status && isValidStatus(status)) {
+      query += ` AND t.status = $${paramIndex++}`;
+      params.push(status);
     }
-    if (minAmount) { 
-      query += ` AND t.amount >= $${paramIndex++}`; 
-      params.push(parseFloat(minAmount)); 
+    if (minAmount) {
+      query += ` AND t.amount >= $${paramIndex++}`;
+      params.push(parseFloat(minAmount));
     }
-    if (maxAmount) { 
-      query += ` AND t.amount <= $${paramIndex++}`; 
-      params.push(parseFloat(maxAmount)); 
+    if (maxAmount) {
+      query += ` AND t.amount <= $${paramIndex++}`;
+      params.push(parseFloat(maxAmount));
     }
 
     // Get total count for pagination
-    const countQuery = query.replace(/SELECT.*FROM/, 'SELECT COUNT(*) FROM').replace(/ORDER BY.*/, '');
+    const countQuery = `SELECT COUNT(*) FROM (${query}) as count_q`;
     const countResult = await pool.query(countQuery, params);
     const total = parseInt(countResult.rows[0].count);
 
     query += ' ORDER BY t.transaction_date DESC, t.created_at DESC LIMIT $' + paramIndex++ + ' OFFSET $' + paramIndex;
     params.push(Number(limit), (Number(page) - 1) * Number(limit));
-    
+
     const result = await pool.query(query, params);
-    
+
     logger.info('Get transactions success', { userId: req.user.userId, count: result.rows.length });
     res.json({
       transactions: result.rows,
@@ -109,24 +109,24 @@ exports.getTransactions = async (req, res) => {
 exports.createTransaction = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { 
-      accountId, 
-      categoryId, 
+    const {
+      accountId,
+      categoryId,
       transferAccountId,
-      amount, 
-      type, 
+      amount,
+      type,
       status,
-      description, 
-      merchant, 
+      description,
+      merchant,
       location,
-      transactionDate, 
+      transactionDate,
       postedDate,
       referenceNumber,
-      tags, 
+      tags,
       notes,
       receiptUrls,
-      isRecurring, 
-      recurringRule 
+      isRecurring,
+      recurringRule
     } = req.body;
 
     if (!isValidAmount(amount) || !isValidType(type)) {
@@ -172,7 +172,7 @@ exports.getTransactionById = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { id } = req.params;
-    
+
     const result = await pool.query(`
       SELECT 
         t.id, t.amount, t.type, t.status, t.description, t.merchant, t.location,
@@ -203,24 +203,24 @@ exports.updateTransaction = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { id } = req.params;
-    const { 
-      accountId, 
-      categoryId, 
+    const {
+      accountId,
+      categoryId,
       transferAccountId,
-      amount, 
-      type, 
+      amount,
+      type,
       status,
-      description, 
-      merchant, 
+      description,
+      merchant,
       location,
-      transactionDate, 
+      transactionDate,
       postedDate,
       referenceNumber,
-      tags, 
+      tags,
       notes,
       receiptUrls,
-      isRecurring, 
-      recurringRule 
+      isRecurring,
+      recurringRule
     } = req.body;
 
     if (!isValidAmount(amount) || !isValidType(type)) {
@@ -271,7 +271,7 @@ exports.deleteTransaction = async (req, res) => {
   try {
     const userId = req.user.userId;
     const { id } = req.params;
-    
+
     const result = await pool.query(
       'DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING id',
       [id, userId]

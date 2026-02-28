@@ -37,7 +37,8 @@ const budgetsSlice = createSlice({
       })
       .addCase(fetchBudgets.fulfilled, (state, action) => {
         state.loading = false;
-        state.budgets = action.payload;
+        // The backend returns { budgets: [...], page, limit }, so we extract the array
+        state.budgets = action.payload.budgets || action.payload;
       })
       .addCase(fetchBudgets.rejected, (state, action) => {
         state.loading = false;

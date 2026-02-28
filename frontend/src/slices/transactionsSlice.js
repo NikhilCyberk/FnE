@@ -24,7 +24,7 @@ export const deleteTransaction = createAsyncThunk('transactions/deleteTransactio
 const transactionsSlice = createSlice({
   name: 'transactions',
   initialState: {
-    items: [],
+    transactions: [],
     loading: false,
     error: null,
   },
@@ -37,21 +37,21 @@ const transactionsSlice = createSlice({
       })
       .addCase(fetchTransactions.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.transactions = action.payload.transactions || action.payload;
       })
       .addCase(fetchTransactions.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
       .addCase(createTransaction.fulfilled, (state, action) => {
-        state.items.push(action.payload);
+        state.transactions.push(action.payload);
       })
       .addCase(updateTransaction.fulfilled, (state, action) => {
-        const idx = state.items.findIndex(t => t.id === action.payload.id);
-        if (idx !== -1) state.items[idx] = action.payload;
+        const idx = state.transactions.findIndex(t => t.id === action.payload.id);
+        if (idx !== -1) state.transactions[idx] = action.payload;
       })
       .addCase(deleteTransaction.fulfilled, (state, action) => {
-        state.items = state.items.filter(t => t.id !== action.payload);
+        state.transactions = state.transactions.filter(t => t.id !== action.payload);
       });
   },
 });
