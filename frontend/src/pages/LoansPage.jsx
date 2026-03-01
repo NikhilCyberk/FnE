@@ -162,12 +162,27 @@ const LoansPage = () => {
 
     return (
         <Box>
+            {/* ── Page Header ── */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
                 <Box>
-                    <Typography variant="h4" fontWeight="600" gutterBottom>
+                    <Typography
+                        variant="h4"
+                        fontWeight={800}
+                        letterSpacing={-0.5}
+                        gutterBottom
+                        sx={{
+                            background: theme =>
+                                theme.palette.mode === 'dark'
+                                    ? 'linear-gradient(135deg, #fff 30%, #a78bfa 100%)'
+                                    : 'linear-gradient(135deg, #1e1b4b 30%, #7c3aed 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                        }}
+                    >
                         Loans
                     </Typography>
-                    <Typography variant="body1" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ letterSpacing: 0.2 }}>
                         Manage your debts and track EMI payments
                     </Typography>
                 </Box>
@@ -175,7 +190,15 @@ const LoansPage = () => {
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={() => handleOpenForm()}
-                    sx={{ borderRadius: 2, px: 3 }}
+                    sx={{
+                        borderRadius: '12px',
+                        px: 3,
+                        py: 1.1,
+                        fontWeight: 700,
+                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        boxShadow: '0 4px 14px rgba(99,102,241,0.4)',
+                        '&:hover': { boxShadow: '0 6px 20px rgba(99,102,241,0.55)', opacity: 0.93 },
+                    }}
                 >
                     Add Loan
                 </Button>
@@ -191,14 +214,15 @@ const LoansPage = () => {
 
             {status === 'succeeded' && (
                 <>
-                    <Grid container spacing={3} sx={{ mb: 4 }}>
+                    {/* ── Summary Stats ── */}
+                    <Grid container spacing={2.5} sx={{ mb: 5 }}>
                         <Grid size={{ xs: 12, md: 4 }}>
                             <SummaryCard
                                 title="Active Loans"
                                 value={activeLoans.length.toString()}
                                 icon={<AccountBalanceIcon />}
-                                color="primary.main"
-                                bgColor="primary.light"
+                                gradient="linear-gradient(135deg, #6366f1 0%, #818cf8 100%)"
+                                glowColor="rgba(99,102,241,0.4)"
                             />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
@@ -206,8 +230,8 @@ const LoansPage = () => {
                                 title="Total Outstanding Debt"
                                 value={`₹${totalDebt.toLocaleString('en-IN')}`}
                                 icon={<MoneyOffIcon />}
-                                color="error.main"
-                                bgColor="error.light"
+                                gradient="linear-gradient(135deg, #ef4444 0%, #f97316 100%)"
+                                glowColor="rgba(239,68,68,0.4)"
                                 subtitle="Across all active loans"
                             />
                         </Grid>
@@ -216,14 +240,19 @@ const LoansPage = () => {
                                 title="Total Monthly EMI"
                                 value={`₹${totalMonthlyEMI.toLocaleString('en-IN')}`}
                                 icon={<CalculateIcon />}
-                                color="warning.main"
-                                bgColor="warning.light"
+                                gradient="linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)"
+                                glowColor="rgba(245,158,11,0.4)"
                                 subtitle="Estimated minimum payments"
                             />
                         </Grid>
                     </Grid>
 
-                    <Typography variant="h6" fontWeight="600" mb={2}>All Loans</Typography>
+                    {/* ── Section Label ── */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                        <Typography variant="h6" fontWeight={700} letterSpacing={-0.3}>All Loans</Typography>
+                        <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+                        <Typography variant="caption" color="text.disabled" fontWeight={600}>{loans.length} total</Typography>
+                    </Box>
 
                     {loans.length === 0 ? (
                         <Box sx={{ textAlign: 'center', py: 8, bgcolor: 'background.paper', borderRadius: 3, border: '1px dashed', borderColor: 'divider' }}>

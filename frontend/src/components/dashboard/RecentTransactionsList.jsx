@@ -1,58 +1,106 @@
 import React from 'react';
-import { Card, CardHeader, CardContent, Box, Typography, Avatar, Divider } from '@mui/material';
-import { TrendingUp, TrendingDown } from '@mui/icons-material';
+import { Box, Typography, Avatar } from '@mui/material';
+import { TrendingUp, TrendingDown, SwapHoriz } from '@mui/icons-material';
+import dayjs from 'dayjs';
 
 const RecentTransactionsList = ({ transactions }) => {
+    const recent = [...(transactions || [])]
+        .sort((a, b) => new Date(b.transactionDate || b.date) - new Date(a.transactionDate || a.date))
+        .slice(0, 6);
+
     return (
-        <Card>
-            <CardHeader
-                title="Recent Transactions"
-                titleTypographyProps={{ variant: 'h6', fontWeight: 'bold' }}
-            />
-            <Divider />
-            <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
-                {transactions?.slice(0, 5).map((transaction, index) => (
-                    <React.Fragment key={transaction.id || index}>
-                        <Box px={3} py={2} display="flex" justifyContent="space-between" alignItems="center">
-                            <Box display="flex" alignItems="center" gap={2}>
-                                <Avatar sx={{
-                                    bgcolor: transaction.type === 'income' ? 'success.light' : 'error.light',
-                                    color: transaction.type === 'income' ? 'success.dark' : 'error.dark'
-                                }}>
-                                    {transaction.type === 'income' ? <TrendingUp /> : <TrendingDown />}
-                                </Avatar>
-                                <Box>
-                                    <Typography variant="body1" fontWeight="medium">
-                                        {transaction.description || 'Transaction'}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {transaction.categoryName || 'Uncategorized'}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                            <Box textAlign="right">
-                                <Typography
-                                    variant="body1"
-                                    fontWeight="bold"
-                                    color={transaction.type === 'income' ? 'success.main' : 'error.main'}
-                                >
-                                    {transaction.type === 'income' ? '+' : '-'}₹{Math.abs(Number(transaction.amount) || 0).toLocaleString()}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    {new Date(transaction.transactionDate).toLocaleDateString()}
-                                </Typography>
-                            </Box>
-                        </Box>
-                        {index < Math.min(transactions.length, 5) - 1 && <Divider />}
-                    </React.Fragment>
-                ))}
-                {(!transactions || transactions.length === 0) && (
-                    <Box p={3} textAlign="center">
-                        <Typography color="text.secondary">No recent transactions found.</Typography>
+        <Box sx={{
+            borderRadius: '20px',
+            border: '1px solid', borderColor: 'divider',
+            background: theme =>
+                theme.palette.mode === 'dark'
+                    ? 'linear-gradient(160deg, rgba(28,28,44,1) 0%, rgba(18,18,30,1) 100%)'
+                    : 'linear-gradient(160deg, #ffffff 0%, #f8fafc 100%)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            overflow: 'hidden',
+            height: '100%',
+        }}>
+            {/* Header */}
+            <Box sx={{
+                px: 2.5, py: 1.75,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                borderBottom: '1px solid', borderColor: 'divider',
+                background: 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, transparent 100%)',
+            }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                    <Box sx={{
+                        width: 34, height: 34, borderRadius: '10px',
+                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        '& svg': { fontSize: 18, color: 'white' },
+                    }}>
+                        <SwapHoriz />
+                    </Box>
+                    <Typography variant="subtitle1" fontWeight={700} letterSpacing={-0.2}>Recent Transactions</Typography>
+                </Box>
+                {transactions?.length > 0 && (
+                    <Box sx={{ px: 1.25, py: 0.3, borderRadius: '10px', bgcolor: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                        <Typography variant="caption" fontWeight={700} color="primary.light">{transactions.length} total</Typography>
                     </Box>
                 )}
-            </CardContent>
-        </Card>
+            </Box>
+
+            {/* List */}
+            {recent.length === 0 ? (
+                <Box sx={{ p: 5, textAlign: 'center' }}>
+                    <SwapHoriz sx={{ fontSize: 40, color: 'text.disabled', opacity: 0.35, mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary">No transactions yet.</Typography>
+                </Box>
+            ) : (
+                <Box>
+                    {recent.map((t, i) => {
+                        const isIncome = t.type === 'income';
+                        const amount = Math.abs(Number(t.amount) || 0);
+                        const date = t.transactionDate || t.date;
+                        return (
+                            <Box key={t.id || i} sx={{
+                                px: 2.5, py: 1.5,
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                borderBottom: i < recent.length - 1 ? '1px solid' : 'none',
+                                borderColor: 'divider',
+                                transition: 'background 0.15s',
+                                '&:hover': { bgcolor: 'action.hover' },
+                            }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Box sx={{
+                                        width: 36, height: 36, borderRadius: '10px',
+                                        background: isIncome
+                                            ? 'linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%)'
+                                            : 'linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.05) 100%)',
+                                        border: `1px solid ${isIncome ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    }}>
+                                        {isIncome
+                                            ? <TrendingUp sx={{ fontSize: 18, color: '#10b981' }} />
+                                            : <TrendingDown sx={{ fontSize: 18, color: '#ef4444' }} />
+                                        }
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 220 }}>
+                                            {t.description || 'Transaction'}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {t.categoryName || t.category || 'Uncategorized'} · {date ? dayjs(date).format('D MMM') : '—'}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                                <Typography
+                                    variant="body2" fontWeight={800}
+                                    sx={{ color: isIncome ? '#10b981' : '#f87171', letterSpacing: -0.3 }}
+                                >
+                                    {isIncome ? '+' : '-'}₹{amount.toLocaleString('en-IN')}
+                                </Typography>
+                            </Box>
+                        );
+                    })}
+                </Box>
+            )}
+        </Box>
     );
 };
 

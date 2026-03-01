@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchLoan, updateLoan } from '../slices/loansSlice';
 import {
     Box, Typography, CircularProgress, Chip,
-    Table, TableHead, TableRow, TableCell, TableBody, Button,
+    Table, TableHead, TableRow, TableCell, TableBody, TablePagination, Button,
     Grid, Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, MenuItem, IconButton, Snackbar, Alert, InputAdornment,
     Tooltip, LinearProgress
@@ -112,6 +112,10 @@ const LoanDetailPage = () => {
     const [deleteConfirmIndex, setDeleteConfirmIndex] = useState(null);
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
     const [saving, setSaving] = useState(false);
+
+    // Statement of Account pagination
+    const [stmtPage, setStmtPage] = useState(0);
+    const [stmtRowsPerPage, setStmtRowsPerPage] = useState(10);
 
     useEffect(() => { dispatch(fetchLoan(id)); }, [id, dispatch]);
 
@@ -462,84 +466,118 @@ const LoanDetailPage = () => {
                                 </Button>
                             </Box>
                         ) : (
-                            <Box sx={{ overflowX: 'auto' }}>
-                                <Table size="small">
-                                    <TableHead>
-                                        <TableRow>
-                                            {['Date', 'Particulars', 'Debit (₹)', 'Credit (₹)', 'Balance (₹)', ''].map((h, i) => (
-                                                <TableCell key={i} align={i >= 2 && i <= 4 ? 'right' : 'left'} sx={{
-                                                    bgcolor: 'rgba(20,20,32,0.6)',
-                                                    fontWeight: 700, fontSize: '0.73rem',
-                                                    color: 'text.secondary', py: 1, px: 2,
-                                                    borderBottom: '1px solid rgba(255,255,255,0.06)',
-                                                    whiteSpace: 'nowrap',
-                                                }}>
-                                                    {h}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {transactions.map((t, idx) => (
-                                            <TableRow key={idx} sx={{
-                                                '&:hover': { bgcolor: 'rgba(255,255,255,0.03)' },
-                                                '& td': { borderBottom: '1px solid rgba(255,255,255,0.04)', px: 2, py: 1.1 }
-                                            }}>
-                                                <TableCell>
-                                                    <Typography variant="body2" fontSize="0.8rem" color="text.secondary" whiteSpace="nowrap">
-                                                        {dayjs(t.date).format('DD MMM YYYY')}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Typography variant="body2" fontSize="0.82rem" fontWeight={500}>
-                                                        {t.particulars}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {t.debit > 0 ? (
-                                                        <Typography variant="body2" fontSize="0.82rem" fontWeight={600}
-                                                            sx={{ color: '#f87171' }}>
-                                                            {parseFloat(t.debit).toLocaleString('en-IN')}
-                                                        </Typography>
-                                                    ) : (
-                                                        <Typography variant="body2" color="text.disabled">—</Typography>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    {t.credit > 0 ? (
-                                                        <Typography variant="body2" fontSize="0.82rem" fontWeight={600}
-                                                            sx={{ color: '#fb923c' }}>
-                                                            {parseFloat(t.credit).toLocaleString('en-IN')}
-                                                        </Typography>
-                                                    ) : (
-                                                        <Typography variant="body2" color="text.disabled">—</Typography>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    <Typography variant="body2" fontSize="0.82rem" fontWeight="700">
-                                                        ₹{parseFloat(t.balance ?? 0).toLocaleString('en-IN')}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.25 }}>
-                                                        <Tooltip title="Edit">
-                                                            <IconButton size="small" onClick={() => handleOpenEdit(t, idx)}
-                                                                sx={{ color: 'text.disabled', '&:hover': { color: 'primary.light', bgcolor: 'rgba(99,102,241,0.12)' } }}>
-                                                                <EditIcon sx={{ fontSize: 15 }} />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                        <Tooltip title="Delete">
-                                                            <IconButton size="small" onClick={() => setDeleteConfirmIndex(idx)}
-                                                                sx={{ color: 'text.disabled', '&:hover': { color: '#f87171', bgcolor: 'rgba(239,68,68,0.12)' } }}>
-                                                                <DeleteIcon sx={{ fontSize: 15 }} />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    </Box>
-                                                </TableCell>
+                            <Box>
+                                <Box sx={{ overflowX: 'auto' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow>
+                                                {['Date', 'Particulars', 'Debit (₹)', 'Credit (₹)', 'Balance (₹)', ''].map((h, i) => (
+                                                    <TableCell key={i} align={i >= 2 && i <= 4 ? 'right' : 'left'} sx={{
+                                                        bgcolor: 'rgba(20,20,32,0.6)',
+                                                        fontWeight: 700, fontSize: '0.73rem',
+                                                        color: 'text.secondary', py: 1, px: 2,
+                                                        borderBottom: '1px solid rgba(255,255,255,0.06)',
+                                                        whiteSpace: 'nowrap',
+                                                    }}>
+                                                        {h}
+                                                    </TableCell>
+                                                ))}
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHead>
+                                        <TableBody>
+                                            {transactions
+                                                .slice(stmtPage * stmtRowsPerPage, stmtPage * stmtRowsPerPage + stmtRowsPerPage)
+                                                .map((t, relIdx) => {
+                                                    const idx = stmtPage * stmtRowsPerPage + relIdx;
+                                                    return (
+                                                        <TableRow key={idx} sx={{
+                                                            '&:hover': { bgcolor: 'rgba(255,255,255,0.03)' },
+                                                            '& td': { borderBottom: '1px solid rgba(255,255,255,0.04)', px: 2, py: 1.1 }
+                                                        }}>
+                                                            <TableCell>
+                                                                <Typography variant="body2" fontSize="0.8rem" color="text.secondary" whiteSpace="nowrap">
+                                                                    {dayjs(t.date).format('DD MMM YYYY')}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Typography variant="body2" fontSize="0.82rem" fontWeight={500}>
+                                                                    {t.particulars}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="right">
+                                                                {t.debit > 0 ? (
+                                                                    <Typography variant="body2" fontSize="0.82rem" fontWeight={600} sx={{ color: '#f87171' }}>
+                                                                        {parseFloat(t.debit).toLocaleString('en-IN')}
+                                                                    </Typography>
+                                                                ) : (
+                                                                    <Typography variant="body2" color="text.disabled">—</Typography>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell align="right">
+                                                                {t.credit > 0 ? (
+                                                                    <Typography variant="body2" fontSize="0.82rem" fontWeight={600} sx={{ color: '#fb923c' }}>
+                                                                        {parseFloat(t.credit).toLocaleString('en-IN')}
+                                                                    </Typography>
+                                                                ) : (
+                                                                    <Typography variant="body2" color="text.disabled">—</Typography>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell align="right">
+                                                                <Typography variant="body2" fontSize="0.82rem" fontWeight="700">
+                                                                    ₹{parseFloat(t.balance ?? 0).toLocaleString('en-IN')}
+                                                                </Typography>
+                                                            </TableCell>
+                                                            <TableCell align="right">
+                                                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.25 }}>
+                                                                    <Tooltip title="Edit">
+                                                                        <IconButton size="small" onClick={() => handleOpenEdit(t, idx)}
+                                                                            sx={{ color: 'text.disabled', '&:hover': { color: 'primary.light', bgcolor: 'rgba(99,102,241,0.12)' } }}>
+                                                                            <EditIcon sx={{ fontSize: 15 }} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                    <Tooltip title="Delete">
+                                                                        <IconButton size="small" onClick={() => setDeleteConfirmIndex(idx)}
+                                                                            sx={{ color: 'text.disabled', '&:hover': { color: '#f87171', bgcolor: 'rgba(239,68,68,0.12)' } }}>
+                                                                            <DeleteIcon sx={{ fontSize: 15 }} />
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </Box>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    );
+                                                })
+                                            }
+                                        </TableBody>
+                                    </Table>
+                                </Box>
+
+                                {/* Pagination footer */}
+                                <TablePagination
+                                    component="div"
+                                    count={transactions.length}
+                                    page={stmtPage}
+                                    rowsPerPage={stmtRowsPerPage}
+                                    rowsPerPageOptions={[5, 10, 25]}
+                                    onPageChange={(_, newPage) => setStmtPage(newPage)}
+                                    onRowsPerPageChange={(e) => {
+                                        setStmtRowsPerPage(parseInt(e.target.value, 10));
+                                        setStmtPage(0);
+                                    }}
+                                    sx={{
+                                        borderTop: '1px solid rgba(255,255,255,0.06)',
+                                        color: 'text.secondary',
+                                        '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+                                            fontSize: '0.78rem',
+                                        },
+                                        '.MuiTablePagination-select': {
+                                            fontSize: '0.78rem',
+                                        },
+                                        '.MuiIconButton-root': {
+                                            borderRadius: '8px',
+                                            '&:hover': { bgcolor: 'rgba(99,102,241,0.1)' },
+                                        },
+                                    }}
+                                />
                             </Box>
                         )}
                     </Box>

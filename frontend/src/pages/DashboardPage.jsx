@@ -1,116 +1,184 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { Box, Typography, Grid } from '@mui/material';
+import { CalendarToday, AccountBalanceWallet, TrendingUp, TrendingDown, Savings } from '@mui/icons-material';
+import dayjs from 'dayjs';
+
+// Slices
 import { fetchAccounts } from '../slices/accountsSlice';
 import { fetchTransactions } from '../slices/transactionsSlice';
 import { fetchBudgets } from '../slices/budgetsSlice';
-import { Box, Typography, Grid, CircularProgress } from '@mui/material';
-import {
-  AccountBalanceWallet, TrendingUp, TrendingDown,
-  Savings, CalendarToday
-} from '@mui/icons-material';
+import { fetchLoans } from '../slices/loansSlice';
+import { fetchCreditCards } from '../slices/creditCardsSlice';
 
+// Dashboard components
 import DashboardSummaryCard from '../components/dashboard/DashboardSummaryCard';
-import RecentTransactionsList from '../components/dashboard/RecentTransactionsList';
 import DashboardCashFlowChart from '../components/dashboard/DashboardCashFlowChart';
 import DashboardCategoryChart from '../components/dashboard/DashboardCategoryChart';
+import RecentTransactionsList from '../components/dashboard/RecentTransactionsList';
+import DashboardLoansWidget from '../components/dashboard/DashboardLoansWidget';
+import DashboardCreditCardsWidget from '../components/dashboard/DashboardCreditCardsWidget';
+import DashboardAccountsWidget from '../components/dashboard/DashboardAccountsWidget';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Build real monthly income / expenses for the last 6 months from transactions */
+const buildMonthlyData = (transactions) => {
+  const months = Array.from({ length: 6 }, (_, i) => dayjs().subtract(5 - i, 'month'));
+  return months.map((m) => {
+    const txInMonth = (type) =>
+      transactions
+        .filter(t => t.type === type && dayjs(t.transactionDate || t.date).isSame(m, 'month'))
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    return { month: m.format('MMM'), income: txInMonth('income'), expenses: txInMonth('expense') };
+  });
+};
+
+/** Aggregate expense amounts by category (top 6) */
+const buildCategoryData = (transactions) => {
+  const PALETTE = ['#6366f1', '#0d9488', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16'];
+  const map = {};
+  transactions.filter(t => t.type === 'expense').forEach(t => {
+    const cat = t.categoryName || t.category || 'Other';
+    map[cat] = (map[cat] || 0) + Number(t.amount || 0);
+  });
+  const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  return sorted.length > 0
+    ? sorted.map(([name, value], i) => ({ name, value: Math.round(value), color: PALETTE[i % PALETTE.length] }))
+    : [
+      { name: 'Food', value: 0, color: PALETTE[0] },
+      { name: 'Transport', value: 0, color: PALETTE[1] },
+      { name: 'Bills', value: 0, color: PALETTE[2] },
+    ];
+};
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 const DashboardPage = () => {
   const dispatch = useDispatch();
-  const { accounts } = useSelector((state) => state.accounts);
-  const { transactions } = useSelector((state) => state.transactions);
-  const { budgets } = useSelector((state) => state.budgets);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Redux state
+  const { items: accounts = [] } = useSelector(s => s.accounts);
+  const { transactions = [] } = useSelector(s => s.transactions);
+  const { budgets = [] } = useSelector(s => s.budgets);
+  const { loans = [] } = useSelector(s => s.loans);
+  const { creditCards = [] } = useSelector(s => s.creditCards);
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        await Promise.all([
-          dispatch(fetchAccounts()),
-          dispatch(fetchTransactions()),
-          dispatch(fetchBudgets())
-        ]);
-      } catch (error) {
-        console.error('Failed to load dashboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadDashboardData();
+    dispatch(fetchAccounts());
+    dispatch(fetchTransactions());
+    dispatch(fetchBudgets());
+    dispatch(fetchLoans());
+    dispatch(fetchCreditCards());
   }, [dispatch]);
 
-  // Calculate summary data
-  const totalBalance = accounts?.reduce((sum, account) => sum + (Number(account.balance) || 0), 0) || 0;
-  const totalIncome = transactions?.filter(t => t.type === 'income').reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
-  const totalExpenses = transactions?.filter(t => t.type === 'expense').reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
-  const activeBudgets = budgets?.filter(b => b.status === 'active').length || 0;
+  // ── Derived metrics ───────────────────────────────────────────────────────
+  const totalBalance = accounts.reduce((s, a) => s + (Number(a.balance) || 0), 0);
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const activeBudgets = budgets.filter(b => b.status === 'active').length;
 
-  // Sample chart data
-  const monthlyData = [
-    { month: 'Jan', income: 4000, expenses: 2400 },
-    { month: 'Feb', income: 3000, expenses: 1398 },
-    { month: 'Mar', income: 2000, expenses: 9800 },
-    { month: 'Apr', income: 2780, expenses: 3908 },
-    { month: 'May', income: 1890, expenses: 4800 },
-    { month: 'Jun', income: 2390, expenses: 3800 },
-  ];
+  const activeLoans = loans.filter(l => l.status === 'Active');
+  const totalDebt = activeLoans.reduce((s, l) => s + parseFloat(l.remaining_balance || 0), 0);
+  const totalEMI = activeLoans.reduce((s, l) => s + parseFloat(l.emi_amount || 0), 0);
 
-  const categoryData = [
-    { name: 'Food', value: 400, color: '#4f46e5' },
-    { name: 'Transport', value: 300, color: '#0d9488' },
-    { name: 'Shopping', value: 300, color: '#f59e0b' },
-    { name: 'Bills', value: 200, color: '#ef4444' },
-  ];
+  const totalCCDebt = creditCards.reduce((s, c) => s + parseFloat(c.current_balance || c.outstanding_balance || 0), 0);
+  const totalCCLimit = creditCards.reduce((s, c) => s + parseFloat(c.credit_limit || 0), 0);
+  const utilisation = totalCCLimit > 0 ? Math.min((totalCCDebt / totalCCLimit) * 100, 100) : 0;
 
-  if (isLoading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
+  // ── Month-over-month trends ───────────────────────────────────────────────
+  const { prevIncome, prevExpenses } = useMemo(() => {
+    const prev = dayjs().subtract(1, 'month');
+    const filter = (type) =>
+      transactions
+        .filter(t => t.type === type
+          && dayjs(t.transactionDate || t.date).month() === prev.month()
+          && dayjs(t.transactionDate || t.date).year() === prev.year())
+        .reduce((s, t) => s + Number(t.amount || 0), 0);
+    return { prevIncome: filter('income'), prevExpenses: filter('expense') };
+  }, [transactions]);
 
+  const trendPct = (current, prev) =>
+    prev > 0 ? ((current - prev) / prev * 100).toFixed(1) : null;
+
+  const incomeTrendPct = trendPct(totalIncome, prevIncome);
+  const expenseTrendPct = trendPct(totalExpenses, prevExpenses);
+
+  const incomeTrend = incomeTrendPct !== null ? { value: `${Number(incomeTrendPct) >= 0 ? '+' : ''}${incomeTrendPct}%`, positive: Number(incomeTrendPct) >= 0 } : null;
+  const expenseTrend = expenseTrendPct !== null ? { value: `${Number(expenseTrendPct) >= 0 ? '+' : ''}${expenseTrendPct}%`, positive: Number(expenseTrendPct) <= 0 } : null;
+
+  // ── Chart data ────────────────────────────────────────────────────────────
+  const monthlyData = useMemo(() => buildMonthlyData(transactions), [transactions]);
+  const categoryData = useMemo(() => buildCategoryData(transactions), [transactions]);
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Page Header */}
-      <Box display="flex" alignItems="center" justifyContent="space-between" className="animate-fade-in-up" sx={{ animationDelay: '0ms' }}>
+
+      {/* ── Page Header ───────────────────────────────────────────────── */}
+      <Box display="flex" alignItems="center" justifyContent="space-between">
         <Box>
-          <Typography variant="h3" fontWeight="800" sx={{ letterSpacing: '-0.025em' }}>Dashboard</Typography>
-          <Typography color="text.secondary" variant="subtitle1" mt={0.5}>Welcome back! Here's your financial overview.</Typography>
+          <Typography
+            variant="h4" fontWeight={800} letterSpacing={-0.5}
+            sx={{
+              background: theme => theme.palette.mode === 'dark'
+                ? 'linear-gradient(135deg, #fff 30%, #a78bfa 100%)'
+                : 'linear-gradient(135deg, #1e1b4b 30%, #7c3aed 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Dashboard
+          </Typography>
+          <Typography color="text.secondary" variant="body2" mt={0.25} letterSpacing={0.2}>
+            Welcome back! Here's your complete financial overview.
+          </Typography>
         </Box>
-        <Box display="flex" alignItems="center" gap={1} color="text.secondary" p={1.5} borderRadius={3} bgcolor="background.paper" sx={{ boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+        <Box
+          display="flex" alignItems="center" gap={1}
+          px={2} py={1} borderRadius={3}
+          sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}
+        >
           <CalendarToday fontSize="small" color="primary" />
-          <Typography variant="body2" fontWeight={600}>{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</Typography>
+          <Typography variant="body2" fontWeight={600}>
+            {dayjs().format('ddd, D MMM YYYY')}
+          </Typography>
         </Box>
       </Box>
 
-      {/* Summary Cards */}
-      <Grid container spacing={3} className="animate-fade-in-up" sx={{ animationDelay: '100ms' }}>
+      {/* ── Summary Cards ─────────────────────────────────────────────── */}
+      <Grid container spacing={2.5}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <DashboardSummaryCard
             title="Total Balance"
-            value={`₹${totalBalance.toLocaleString()}`}
+            value={`₹${totalBalance.toLocaleString('en-IN')}`}
             icon={<AccountBalanceWallet />}
-            iconConfig={{ bgcolor: 'info.light', color: 'info.dark' }}
-            trend={{ icon: <TrendingUp color="success" fontSize="small" />, value: '+12.5%', label: 'from last month', color: 'success.main' }}
+            gradient="linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)"
+            glowColor="rgba(14,165,233,0.35)"
+            subtitle={`${accounts.length} account${accounts.length !== 1 ? 's' : ''}`}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <DashboardSummaryCard
             title="Total Income"
-            value={`₹${totalIncome.toLocaleString()}`}
+            value={`₹${totalIncome.toLocaleString('en-IN')}`}
             icon={<TrendingUp />}
-            iconConfig={{ bgcolor: 'success.light', color: 'success.dark', opacity: 0.8 }}
-            trend={{ icon: <TrendingUp color="success" fontSize="small" />, value: '+8.2%', label: 'from last month', color: 'success.main' }}
+            gradient="linear-gradient(135deg, #10b981 0%, #34d399 100%)"
+            glowColor="rgba(16,185,129,0.35)"
+            trend={incomeTrend}
+            subtitle="vs. last month"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <DashboardSummaryCard
             title="Total Expenses"
-            value={`₹${totalExpenses.toLocaleString()}`}
+            value={`₹${totalExpenses.toLocaleString('en-IN')}`}
             icon={<TrendingDown />}
-            iconConfig={{ bgcolor: 'error.light', color: 'error.dark', opacity: 0.8 }}
-            trend={{ icon: <TrendingDown color="error" fontSize="small" />, value: '+3.1%', label: 'from last month', color: 'error.main' }}
+            gradient="linear-gradient(135deg, #ef4444 0%, #f87171 100%)"
+            glowColor="rgba(239,68,68,0.35)"
+            trend={expenseTrend}
+            subtitle="vs. last month"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -118,14 +186,15 @@ const DashboardPage = () => {
             title="Active Budgets"
             value={activeBudgets}
             icon={<Savings />}
-            iconConfig={{ bgcolor: 'secondary.light', color: 'secondary.dark', opacity: 0.8 }}
-            trend={{ icon: <TrendingUp color="secondary" fontSize="small" />, value: 'On track', label: 'this month', color: 'secondary.main' }}
+            gradient="linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)"
+            glowColor="rgba(139,92,246,0.35)"
+            subtitle={`${budgets.length} total budgets`}
           />
         </Grid>
       </Grid>
 
-      {/* Charts Section */}
-      <Grid container spacing={3} className="animate-fade-in-up" sx={{ animationDelay: '200ms' }}>
+      {/* ── Charts ────────────────────────────────────────────────────── */}
+      <Grid container spacing={2.5}>
         <Grid size={{ xs: 12, lg: 8 }}>
           <DashboardCashFlowChart data={monthlyData} />
         </Grid>
@@ -134,10 +203,35 @@ const DashboardPage = () => {
         </Grid>
       </Grid>
 
-      {/* Recent Transactions */}
-      <Box className="animate-fade-in-up" sx={{ animationDelay: '300ms' }}>
-        <RecentTransactionsList transactions={transactions} />
-      </Box>
+      {/* ── Loans + Credit Cards ──────────────────────────────────────── */}
+      <Grid container spacing={2.5}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <DashboardLoansWidget
+            activeLoans={activeLoans}
+            totalDebt={totalDebt}
+            totalEMI={totalEMI}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <DashboardCreditCardsWidget
+            creditCards={creditCards}
+            totalCCDebt={totalCCDebt}
+            totalCCLimit={totalCCLimit}
+            utilisation={utilisation}
+          />
+        </Grid>
+      </Grid>
+
+      {/* ── Accounts + Recent Transactions ────────────────────────────── */}
+      <Grid container spacing={2.5}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <DashboardAccountsWidget accounts={accounts} />
+        </Grid>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <RecentTransactionsList transactions={transactions} />
+        </Grid>
+      </Grid>
+
     </Box>
   );
 };
