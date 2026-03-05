@@ -31,7 +31,7 @@ api.interceptors.response.use(
     if (error.response) {
       // Server responded with error status
       const { status, data } = error.response;
-      
+
       switch (status) {
         case 401:
           // Unauthorized - clear token and redirect to login
@@ -69,7 +69,7 @@ api.interceptors.response.use(
       // Other error
       console.error('Error:', error.message);
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -121,9 +121,9 @@ export const budgetsAPI = {
 };
 
 export const reportsAPI = {
-  getSpendingByCategory: (params) => api.get('/api/reports/spending-by-category', { params }),
-  getMonthlySpending: (params) => api.get('/api/reports/monthly-spending', { params }),
-  getIncomeVsExpense: (params) => api.get('/api/reports/income-vs-expense', { params }),
+  getSpendingSummary: (params) => api.get('/api/reports/spending-summary', { params }),
+  getCategoryBreakdown: (params) => api.get('/api/reports/category-breakdown', { params }),
+  getCashFlow: (params) => api.get('/api/reports/cash-flow', { params }),
 };
 
 export const creditCardsAPI = {

@@ -122,6 +122,25 @@ dotenv.config();
   app.use('/api/credit-cards', creditCardRoutes);
   app.use('/api/loans', require('./routes/loans'));
 
+  // Serve static files from the React frontend app
+  const path = require('path');
+  app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+
+  // Root route for API
+  app.get('/', (req, res) => {
+    res.json({ message: 'Welcome to FnE API' });
+  });
+
+  // Anything that doesn't match the above, send back index.html
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'), (err) => {
+      if (err) {
+        // If dist doesn't exist (dev mode), just send 404
+        res.status(404).send('Not found. Please make sure the frontend is built or use the dev server.');
+      }
+    });
+  });
+
   app.use((err, req, res, next) => {
     logger.error(`Unhandled error: ${err.message}`, { stack: err.stack });
     res.status(500).json({ error: 'Internal Server Error', details: err.message });

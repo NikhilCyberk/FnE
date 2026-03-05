@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchTransactions } from '../slices/transactionsSlice';
-import { Box, Typography, Grid, Paper, Button, MenuItem, TextField, useTheme } from '@mui/material';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
+import { Box, Typography, Grid, Paper, Button, MenuItem, TextField, useTheme, CircularProgress, Alert } from '@mui/material';
 import { Download, FilterList, AttachMoney, ArrowUpward, ArrowDownward } from '@mui/icons-material';
+import dayjs from 'dayjs';
 
+import { reportsAPI } from '../api';
 import SummaryCard from '../components/common/SummaryCard';
 import CashFlowChart from '../components/reports/CashFlowChart';
 import ExpenseCategoryChart from '../components/reports/ExpenseCategoryChart';
@@ -11,48 +12,74 @@ import TopExpensesList from '../components/reports/TopExpensesList';
 import MonthlyComparisonChart from '../components/reports/MonthlyComparisonChart';
 
 const ReportsPage = () => {
-  const dispatch = useDispatch();
   const theme = useTheme();
-  const { transactions } = useSelector((state) => state.transactions);
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedType, setSelectedType] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [summaryData, setSummaryData] = useState({
+    totalIncome: 0,
+    totalExpenses: 0,
+    netAmount: 0,
+    topCategories: []
+  });
+  const [categoryData, setCategoryData] = useState([]);
+  const [cashFlowData, setCashFlowData] = useState([]);
+
+  const getDateRange = useCallback((period) => {
+    const now = dayjs();
+    let startDate;
+    let endDate = now.endOf('day').format('YYYY-MM-DD');
+
+    switch (period) {
+      case 'week':
+        startDate = now.startOf('week').format('YYYY-MM-DD');
+        break;
+      case 'month':
+        startDate = now.startOf('month').format('YYYY-MM-DD');
+        break;
+      case 'quarter':
+        startDate = now.subtract(3, 'month').startOf('month').format('YYYY-MM-DD');
+        break;
+      case 'year':
+        startDate = now.startOf('year').format('YYYY-MM-DD');
+        break;
+      default:
+        startDate = now.startOf('month').format('YYYY-MM-DD');
+    }
+
+    return { startDate, endDate };
+  }, []);
+
+  const fetchReportData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { startDate, endDate } = getDateRange(selectedPeriod);
+      const params = { startDate, endDate };
+
+      const [summaryRes, categoryRes, cashFlowRes] = await Promise.all([
+        reportsAPI.getSpendingSummary(params),
+        reportsAPI.getCategoryBreakdown({ ...params, type: selectedType === 'all' ? 'expense' : selectedType }),
+        reportsAPI.getCashFlow({ ...params, groupBy: selectedPeriod === 'week' ? 'day' : 'month' })
+      ]);
+
+      setSummaryData(summaryRes.data);
+      setCategoryData(categoryRes.data.categories || []);
+      setCashFlowData(cashFlowRes.data.cashFlow || []);
+    } catch (err) {
+      console.error('Failed to fetch report data:', err);
+      setError('Failed to load reports. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedPeriod, selectedType, getDateRange]);
 
   useEffect(() => {
-    dispatch(fetchTransactions());
-  }, [dispatch]);
+    fetchReportData();
+  }, [fetchReportData]);
 
-  // Sample data for charts
-  const monthlyData = [
-    { month: 'Jan', income: 4000, expenses: 2400, net: 1600 },
-    { month: 'Feb', income: 3000, expenses: 1398, net: 1602 },
-    { month: 'Mar', income: 2000, expenses: 9800, net: -7800 },
-    { month: 'Apr', income: 2780, expenses: 3908, net: -1128 },
-    { month: 'May', income: 1890, expenses: 4800, net: -2910 },
-    { month: 'Jun', income: 2390, expenses: 3800, net: -1410 },
-  ];
-
-  const categoryData = [
-    { name: 'Food & Dining', value: 400, color: '#8884d8' },
-    { name: 'Transportation', value: 300, color: '#82ca9d' },
-    { name: 'Shopping', value: 300, color: '#ffc658' },
-    { name: 'Bills & Utilities', value: 200, color: '#ff7300' },
-    { name: 'Entertainment', value: 150, color: '#8dd1e1' },
-    { name: 'Healthcare', value: 100, color: '#d084d0' },
-  ];
-
-  const topExpenses = [
-    { category: 'Food & Dining', amount: 2400, percentage: 25 },
-    { category: 'Transportation', amount: 1800, percentage: 19 },
-    { category: 'Shopping', amount: 1500, percentage: 16 },
-    { category: 'Bills & Utilities', amount: 1200, percentage: 13 },
-    { category: 'Entertainment', amount: 900, percentage: 9 },
-  ];
-
-  const totalIncome = transactions?.filter(t => t.type === 'income').reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
-  const totalExpenses = transactions?.filter(t => t.type === 'expense').reduce((sum, t) => sum + (Number(t.amount) || 0), 0) || 0;
-  const netAmount = totalIncome - totalExpenses;
-
-  // Custom Tooltip style for charts
   const tooltipStyle = {
     backgroundColor: theme.palette.background.paper,
     border: `1px solid ${theme.palette.divider}`,
@@ -60,6 +87,14 @@ const ReportsPage = () => {
     color: theme.palette.text.primary,
     boxShadow: theme.shadows[3]
   };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -73,10 +108,13 @@ const ReportsPage = () => {
           variant="outlined"
           startIcon={<Download />}
           sx={{ borderRadius: 2 }}
+          onClick={() => window.print()}
         >
           Export Report
         </Button>
       </Box>
+
+      {error && <Alert severity="error">{error}</Alert>}
 
       {/* Filters */}
       <Paper sx={{ p: 3, borderRadius: 3 }} elevation={1}>
@@ -96,7 +134,7 @@ const ReportsPage = () => {
             >
               <MenuItem value="week">This Week</MenuItem>
               <MenuItem value="month">This Month</MenuItem>
-              <MenuItem value="quarter">This Quarter</MenuItem>
+              <MenuItem value="quarter">Last 3 Months</MenuItem>
               <MenuItem value="year">This Year</MenuItem>
             </TextField>
           </Grid>
@@ -107,9 +145,9 @@ const ReportsPage = () => {
               size="small"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              label="Type"
+              label="Category Type"
             >
-              <MenuItem value="all">All Transactions</MenuItem>
+              <MenuItem value="all">All Expenses</MenuItem>
               <MenuItem value="income">Income Only</MenuItem>
               <MenuItem value="expense">Expenses Only</MenuItem>
             </TextField>
@@ -122,7 +160,7 @@ const ReportsPage = () => {
         <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Total Income"
-            value={`₹${totalIncome.toLocaleString()}`}
+            value={`₹${(summaryData?.totalIncome || 0).toLocaleString()}`}
             icon={<ArrowUpward />}
             colorConfig={{ bg: 'success.light', iconColor: 'success.dark', valueColor: 'success.main' }}
           />
@@ -131,7 +169,7 @@ const ReportsPage = () => {
         <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Total Expenses"
-            value={`₹${totalExpenses.toLocaleString()}`}
+            value={`₹${(summaryData?.totalExpenses || 0).toLocaleString()}`}
             icon={<ArrowDownward />}
             colorConfig={{ bg: 'error.light', iconColor: 'error.dark', valueColor: 'error.main' }}
           />
@@ -140,12 +178,12 @@ const ReportsPage = () => {
         <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Net Amount"
-            value={`₹${netAmount.toLocaleString()}`}
+            value={`₹${(summaryData?.netAmount || 0).toLocaleString()}`}
             icon={<AttachMoney />}
             colorConfig={{
               bg: 'primary.light',
               iconColor: 'primary.dark',
-              valueColor: netAmount >= 0 ? "success.main" : "error.main"
+              valueColor: (summaryData?.netAmount || 0) >= 0 ? "success.main" : "error.main"
             }}
           />
         </Grid>
@@ -154,16 +192,23 @@ const ReportsPage = () => {
       {/* Charts Section */}
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, lg: 6 }}>
-          <CashFlowChart data={monthlyData} tooltipStyle={tooltipStyle} />
+          <CashFlowChart data={cashFlowData || []} tooltipStyle={tooltipStyle} />
         </Grid>
         <Grid size={{ xs: 12, lg: 6 }}>
-          <ExpenseCategoryChart data={categoryData} tooltipStyle={tooltipStyle} />
+          <ExpenseCategoryChart
+            data={(categoryData || []).map(c => ({ name: c.name, value: c.value, color: c.color }))}
+            tooltipStyle={tooltipStyle}
+          />
         </Grid>
         <Grid size={{ xs: 12, lg: 6 }}>
-          <TopExpensesList topExpenses={topExpenses} />
+          <TopExpensesList topExpenses={(summaryData?.topCategories || []).map(c => ({
+            category: c.category_name,
+            amount: c.amount,
+            percentage: Math.round(c.percentage)
+          }))} />
         </Grid>
         <Grid size={{ xs: 12, lg: 6 }}>
-          <MonthlyComparisonChart data={monthlyData} tooltipStyle={tooltipStyle} />
+          <MonthlyComparisonChart data={cashFlowData || []} tooltipStyle={tooltipStyle} />
         </Grid>
       </Grid>
     </Box>
