@@ -1,142 +1,177 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchTransactions } from '../slices/transactionsSlice';
-import { Box, Typography, Grid, Button, CircularProgress } from '@mui/material';
-import { Add, ArrowUpward, ArrowDownward, AccountBalanceWallet, SwapHoriz } from '@mui/icons-material';
+import { Box, Typography, Grid, Button, Snackbar, Alert } from '@mui/material';
+import { Add, ArrowUpward, ArrowDownward, AccountBalanceWallet } from '@mui/icons-material';
 
 import SummaryCard from '../components/common/SummaryCard';
 import TransactionFilters from '../components/transactions/TransactionFilters';
 import TransactionTable from '../components/transactions/TransactionTable';
 import AddTransactionDialog from '../components/transactions/AddTransactionDialog';
 
+const fmt = (val) =>
+  `₹${(Number(val) || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+
 const TransactionsPage = () => {
   const dispatch = useDispatch();
   const { transactions, loading } = useSelector((state) => state.transactions);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editTx, setEditTx] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     dispatch(fetchTransactions());
   }, [dispatch]);
 
-  const getTransactionIcon = (type) => {
-    switch (type) {
-      case 'income': return <ArrowUpward fontSize="small" color="success" />;
-      case 'expense': return <ArrowDownward fontSize="small" color="error" />;
-      case 'transfer': return <SwapHoriz fontSize="small" color="info" />;
-      default: return <AccountBalanceWallet fontSize="small" color="action" />;
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'pending': return 'warning';
-      case 'failed': return 'error';
-      default: return 'default';
-    }
-  };
-
-  const filteredTransactions = transactions?.filter(transaction => {
+  /* ── Filtering ── */
+  const filteredTransactions = (transactions || []).filter((tx) => {
     const term = searchTerm.toLowerCase();
-    const matchesSearch = transaction.description?.toLowerCase().includes(term) ||
-      transaction.merchant?.toLowerCase().includes(term);
-    const matchesType = selectedType === 'all' || transaction.type === selectedType;
-    const matchesStatus = selectedStatus === 'all' || transaction.status === selectedStatus;
+    const matchSearch = !term ||
+      tx.description?.toLowerCase().includes(term) ||
+      tx.merchant?.toLowerCase().includes(term) ||
+      (tx.account_name || tx.accountName || '').toLowerCase().includes(term) ||
+      (tx.category_name || tx.categoryName || '').toLowerCase().includes(term);
+    const matchType = selectedType === 'all' || tx.type === selectedType;
+    const matchStatus = selectedStatus === 'all' || tx.status === selectedStatus;
+    return matchSearch && matchType && matchStatus;
+  });
 
-    return matchesSearch && matchesType && matchesStatus;
-  }) || [];
-
-  const totalIncome = filteredTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
-  const totalExpenses = filteredTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
+  /* ── Summary Metrics ── */
+  const totalIncome = filteredTransactions.filter((t) => t.type === 'income')
+    .reduce((s, t) => s + Math.abs(Number(t.amount) || 0), 0);
+  const totalExpenses = filteredTransactions.filter((t) => t.type === 'expense')
+    .reduce((s, t) => s + Math.abs(Number(t.amount) || 0), 0);
   const netAmount = totalIncome - totalExpenses;
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const showSnackbar = (message, severity = 'success') =>
+    setSnackbar({ open: true, message, severity });
 
   return (
-    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Page Header */}
-      <Box display="flex" alignItems="center" justifyContent="space-between">
+    <Box>
+      {/* ── Page Header ── */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
         <Box>
-          <Typography variant="h4" fontWeight="bold">Transactions</Typography>
-          <Typography color="text.secondary">Track your income and expenses</Typography>
+          <Typography
+            variant="h4" fontWeight={800} letterSpacing={-0.5} gutterBottom
+            sx={{
+              background: (theme) =>
+                theme.palette.mode === 'dark'
+                  ? 'linear-gradient(135deg, #fff 30%, #818cf8 100%)'
+                  : 'linear-gradient(135deg, #1e1b4b 30%, #4f46e5 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Transactions
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ letterSpacing: 0.2 }}>
+            Track and manage all your income, expenses, and transfers
+          </Typography>
         </Box>
         <Button
           variant="contained"
-          color="primary"
           startIcon={<Add />}
-          onClick={() => setShowAddModal(true)}
-          sx={{ borderRadius: 2 }}
+          onClick={() => { setEditTx(null); setShowAddModal(true); }}
+          sx={{
+            borderRadius: '12px', px: 3, py: 1.1, fontWeight: 700,
+            background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+            boxShadow: '0 4px 14px rgba(79,70,229,0.4)',
+            '&:hover': { boxShadow: '0 6px 20px rgba(79,70,229,0.55)', opacity: 0.93 },
+          }}
         >
           Add Transaction
         </Button>
       </Box>
 
-      {/* Summary Cards */}
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 4 }}>
+      {/* ── Summary Cards ── */}
+      <Grid container spacing={2.5} sx={{ mb: 4 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Total Income"
-            value={`₹${totalIncome.toLocaleString()}`}
+            value={fmt(totalIncome)}
             icon={<ArrowUpward />}
-            colorConfig={{ bg: 'success.light', iconColor: 'success.dark', valueColor: 'success.main' }}
+            gradient="linear-gradient(135deg, #10b981 0%, #34d399 100%)"
+            glowColor="rgba(16,185,129,0.4)"
+            subtitle={`${filteredTransactions.filter((t) => t.type === 'income').length} transactions`}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Total Expenses"
-            value={`₹${totalExpenses.toLocaleString()}`}
+            value={fmt(totalExpenses)}
             icon={<ArrowDownward />}
-            colorConfig={{ bg: 'error.light', iconColor: 'error.dark', valueColor: 'error.main' }}
+            gradient="linear-gradient(135deg, #ef4444 0%, #f97316 100%)"
+            glowColor="rgba(239,68,68,0.4)"
+            subtitle={`${filteredTransactions.filter((t) => t.type === 'expense').length} transactions`}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Net Amount"
-            value={`₹${netAmount.toLocaleString()}`}
+            value={fmt(Math.abs(netAmount))}
             icon={<AccountBalanceWallet />}
-            colorConfig={{ bg: 'info.light', iconColor: 'info.dark', valueColor: netAmount >= 0 ? 'success.main' : 'error.main' }}
+            gradient={netAmount >= 0
+              ? 'linear-gradient(135deg, #4f46e5 0%, #818cf8 100%)'
+              : 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)'}
+            glowColor={netAmount >= 0 ? 'rgba(79,70,229,0.4)' : 'rgba(245,158,11,0.4)'}
+            subtitle={netAmount >= 0 ? 'Positive cash flow' : 'Negative cash flow'}
           />
         </Grid>
       </Grid>
 
-      {/* Filters and Actions */}
+      {/* ── Section Label ── */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Typography variant="h6" fontWeight={700} letterSpacing={-0.3}>All Transactions</Typography>
+        <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+        <Typography variant="caption" color="text.disabled" fontWeight={600}>
+          {filteredTransactions.length} of {transactions?.length || 0} total
+        </Typography>
+      </Box>
+
+      {/* ── Filters ── */}
       <TransactionFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        selectedType={selectedType}
-        setSelectedType={setSelectedType}
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
+        searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+        selectedType={selectedType} setSelectedType={setSelectedType}
+        selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus}
       />
 
-      {/* Transactions Table */}
-      <TransactionTable
-        filteredTransactions={filteredTransactions}
-        getTransactionIcon={getTransactionIcon}
-        getStatusColor={getStatusColor}
-        setShowAddModal={setShowAddModal}
-      />
+      {/* ── Table — always rendered so dialog stays mounted ── */}
+      <Box sx={{ mt: 3 }}>
+        <TransactionTable
+          filteredTransactions={filteredTransactions}
+          setShowAddModal={() => { setEditTx(null); setShowAddModal(true); }}
+          onEdit={(tx) => { setEditTx(tx); setShowAddModal(true); }}
+          onSuccess={(msg) => showSnackbar(msg)}
+        />
+      </Box>
 
-      {/* Add Transaction Dialog */}
+      {/* ── Dialog — always mounted ── */}
       <AddTransactionDialog
-        showAddModal={showAddModal}
-        setShowAddModal={setShowAddModal}
+        open={showAddModal}
+        transaction={editTx}
+        onClose={() => { setShowAddModal(false); setEditTx(null); }}
+        onSuccess={(msg) => showSnackbar(msg)}
       />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          sx={{ width: '100%', borderRadius: 2 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

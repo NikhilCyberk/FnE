@@ -1,500 +1,348 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, FormControl, InputLabel, Select, MenuItem, RadioGroup, FormControlLabel, Radio, Typography, Box, Snackbar, Alert, CircularProgress,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Paper
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Button, MenuItem, Divider, Box, Typography,
+  Grid, Alert, CircularProgress, RadioGroup, FormControlLabel, Radio,
+  InputAdornment,
 } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon, Add as AddIcon } from '@mui/icons-material';
+import { CreditCard, Upload } from '@mui/icons-material';
 import api from '../../api';
 
-// Bank colors and information
-const BANK_COLORS = {
-  'Axis Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'HDFC Bank': { color: '#FF6F00', bgColor: '#FFF8E1' },
-  'ICICI Bank': { color: '#FF5722', bgColor: '#FBE9E7' },
-  'State Bank of India (SBI)': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Kotak Mahindra Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Punjab National Bank (PNB)': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Bank of Baroda': { color: '#FF5722', bgColor: '#FBE9E7' },
-  'Canara Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Union Bank of India': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Bank of India': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Central Bank of India': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Indian Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'UCO Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Punjab & Sind Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'IDBI Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Yes Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Federal Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Karnataka Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'South Indian Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Tamilnad Mercantile Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'City Union Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'DCB Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'RBL Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Bandhan Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'IDFC First Bank': { color: '#FF5722', bgColor: '#FBE9E7' },
-  'AU Small Finance Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Equitas Small Finance Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Ujjivan Small Finance Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Jammu & Kashmir Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Vijaya Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Dena Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Corporation Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'Andhra Bank': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Oriental Bank of Commerce': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'Allahabad Bank': { color: '#FF6B35', bgColor: '#FFF3E0' },
-  'United Bank of India': { color: '#FF9800', bgColor: '#FFF3E0' },
-  'Syndicate Bank': { color: '#1976D2', bgColor: '#E3F2FD' },
-  'IndusInd Bank': { color: '#4CAF50', bgColor: '#E8F5E8' },
-  'Other': { color: '#757575', bgColor: '#F5F5F5' }
+/* ─── Bank list ─────────────────────────────────────────────────────────── */
+const BANKS = [
+  'Axis Bank', 'HDFC Bank', 'ICICI Bank', 'State Bank of India (SBI)',
+  'Kotak Mahindra Bank', 'Punjab National Bank (PNB)', 'Bank of Baroda',
+  'Canara Bank', 'Union Bank of India', 'Bank of India', 'IDBI Bank',
+  'Yes Bank', 'Federal Bank', 'IndusInd Bank', 'RBL Bank', 'Bandhan Bank',
+  'IDFC First Bank', 'AU Small Finance Bank', 'Other',
+];
+const CARD_TYPES = [
+  { value: 'visa', label: 'Visa' },
+  { value: 'mastercard', label: 'Mastercard' },
+  { value: 'amex', label: 'American Express' },
+  { value: 'discover', label: 'Discover' },
+  { value: 'rupay', label: 'RuPay' },
+];
+const STATUSES = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'frozen', label: 'Frozen' },
+  { value: 'closed', label: 'Closed' },
+];
+
+const DEFAULTS = {
+  cardName: '', cardType: '', cardNumberLastFour: '',
+  creditLimit: '', availableCredit: '', cashAdvanceLimit: '',
+  currentBalance: '', statementBalance: '', minimumPayment: '',
+  paymentDueDate: '', statementDate: '',
+  lastPaymentAmount: '', lastPaymentDate: '',
+  apr: '', annualFee: '', rewardsProgram: '',
+  expiryDate: '', status: 'active',
 };
 
-const bankNames = Object.keys(BANK_COLORS);
+const Section = ({ title }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
+    <Box sx={{ width: 4, height: 18, borderRadius: 2, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', flexShrink: 0 }} />
+    <Typography variant="subtitle2" fontWeight={700} color="text.secondary" letterSpacing={0.5}>
+      {title}
+    </Typography>
+    <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+  </Box>
+);
 
-const emptyTxn = { date: '', details: '', name: '', category: '', amount: '' };
+const Rupee = <InputAdornment position="start">₹</InputAdornment>;
+const Pct = <InputAdornment position="end">%</InputAdornment>;
 
-const CreditCardEditDialog = ({ open, onClose, card, onSave, loading: externalLoading }) => {
-  const [form, setForm] = useState({
-    name: '', bank: '', balance: '', cardNumber: '', expiry: '', cvv: '', issuer: '', pdfPassword: '',
-    address: '', cardName: '', creditLimit: '', availableCreditLimit: '', availableCashLimit: '', totalPaymentDue: '', minPaymentDue: '', statementPeriodStart: '', statementPeriodEnd: '', paymentDueDate: '', statementGenDate: '', transactions: []
-  });
-  const [formErrors, setFormErrors] = useState({});
-  const [creditCardEntryMode, setCreditCardEntryMode] = useState('manual');
+const CreditCardEditDialog = ({ open, onClose, card, onSave }) => {
+  const isEdit = !!card;
+  const [mode, setMode] = useState('manual');
+  const [form, setForm] = useState(DEFAULTS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // PDF state
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pdfPassword, setPdfPassword] = useState('');
   const [extracting, setExtracting] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [editTxnIdx, setEditTxnIdx] = useState(null);
-  const [txnDraft, setTxnDraft] = useState(emptyTxn);
-  const [cardNamesByBank, setCardNamesByBank] = useState({});
+  const [pdfError, setPdfError] = useState('');
 
+  /* Pre-fill when editing */
   useEffect(() => {
-    if (card) {
-      setForm(prev => ({ ...prev, ...card }));
-    } else {
+    if (!open) return;
+    setError(''); setPdfError(''); setPdfFile(null); setPdfPassword(''); setMode('manual');
+
+    if (isEdit && card) {
       setForm({
-        name: '', bank: '', balance: '', cardNumber: '', expiry: '', cvv: '', issuer: '', pdfPassword: '',
-        address: '', cardName: '', creditLimit: '', availableCreditLimit: '', availableCashLimit: '', totalPaymentDue: '', minPaymentDue: '', statementPeriodStart: '', statementPeriodEnd: '', paymentDueDate: '', statementGenDate: '', transactions: []
+        cardName: card.cardName || '',
+        cardType: card.cardType || '',
+        cardNumberLastFour: card.cardNumberLastFour || '',
+        creditLimit: card.creditLimit || '',
+        availableCredit: card.availableCredit || '',
+        cashAdvanceLimit: card.cashAdvanceLimit || '',
+        currentBalance: card.currentBalance || '',
+        statementBalance: card.statementBalance || '',
+        minimumPayment: card.minimumPayment || '',
+        paymentDueDate: (card.paymentDueDate || '').slice(0, 10),
+        statementDate: (card.statementDate || '').slice(0, 10),
+        lastPaymentAmount: card.lastPaymentAmount || '',
+        lastPaymentDate: (card.lastPaymentDate || '').slice(0, 10),
+        apr: card.apr || '',
+        annualFee: card.annualFee || '',
+        rewardsProgram: card.rewardsProgram || '',
+        expiryDate: (card.expiryDate || '').slice(0, 10),
+        status: (card.status || 'active').toLowerCase(),
       });
+    } else {
+      setForm(DEFAULTS);
     }
-    setCreditCardEntryMode('manual');
-    setShowPreview(false);
-    setFormErrors({});
-    setSelectedFile(null);
-    setExtracting(false);
-    setEditTxnIdx(null);
-    setTxnDraft(emptyTxn);
-  }, [card, open]);
+  }, [open]); // eslint-disable-line
 
-  useEffect(() => {
-    if (open) {
-      // Fetch card name options from backend
-      api.get('/api/credit-cards/card-names').then(res => {
-        setCardNamesByBank(res.data || {});
-      });
-    }
-  }, [open]);
+  const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  /* ── PDF Extract ── */
+  const handleExtract = async () => {
+    if (!pdfFile) return;
+    setExtracting(true); setPdfError('');
+    const fd = new FormData();
+    fd.append('file', pdfFile);
+    if (pdfPassword) fd.append('password', pdfPassword);
 
-  const validateForm = () => {
-    const errors = {};
-    if (!form.name && !form.cardName) errors.name = 'Name is required.';
-    if (!form.bank) errors.bank = 'Bank is required.';
-    if (form.balance === '' || isNaN(form.balance)) errors.balance = 'Balance must be a number.';
-    if (!form.cardNumber) errors.cardNumber = 'Card Number is required.';
-    if (!form.expiry) errors.expiry = 'Expiry Date is required.';
-    if (!form.cvv) errors.cvv = 'CVV is required.';
-    return errors;
-  };
-
-  // Transaction editing helpers
-  const handleTxnEdit = (idx) => {
-    setEditTxnIdx(idx);
-    setTxnDraft(form.transactions[idx]);
-  };
-  const handleTxnDraftChange = (e) => {
-    setTxnDraft({ ...txnDraft, [e.target.name]: e.target.value });
-  };
-  const handleTxnSave = (idx) => {
-    const txns = [...form.transactions];
-    txns[idx] = txnDraft;
-    setForm({ ...form, transactions: txns });
-    setEditTxnIdx(null);
-    setTxnDraft(emptyTxn);
-  };
-  const handleTxnDelete = (idx) => {
-    const txns = [...form.transactions];
-    txns.splice(idx, 1);
-    setForm({ ...form, transactions: txns });
-    setEditTxnIdx(null);
-    setTxnDraft(emptyTxn);
-  };
-  const handleTxnAdd = () => {
-    setForm({ ...form, transactions: [...(form.transactions || []), txnDraft] });
-    setTxnDraft(emptyTxn);
-  };
-
-  // PDF extraction logic
-  const handleBillUpload = async () => {
-    if (!selectedFile) return;
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    if (form.pdfPassword) {
-      formData.append('password', form.pdfPassword);
-    }
-    setExtracting(true);
     try {
-      const res = await api.post('/api/credit-cards/extract-credit-card-info', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const res = await api.post('/api/credit-cards/extract-credit-card-info', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setForm((prev) => {
-        let newForm = { ...prev, ...res.data };
-        // Auto-parse statementPeriod into start/end date fields
-        if (res.data.statementPeriod) {
-          const match = res.data.statementPeriod.match(/(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/);
-          if (match) {
-            // Convert DD/MM/YYYY to YYYY-MM-DD for input type="date"
-            const toISO = (d) => {
-              const [day, month, year] = d.split('/');
-              return `${year}-${month}-${day}`;
-            };
-            newForm.statementPeriodStart = toISO(match[1]);
-            newForm.statementPeriodEnd = toISO(match[2]);
-          }
+      const d = res.data;
+      const toISO = (s) => {
+        if (!s) return '';
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+          const [day, month, year] = s.split('/');
+          return `${year}-${month}-${day}`;
         }
-        // Convert all date fields to YYYY-MM-DD for input type='date'
-        const dateFields = ['paymentDueDate', 'statementGenDate'];
-        dateFields.forEach(f => {
-          if (newForm[f] && /\d{2}\/\d{2}\/\d{4}/.test(newForm[f])) {
-            const [day, month, year] = newForm[f].split('/');
-            newForm[f] = `${year}-${month}-${day}`;
-          }
-        });
-        // Parse number fields as numbers or empty string
-        const numFields = ['creditLimit', 'availableCreditLimit', 'availableCashLimit', 'totalPaymentDue', 'minPaymentDue'];
-        numFields.forEach(f => {
-          if (newForm[f] !== undefined && newForm[f] !== null && newForm[f] !== '') {
-            const n = String(newForm[f]).replace(/,/g, '');
-            newForm[f] = isNaN(Number(n)) ? '' : n;
-          }
-        });
-        // Auto-fill bank from issuer if bank is empty and issuer is present
-        if (!newForm.bank && newForm.issuer) {
-          newForm.bank = newForm.issuer;
-        }
-        return newForm;
-      });
-      setShowPreview(true);
-      setSnackbar({ open: true, message: 'Credit card info extracted successfully!', severity: 'success' });
+        return (s || '').slice(0, 10);
+      };
+      const parseNum = (v) => (v ? String(v).replace(/,/g, '') : '');
+
+      setForm((f) => ({
+        ...f,
+        cardName: d.cardName || f.cardName,
+        creditLimit: parseNum(d.creditLimit),
+        availableCredit: parseNum(d.availableCreditLimit || d.availableCredit),
+        cashAdvanceLimit: parseNum(d.availableCashLimit || d.cashAdvanceLimit),
+        statementBalance: parseNum(d.totalPaymentDue || d.statementBalance),
+        minimumPayment: parseNum(d.minPaymentDue || d.minimumPayment),
+        paymentDueDate: toISO(d.paymentDueDate),
+        statementDate: toISO(d.statementGenDate || d.statementDate),
+      }));
+      setMode('manual');
     } catch (err) {
-      let msg = 'Failed to extract credit card info from PDF.';
-      if (err.response && err.response.data) {
-        msg += ' ' + (err.response.data.error || '');
-        if (err.response.data.details) msg += ' Details: ' + err.response.data.details;
-        if (err.response.data.stack) msg += ' (See console for stack)';
-        console.error('Backend error:', err.response.data);
-      } else {
-        console.error('Unknown error:', err);
-      }
-      setSnackbar({ open: true, message: msg, severity: 'error' });
+      setPdfError(err.response?.data?.error || 'Failed to extract PDF. Check password or try manually.');
     } finally {
       setExtracting(false);
     }
   };
 
-  const handleAddAfterPreview = async () => {
-    if (onSave) await onSave(form);
-  };
-  const handleCancelPreview = () => {
-    setShowPreview(false);
-    setForm({ ...form, transactions: [] });
-    setSelectedFile(null);
-    setExtracting(false);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errors = validateForm();
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-    if (onSave) await onSave(form);
+  /* ── Submit ── */
+  const handleSubmit = async () => {
+    if (!form.cardName && !form.cardType) return setError('Card name is required.');
+    setLoading(true); setError('');
+    try {
+      await onSave(form);
+    } catch (err) {
+      setError(err.message || 'Failed to save card.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>{card ? 'Edit Credit Card' : 'Add Credit Card'}</DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent>
-          <RadioGroup
-            row
-            value={creditCardEntryMode}
-            onChange={e => setCreditCardEntryMode(e.target.value)}
-            sx={{ mb: 2 }}
-          >
-            <FormControlLabel value="manual" control={<Radio />} label="Enter Manually" />
-            <FormControlLabel value="pdf" control={<Radio />} label="Extract from PDF" />
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth
+      PaperProps={{ sx: { borderRadius: '20px' } }}>
+      <DialogTitle sx={{ pb: 1 }}>
+        <Box display="flex" alignItems="center" gap={1.5}>
+          <Box sx={{
+            width: 40, height: 40, borderRadius: '12px', flexShrink: 0,
+            background: 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <CreditCard sx={{ color: 'white', fontSize: 20 }} />
+          </Box>
+          <Box>
+            <Typography variant="h6" fontWeight={800} letterSpacing={-0.3}>
+              {isEdit ? 'Edit Credit Card' : 'Add Credit Card'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {isEdit ? 'Update your card details.' : 'Enter card details manually or extract from a PDF statement.'}
+            </Typography>
+          </Box>
+        </Box>
+      </DialogTitle>
+      <Divider />
+
+      <DialogContent sx={{ pt: 2.5 }}>
+        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+        {pdfError && <Alert severity="warning" sx={{ mb: 2, borderRadius: 2 }}>{pdfError}</Alert>}
+
+        {/* Mode toggle */}
+        {!isEdit && (
+          <RadioGroup row value={mode} onChange={(e) => setMode(e.target.value)} sx={{ mb: 2 }}>
+            <FormControlLabel value="manual" control={<Radio size="small" />} label="Enter Manually" />
+            <FormControlLabel value="pdf" control={<Radio size="small" />} label="Extract from PDF" />
           </RadioGroup>
-          {creditCardEntryMode === 'manual' && (
-            <>
-              <TextField label="Name" name="name" value={form.name} onChange={handleChange} fullWidth margin="normal" error={!!formErrors.name} helperText={formErrors.name} />
-              <FormControl fullWidth margin="normal" error={!!formErrors.bank}>
-                <InputLabel>Bank</InputLabel>
-                <Select label="Bank" name="bank" value={form.bank || ""} onChange={handleChange}>
-                  {bankNames.map((bank) => (
-                    <MenuItem key={bank} value={bank}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box
-                          sx={{
-                            width: 12,
-                            height: 12,
-                            borderRadius: '50%',
-                            bgcolor: BANK_COLORS[bank].color,
-                            flexShrink: 0
-                          }}
-                        />
-                        <Typography sx={{ color: BANK_COLORS[bank].color, fontWeight: 500 }}>
-                          {bank}
-                        </Typography>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-                {formErrors.bank && <Typography color="error" variant="caption">{formErrors.bank}</Typography>}
-              </FormControl>
-              <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                <TextField label="Card Number" name="cardNumber" value={form.cardNumber} onChange={handleChange} fullWidth margin="normal" error={!!formErrors.cardNumber} helperText={formErrors.cardNumber} InputProps={{ readOnly: !!card }} />
-                <TextField label="Expiry" name="expiry" value={form.expiry} onChange={handleChange} fullWidth margin="normal" error={!!formErrors.expiry} helperText={formErrors.expiry} />
-                <TextField label="CVV" name="cvv" value={form.cvv} onChange={handleChange} fullWidth margin="normal" error={!!formErrors.cvv} helperText={formErrors.cvv} />
-              </Box>
-              <TextField label="Balance" name="balance" type="number" value={form.balance} onChange={handleChange} fullWidth margin="normal" error={!!formErrors.balance} helperText={formErrors.balance} />
-              <Box sx={{ my: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Issuer</Typography>
-                <FormControl fullWidth error={!!formErrors.issuer}>
-                  <InputLabel>Issuer</InputLabel>
-                  <Select label="Issuer" name="issuer" value={form.issuer || ""} onChange={handleChange} renderValue={selected => selected ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: BANK_COLORS[selected]?.color || '#757575', flexShrink: 0 }} />
-                      <Typography sx={{ color: BANK_COLORS[selected]?.color || '#757575', fontWeight: 500 }}>{selected}</Typography>
-                    </Box>
-                  ) : <em>Select a bank</em>}>
-                    <MenuItem value="">
-                      <em>Select a bank</em>
-                    </MenuItem>
-                    {bankNames.map((bank) => (
-                      <MenuItem key={bank} value={bank}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: BANK_COLORS[bank].color, flexShrink: 0 }} />
-                          <Typography sx={{ color: BANK_COLORS[bank].color, fontWeight: 500 }}>{bank}</Typography>
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {formErrors.issuer && <Typography color="error" variant="caption">{formErrors.issuer}</Typography>}
-                </FormControl>
-              </Box>
-            </>
-          )}
-          {creditCardEntryMode === 'pdf' && !showPreview && (
-            <>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Bank</InputLabel>
-                <Select
-                  label="Bank"
-                  name="bank"
-                  value={form.bank || ""}
-                  onChange={handleChange}
-                >
-                  {bankNames.map((bank) => (
-                    <MenuItem key={bank} value={bank}>{bank}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              {form.bank && cardNamesByBank[form.bank] ? (
-                <FormControl fullWidth margin="normal">
-                  <InputLabel>Card Name</InputLabel>
-                  <Select
-                    label="Card Name"
-                    name="cardName"
-                    value={form.cardName || ''}
-                    onChange={handleChange}
-                  >
-                    {cardNamesByBank[form.bank].map((name) => (
-                      <MenuItem key={name} value={name}>{name}</MenuItem>
-                    ))}
-                    <MenuItem value="other">Other</MenuItem>
-                  </Select>
-                </FormControl>
-              ) : null}
-              {(!form.bank || !cardNamesByBank[form.bank] || form.cardName === 'other') && (
-                <TextField
-                  label="Card Name"
-                  name="cardName"
-                  value={form.cardName === 'other' ? '' : (form.cardName || '')}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                />
-              )}
-              <TextField
-                label="Upload Bill Statement (PDF)"
-                type="file"
-                inputProps={{ accept: 'application/pdf' }}
-                fullWidth
-                margin="normal"
-                onChange={e => setSelectedFile(e.target.files[0])}
-                disabled={extracting}
-              />
-              <TextField
-                label="PDF Password (if any)"
-                name="pdfPassword"
-                type="password"
-                value={form.pdfPassword || ''}
-                onChange={handleChange}
-                fullWidth
-                margin="normal"
-                disabled={extracting}
-              />
-              <Button
-                variant="contained"
-                onClick={handleBillUpload}
-                disabled={extracting || !selectedFile}
-                sx={{ mt: 2 }}
-              >
-                Extract
-              </Button>
-              {extracting && <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}><CircularProgress /></Box>}
-            </>
-          )}
-          {creditCardEntryMode === 'pdf' && showPreview && (
-            <Box sx={{ my: 2 }}>
-              <Typography variant="h6" gutterBottom>Extracted Credit Card Info</Typography>
-              <Box sx={{ mb: 2, display: 'grid', gap: 2 }}>
-                <TextField label="Name" name="name" value={form.name || ''} onChange={handleChange} fullWidth margin="dense" type="text" error={!!formErrors.name} helperText={formErrors.name} />
-                <TextField label="Address" name="address" value={form.address || ''} onChange={handleChange} fullWidth margin="dense" type="text" />
-                <TextField label="Card Name" name="cardName" value={form.cardName || ''} onChange={handleChange} fullWidth margin="dense" type="text" />
-                <TextField label="Card Number" name="cardNumber" value={form.cardNumber || ''} onChange={handleChange} fullWidth margin="dense" type="text" error={!!formErrors.cardNumber} helperText={formErrors.cardNumber} />
-                <TextField label="Credit Limit" name="creditLimit" value={form.creditLimit || ''} onChange={handleChange} fullWidth margin="dense" type="number" error={!!formErrors.creditLimit} helperText={formErrors.creditLimit} />
-                <TextField label="Available Credit Limit" name="availableCreditLimit" value={form.availableCreditLimit || ''} onChange={handleChange} fullWidth margin="dense" type="number" error={!!formErrors.availableCreditLimit} helperText={formErrors.availableCreditLimit} />
-                <TextField label="Available Cash Limit" name="availableCashLimit" value={form.availableCashLimit || ''} onChange={handleChange} fullWidth margin="dense" type="number" error={!!formErrors.availableCashLimit} helperText={formErrors.availableCashLimit} />
-                <TextField label="Total Payment Due" name="totalPaymentDue" value={form.totalPaymentDue || ''} onChange={handleChange} fullWidth margin="dense" type="number" error={!!formErrors.totalPaymentDue} helperText={formErrors.totalPaymentDue} />
-                <TextField label="Minimum Payment Due" name="minPaymentDue" value={form.minPaymentDue || ''} onChange={handleChange} fullWidth margin="dense" type="number" error={!!formErrors.minPaymentDue} helperText={formErrors.minPaymentDue} />
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <TextField
-                    label="Statement Start Date"
-                    name="statementPeriodStart"
-                    type="date"
-                    value={form.statementPeriodStart || ''}
-                    onChange={handleChange}
-                    margin="dense"
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                    error={!!formErrors.statementPeriodStart}
-                    helperText={formErrors.statementPeriodStart}
-                  />
-                  <TextField
-                    label="Statement End Date"
-                    name="statementPeriodEnd"
-                    type="date"
-                    value={form.statementPeriodEnd || ''}
-                    onChange={handleChange}
-                    margin="dense"
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                    error={!!formErrors.statementPeriodEnd}
-                    helperText={formErrors.statementPeriodEnd}
-                  />
-                </Box>
-                <TextField label="Payment Due Date" name="paymentDueDate" value={form.paymentDueDate || ''} onChange={handleChange} fullWidth margin="dense" type="date" InputLabelProps={{ shrink: true }} error={!!formErrors.paymentDueDate} helperText={formErrors.paymentDueDate} />
-                <TextField label="Statement Generation Date" name="statementGenDate" value={form.statementGenDate || ''} onChange={handleChange} fullWidth margin="dense" type="date" InputLabelProps={{ shrink: true }} />
-              </Box>
-              <Typography variant="subtitle1" gutterBottom>Transactions</Typography>
-              <TableContainer component={Paper} sx={{ maxHeight: 300, mb: 2 }}>
-                <Table stickyHeader size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Details</TableCell>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Category</TableCell>
-                      <TableCell>Amount</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(form.transactions || []).length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center">No transactions found</TableCell>
-                      </TableRow>
-                    )}
-                    {(form.transactions || []).map((txn, idx) => (
-                      <TableRow key={idx}>
-                        {editTxnIdx === idx ? (
-                          <>
-                            <TableCell><TextField type="date" name="date" size="small" value={txnDraft.date} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                            <TableCell><TextField type="text" name="details" size="small" value={txnDraft.details} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                            <TableCell><TextField type="text" name="name" size="small" value={txnDraft.name} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                            <TableCell><TextField type="text" name="category" size="small" value={txnDraft.category} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                            <TableCell><TextField type="number" name="amount" size="small" value={txnDraft.amount} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                            <TableCell>
-                              <IconButton onClick={() => handleTxnSave(idx)} color="primary" size="small"><SaveIcon fontSize="small" /></IconButton>
-                              <IconButton onClick={() => setEditTxnIdx(null)} color="error" size="small"><CancelIcon fontSize="small" /></IconButton>
-                            </TableCell>
-                          </>
-                        ) : (
-                          <>
-                            <TableCell>{txn.date}</TableCell>
-                            <TableCell>{txn.details}</TableCell>
-                            <TableCell>{txn.name}</TableCell>
-                            <TableCell>{txn.category}</TableCell>
-                            <TableCell>{txn.amount}</TableCell>
-                            <TableCell>
-                              <IconButton onClick={() => handleTxnEdit(idx)} color="primary" size="small"><EditIcon fontSize="small" /></IconButton>
-                              <IconButton onClick={() => handleTxnDelete(idx)} color="error" size="small"><DeleteIcon fontSize="small" /></IconButton>
-                            </TableCell>
-                          </>
-                        )}
-                      </TableRow>
-                    ))}
-                    {/* Add new transaction row */}
-                    <TableRow>
-                      <TableCell><TextField type="date" name="date" size="small" value={txnDraft.date} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                      <TableCell><TextField type="text" name="details" size="small" value={txnDraft.details} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                      <TableCell><TextField type="text" name="name" size="small" value={txnDraft.name} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                      <TableCell><TextField type="text" name="category" size="small" value={txnDraft.category} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                      <TableCell><TextField type="number" name="amount" size="small" value={txnDraft.amount} onChange={handleTxnDraftChange} variant="standard" /></TableCell>
-                      <TableCell>
-                        <IconButton onClick={handleTxnAdd} color="success" size="small"><AddIcon fontSize="small" /></IconButton>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                <Button onClick={handleCancelPreview}>Cancel</Button>
-                <Button variant="contained" onClick={handleAddAfterPreview}>Save</Button>
-              </Box>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          {creditCardEntryMode === 'manual' && (
-            <Box sx={{ mt: 2, width: '100%', display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button onClick={onClose}>Cancel</Button>
-              <Button type="submit" variant="contained" disabled={externalLoading}>{card ? 'Update' : 'Create'}</Button>
-            </Box>
-          )}
-        </DialogActions>
-      </form>
-      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar(s => ({ ...s, open: false }))}>
-        <Alert onClose={() => setSnackbar(s => ({ ...s, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+        )}
+
+        {/* PDF panel */}
+        {mode === 'pdf' && (
+          <Box display="flex" flexDirection="column" gap={2} mb={2}>
+            <Alert severity="info" sx={{ borderRadius: 2 }}>
+              Upload your credit card statement PDF to auto-fill fields.
+            </Alert>
+            <TextField fullWidth size="small" label="Statement PDF" type="file"
+              inputProps={{ accept: 'application/pdf' }} InputLabelProps={{ shrink: true }}
+              onChange={(e) => setPdfFile(e.target.files[0])} disabled={extracting} />
+            <TextField fullWidth size="small" label="PDF Password (if any)" type="password"
+              value={pdfPassword} onChange={(e) => setPdfPassword(e.target.value)} disabled={extracting} />
+            <Button variant="contained"
+              startIcon={extracting ? <CircularProgress size={16} color="inherit" /> : <Upload />}
+              onClick={handleExtract} disabled={!pdfFile || extracting}
+              sx={{ borderRadius: '10px', fontWeight: 700, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)' }}>
+              {extracting ? 'Extracting…' : 'Extract Info'}
+            </Button>
+            <Divider />
+            <Typography variant="caption" color="text.disabled" textAlign="center">
+              Review and edit extracted fields below
+            </Typography>
+          </Box>
+        )}
+
+        {/* ── Form fields ── */}
+        <Box display="flex" flexDirection="column" gap={2}>
+
+          <Section title="Card Identity" />
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 7 }}>
+              <TextField fullWidth size="small" label="Card Name / Product *"
+                placeholder="e.g. HDFC Regalia Gold" value={form.cardName} onChange={set('cardName')} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 5 }}>
+              <TextField select fullWidth size="small" label="Card Network"
+                value={form.cardType} onChange={set('cardType')}>
+                <MenuItem value=""><em>— Select —</em></MenuItem>
+                {CARD_TYPES.map((t) => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
+              </TextField>
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 5 }}>
+              <TextField fullWidth size="small" label="Last 4 Digits"
+                placeholder="4276" inputProps={{ maxLength: 4 }}
+                value={form.cardNumberLastFour} onChange={set('cardNumberLastFour')}
+                InputProps={{ readOnly: isEdit }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Expiry Date" type="date"
+                value={form.expiryDate} onChange={set('expiryDate')} InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <TextField select fullWidth size="small" label="Status"
+                value={form.status} onChange={set('status')}>
+                {STATUSES.map((s) => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
+              </TextField>
+            </Grid>
+          </Grid>
+
+          <Section title="Credit Limits" />
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Credit Limit" type="number"
+                value={form.creditLimit} onChange={set('creditLimit')}
+                InputProps={{ startAdornment: Rupee }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Available Credit" type="number"
+                value={form.availableCredit} onChange={set('availableCredit')}
+                InputProps={{ startAdornment: Rupee }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Cash Advance Limit" type="number"
+                value={form.cashAdvanceLimit} onChange={set('cashAdvanceLimit')}
+                InputProps={{ startAdornment: Rupee }} />
+            </Grid>
+          </Grid>
+
+          <Section title="Balance & Payments" />
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Current Balance" type="number"
+                value={form.currentBalance} onChange={set('currentBalance')}
+                InputProps={{ startAdornment: Rupee }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Statement Balance" type="number"
+                value={form.statementBalance} onChange={set('statementBalance')}
+                InputProps={{ startAdornment: Rupee }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Minimum Payment" type="number"
+                value={form.minimumPayment} onChange={set('minimumPayment')}
+                InputProps={{ startAdornment: Rupee }} />
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Last Payment" type="number"
+                value={form.lastPaymentAmount} onChange={set('lastPaymentAmount')}
+                InputProps={{ startAdornment: Rupee }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Last Payment Date" type="date"
+                value={form.lastPaymentDate} onChange={set('lastPaymentDate')}
+                InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Payment Due Date" type="date"
+                value={form.paymentDueDate} onChange={set('paymentDueDate')}
+                InputLabelProps={{ shrink: true }} />
+            </Grid>
+          </Grid>
+
+          <Section title="Statement & Fees" />
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Statement Date" type="date"
+                value={form.statementDate} onChange={set('statementDate')}
+                InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="APR" type="number"
+                value={form.apr} onChange={set('apr')}
+                InputProps={{ endAdornment: Pct }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField fullWidth size="small" label="Annual Fee" type="number"
+                value={form.annualFee} onChange={set('annualFee')}
+                InputProps={{ startAdornment: Rupee }} />
+            </Grid>
+          </Grid>
+          <TextField fullWidth size="small" label="Rewards Program (optional)"
+            placeholder="e.g. HDFC Rewards Points" value={form.rewardsProgram} onChange={set('rewardsProgram')} />
+        </Box>
+      </DialogContent>
+
+      <Divider />
+      <DialogActions sx={{ p: 2, gap: 1 }}>
+        <Button onClick={onClose} color="inherit" disabled={loading}>Cancel</Button>
+        <Button variant="contained" onClick={handleSubmit} disabled={loading}
+          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+          sx={{
+            borderRadius: '10px', px: 3, fontWeight: 700,
+            background: 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+            boxShadow: '0 4px 12px rgba(79,70,229,0.35)',
+          }}>
+          {loading ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Card'}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };
 
-export default CreditCardEditDialog; 
+export default CreditCardEditDialog;

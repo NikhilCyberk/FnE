@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import AccountsPage from './pages/AccountsPage';
+import AccountDetailPage from './pages/AccountDetailPage';
 import TransactionsPage from './pages/TransactionsPage';
 import BudgetsPage from './pages/BudgetsPage';
 import ReportsPage from './pages/ReportsPage';
@@ -46,6 +47,7 @@ function AppContent() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/accounts" element={<AccountsPage />} />
+          <Route path="/accounts/:id" element={<AccountDetailPage />} />
           <Route path="/credit-cards" element={<CreditCardsPage />} />
           <Route path="/credit-cards/:id" element={<CreditCardDetailPage />} />
           <Route path="/loans" element={<LoansPage />} />

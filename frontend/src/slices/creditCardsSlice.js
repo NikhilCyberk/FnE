@@ -6,7 +6,7 @@ export const fetchCreditCards = createAsyncThunk(
   'creditCards/fetchCreditCards',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/credit-cards');
+      const response = await api.get('/api/credit-cards');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch credit cards');
@@ -18,7 +18,7 @@ export const fetchCreditCardById = createAsyncThunk(
   'creditCards/fetchCreditCardById',
   async (id, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/credit-cards/${id}`);
+      const response = await api.get(`/api/credit-cards/${id}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch credit card');
@@ -30,7 +30,7 @@ export const createCreditCard = createAsyncThunk(
   'creditCards/createCreditCard',
   async (creditCardData, { rejectWithValue }) => {
     try {
-      const response = await api.post('/credit-cards', creditCardData);
+      const response = await api.post('/api/credit-cards', creditCardData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create credit card');
@@ -42,7 +42,7 @@ export const updateCreditCard = createAsyncThunk(
   'creditCards/updateCreditCard',
   async ({ id, creditCardData }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/credit-cards/${id}`, creditCardData);
+      const response = await api.put(`/api/credit-cards/${id}`, creditCardData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update credit card');
@@ -54,7 +54,7 @@ export const deleteCreditCard = createAsyncThunk(
   'creditCards/deleteCreditCard',
   async (id, { rejectWithValue }) => {
     try {
-      await api.delete(`/credit-cards/${id}`);
+      await api.delete(`/api/credit-cards/${id}`);
       return id;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete credit card');
@@ -66,7 +66,7 @@ export const extractCreditCardInfo = createAsyncThunk(
   'creditCards/extractCreditCardInfo',
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await api.post('/credit-cards/extract-credit-card-info', formData, {
+      const response = await api.post('/api/credit-cards/extract-credit-card-info', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -82,7 +82,7 @@ export const getCardNameOptions = createAsyncThunk(
   'creditCards/getCardNameOptions',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get('/credit-cards/card-names');
+      const response = await api.get('/api/credit-cards/card-names');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch card name options');
@@ -94,7 +94,7 @@ export const addCardNameOption = createAsyncThunk(
   'creditCards/addCardNameOption',
   async (cardName, { rejectWithValue }) => {
     try {
-      const response = await api.post('/credit-cards/card-names', { cardName });
+      const response = await api.post('/api/credit-cards/card-names', { cardName });
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to add card name option');
@@ -134,7 +134,7 @@ const creditCardsSlice = createSlice({
       })
       .addCase(fetchCreditCards.fulfilled, (state, action) => {
         state.loading = false;
-        state.creditCards = action.payload;
+        state.creditCards = Array.isArray(action.payload) ? action.payload : (action.payload.creditCards || []);
       })
       .addCase(fetchCreditCards.rejected, (state, action) => {
         state.loading = false;

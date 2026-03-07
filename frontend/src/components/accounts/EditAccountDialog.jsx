@@ -5,38 +5,36 @@ import {
     TextField, MenuItem, Button, Divider, Grid, CircularProgress,
     InputAdornment, Alert,
 } from '@mui/material';
-import { createAccount, fetchAccountTypes, fetchFinancialInstitutions } from '../../slices/accountsSlice';
+import { updateAccount, fetchAccountTypes, fetchFinancialInstitutions } from '../../slices/accountsSlice';
 
 const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD'];
 
-const defaultForm = {
-    accountName: '',
-    accountTypeId: '',
-    institutionId: '',
-    accountNumber: '',
-    balance: '',
-    availableBalance: '',
-    currency: 'INR',
-    creditLimit: '',
-    minimumBalance: '',
-    notes: '',
-};
-
-const AddAccountDialog = ({ open, onClose, onSuccess }) => {
+const EditAccountDialog = ({ open, account, onClose, onSuccess }) => {
     const dispatch = useDispatch();
     const { accountTypes, financialInstitutions } = useSelector((state) => state.accounts);
-    const [form, setForm] = useState(defaultForm);
+    const [form, setForm] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (open) {
-            setForm(defaultForm);
+        if (open && account) {
+            setForm({
+                accountName: account.account_name || account.accountName || '',
+                accountTypeId: account.account_type_id || account.accountTypeId || '',
+                institutionId: account.institution_id || account.institutionId || '',
+                accountNumber: '',  // never pre-fill for security
+                balance: account.balance ?? '',
+                availableBalance: account.available_balance ?? account.availableBalance ?? '',
+                currency: account.currency || 'INR',
+                creditLimit: account.credit_limit ?? account.creditLimit ?? '',
+                minimumBalance: account.minimum_balance ?? account.minimumBalance ?? '',
+                notes: account.notes || '',
+            });
             setError('');
             if (!accountTypes.length) dispatch(fetchAccountTypes());
             if (!financialInstitutions.length) dispatch(fetchFinancialInstitutions());
         }
-    }, [open, dispatch]);
+    }, [open, account, dispatch]);
 
     const selectedType = accountTypes.find((t) => t.id === form.accountTypeId);
     const isLiability = selectedType?.category === 'liability';
@@ -47,7 +45,7 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
     };
 
     const handleSubmit = async () => {
-        if (!form.accountName.trim()) return setError('Account name is required.');
+        if (!form.accountName?.trim()) return setError('Account name is required.');
         if (!form.accountTypeId) return setError('Please select an account type.');
         setError('');
         setSubmitting(true);
@@ -65,19 +63,19 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
             notes: form.notes || undefined,
         };
 
-        const result = await dispatch(createAccount(payload));
+        const result = await dispatch(updateAccount({ id: account.id, accountData: payload }));
         setSubmitting(false);
-        if (createAccount.fulfilled.match(result)) {
+        if (updateAccount.fulfilled.match(result)) {
             onSuccess?.();
             onClose();
         } else {
-            setError(result.payload || 'Failed to create account.');
+            setError(result.payload || 'Failed to update account.');
         }
     };
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <DialogTitle fontWeight="bold">Add New Account</DialogTitle>
+            <DialogTitle fontWeight="bold">Edit Account</DialogTitle>
             <Divider />
             <DialogContent sx={{ pt: 3 }}>
                 <Grid container spacing={2}>
@@ -90,15 +88,14 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
                     <Grid size={12}>
                         <TextField
                             fullWidth label="Account Name *" name="accountName"
-                            value={form.accountName} onChange={handleChange}
-                            placeholder="e.g. SBI Savings Account"
+                            value={form.accountName || ''} onChange={handleChange}
                         />
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                             select fullWidth label="Account Type *" name="accountTypeId"
-                            value={form.accountTypeId} onChange={handleChange}
+                            value={form.accountTypeId || ''} onChange={handleChange}
                         >
                             {accountTypes.map((t) => (
                                 <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
@@ -109,7 +106,7 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                             select fullWidth label="Institution" name="institutionId"
-                            value={form.institutionId} onChange={handleChange}
+                            value={form.institutionId || ''} onChange={handleChange}
                         >
                             <MenuItem value="">None</MenuItem>
                             {financialInstitutions.map((fi) => (
@@ -120,16 +117,17 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
 
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
-                            fullWidth label="Account Number" name="accountNumber"
-                            value={form.accountNumber} onChange={handleChange}
-                            placeholder="Will be masked in display"
+                            fullWidth label="New Account Number" name="accountNumber"
+                            value={form.accountNumber || ''} onChange={handleChange}
+                            placeholder="Leave blank to keep current"
+                            helperText="Only fill to change account number"
                         />
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                             select fullWidth label="Currency" name="currency"
-                            value={form.currency} onChange={handleChange}
+                            value={form.currency || 'INR'} onChange={handleChange}
                         >
                             {CURRENCIES.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                         </TextField>
@@ -138,7 +136,7 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                             fullWidth label="Current Balance" name="balance" type="number"
-                            value={form.balance} onChange={handleChange}
+                            value={form.balance ?? ''} onChange={handleChange}
                             InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
                         />
                     </Grid>
@@ -146,9 +144,8 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
                     <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                             fullWidth label="Available Balance" name="availableBalance" type="number"
-                            value={form.availableBalance} onChange={handleChange}
+                            value={form.availableBalance ?? ''} onChange={handleChange}
                             InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
-                            helperText="Defaults to current balance if left blank"
                         />
                     </Grid>
 
@@ -156,7 +153,7 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth label="Credit Limit" name="creditLimit" type="number"
-                                value={form.creditLimit} onChange={handleChange}
+                                value={form.creditLimit ?? ''} onChange={handleChange}
                                 InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
                             />
                         </Grid>
@@ -165,7 +162,7 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
                     <Grid size={{ xs: 12, sm: isLiability ? 6 : 12 }}>
                         <TextField
                             fullWidth label="Minimum Balance" name="minimumBalance" type="number"
-                            value={form.minimumBalance} onChange={handleChange}
+                            value={form.minimumBalance ?? ''} onChange={handleChange}
                             InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
                         />
                     </Grid>
@@ -173,8 +170,7 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
                     <Grid size={12}>
                         <TextField
                             fullWidth label="Notes" name="notes" multiline rows={2}
-                            value={form.notes} onChange={handleChange}
-                            placeholder="Optional notes about this account"
+                            value={form.notes || ''} onChange={handleChange}
                         />
                     </Grid>
                 </Grid>
@@ -187,11 +183,11 @@ const AddAccountDialog = ({ open, onClose, onSuccess }) => {
                     disabled={submitting} sx={{ borderRadius: 2, minWidth: 120 }}
                     startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
                 >
-                    {submitting ? 'Adding...' : 'Add Account'}
+                    {submitting ? 'Saving...' : 'Save Changes'}
                 </Button>
             </DialogActions>
         </Dialog>
     );
 };
 
-export default AddAccountDialog;
+export default EditAccountDialog;

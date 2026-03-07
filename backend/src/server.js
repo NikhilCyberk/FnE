@@ -132,7 +132,7 @@ dotenv.config();
   });
 
   // Anything that doesn't match the above, send back index.html
-  app.get('*', (req, res) => {
+  app.get('/{*path}', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'), (err) => {
       if (err) {
         // If dist doesn't exist (dev mode), just send 404
