@@ -34,7 +34,9 @@ const TransactionsPage = () => {
       tx.description?.toLowerCase().includes(term) ||
       tx.merchant?.toLowerCase().includes(term) ||
       (tx.account_name || tx.accountName || '').toLowerCase().includes(term) ||
-      (tx.category_name || tx.categoryName || '').toLowerCase().includes(term);
+      (tx.category_name || tx.categoryName || '').toLowerCase().includes(term) ||
+      (tx.is_cash && 'cash'.includes(term)) ||
+      (tx.cash_source || tx.cashSource || '').toLowerCase().includes(term);
     const matchType = selectedType === 'all' || tx.type === selectedType;
     const matchStatus = selectedStatus === 'all' || tx.status === selectedStatus;
     return matchSearch && matchType && matchStatus;

@@ -82,14 +82,14 @@ const CreditCardEditDialog = ({ open, onClose, card, onSave }) => {
         currentBalance: card.currentBalance || '',
         statementBalance: card.statementBalance || '',
         minimumPayment: card.minimumPayment || '',
-        paymentDueDate: (card.paymentDueDate || '').slice(0, 10),
-        statementDate: (card.statementDate || '').slice(0, 10),
+        paymentDueDate: card.paymentDueDate ? String(card.paymentDueDate).slice(0, 10) : '',
+        statementDate: card.statementDate ? String(card.statementDate).slice(0, 10) : '',
         lastPaymentAmount: card.lastPaymentAmount || '',
-        lastPaymentDate: (card.lastPaymentDate || '').slice(0, 10),
+        lastPaymentDate: card.lastPaymentDate ? String(card.lastPaymentDate).slice(0, 10) : '',
         apr: card.apr || '',
         annualFee: card.annualFee || '',
         rewardsProgram: card.rewardsProgram || '',
-        expiryDate: (card.expiryDate || '').slice(0, 10),
+        expiryDate: card.expiryDate ? String(card.expiryDate).slice(0, 10) : '',
         status: (card.status || 'active').toLowerCase(),
       });
     } else {

@@ -171,7 +171,9 @@ const TransactionTable = ({ filteredTransactions, setShowAddModal, onEdit, onSuc
                                     {/* Account */}
                                     <TableCell>
                                         <Typography variant="body2" color="text.secondary" noWrap>
-                                            {tx.account_name || tx.accountName || '—'}
+                                            {tx.is_cash || tx.isCash
+                                                ? (tx.cash_source || tx.cashSource ? `💵 Cash (${tx.cash_source || tx.cashSource})` : '💵 Cash')
+                                                : (tx.account_name || tx.accountName || '—')}
                                         </Typography>
                                     </TableCell>
 

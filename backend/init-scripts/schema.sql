@@ -268,9 +268,11 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
     transfer_account_id UUID REFERENCES accounts(id), -- For transfers
+    is_cash BOOLEAN DEFAULT FALSE,
+    cash_source VARCHAR(255),
     amount DECIMAL(15,2) NOT NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('income', 'expense', 'transfer')),
     status VARCHAR(20) DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'cancelled', 'failed')),

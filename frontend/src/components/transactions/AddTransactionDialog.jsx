@@ -12,7 +12,7 @@ const TODAY = new Date().toISOString().slice(0, 10);
 
 const DEFAULTS = {
     description: '', type: 'expense', amount: '', transactionDate: TODAY,
-    accountId: '', categoryId: '', transferAccountId: '', status: 'completed',
+    accountId: '', cashSource: '', categoryId: '', transferAccountId: '', status: 'completed',
     merchant: '', notes: '', postedDate: '', referenceNumber: '',
 };
 
@@ -40,7 +40,8 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                 type: transaction.type || 'expense',
                 amount: Math.abs(Number(transaction.amount)) || '',
                 transactionDate: (transaction.transaction_date || transaction.transactionDate || TODAY).slice(0, 10),
-                accountId: transaction.account_id || transaction.accountId || '',
+                accountId: transaction.is_cash || transaction.isCash ? 'CASH' : (transaction.account_id || transaction.accountId || ''),
+                cashSource: transaction.cash_source || transaction.cashSource || '',
                 categoryId: transaction.category_id || transaction.categoryId || '',
                 transferAccountId: transaction.transfer_account_id || transaction.transferAccountId || '',
                 status: transaction.status || 'completed',
@@ -85,12 +86,16 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
         setLoading(true);
         setError('');
 
+        const isCash = form.accountId === 'CASH';
+
         const payload = {
             description: form.description,
             type: form.type,
             amount: parseFloat(form.amount),
             transactionDate: form.transactionDate,
-            accountId: form.accountId || undefined,
+            accountId: isCash ? undefined : (form.accountId || undefined),
+            isCash,
+            cashSource: isCash ? form.cashSource : undefined,
             categoryId: form.categoryId || undefined,
             transferAccountId: form.type === 'transfer' ? form.transferAccountId : undefined,
             status: form.status,
@@ -202,13 +207,13 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                         </Grid>
                     </Grid>
 
-                    {/* Account */}
                     <TextField
                         select fullWidth size="small"
                         label={form.type === 'transfer' ? 'From Account' : 'Account'}
                         value={form.accountId} onChange={set('accountId')}
                     >
                         <MenuItem value=""><em>— None —</em></MenuItem>
+                        {form.type !== 'transfer' && <MenuItem value="CASH">💵 Cash</MenuItem>}
                         {accounts.map((a) => (
                             <MenuItem key={a.id} value={a.id}>
                                 {a.account_name || a.accountName}
@@ -216,6 +221,15 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                             </MenuItem>
                         ))}
                     </TextField>
+
+                    {/* Cash Source */}
+                    {form.accountId === 'CASH' && (
+                        <TextField
+                            fullWidth size="small" label="Cash Source (optional)"
+                            placeholder="e.g. ATM Withdrawal, Friend, etc."
+                            value={form.cashSource} onChange={set('cashSource')}
+                        />
+                    )}
 
                     {/* Transfer — destination account */}
                     {form.type === 'transfer' && (

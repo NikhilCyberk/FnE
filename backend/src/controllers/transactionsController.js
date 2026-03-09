@@ -5,25 +5,25 @@ const { isValidAmount, isValidTransactionType: isValidType, isValidTransactionSt
 
 exports.getTransactions = asyncHandler(async (req, res) => {
   logger.info('Get transactions request', { userId: req.user && req.user.userId });
-    const userId = req.user.userId;
-    const {
-      page = 1,
-      limit = 50,
-      startDate,
-      endDate,
-      categoryId,
-      accountId,
-      type,
-      status,
-      minAmount,
-      maxAmount
-    } = req.query;
+  const userId = req.user.userId;
+  const {
+    page = 1,
+    limit = 50,
+    startDate,
+    endDate,
+    categoryId,
+    accountId,
+    type,
+    status,
+    minAmount,
+    maxAmount
+  } = req.query;
 
-    let query = `
+  let query = `
       SELECT 
         t.id, t.amount, t.type, t.status, t.description, t.merchant, t.location,
         t.transaction_date, t.posted_date, t.reference_number, t.tags, t.notes,
-        t.is_recurring, t.created_at, t.updated_at,
+        t.is_recurring, t.created_at, t.updated_at, t.is_cash, t.cash_source,
         a.account_name, a.account_number_masked,
         c.name as category_name, c.color as category_color, c.icon as category_icon,
         ta.account_name as transfer_account_name
@@ -34,128 +34,135 @@ exports.getTransactions = asyncHandler(async (req, res) => {
       WHERE t.user_id = $1
     `;
 
-    const params = [userId];
-    let paramIndex = 2;
+  const params = [userId];
+  let paramIndex = 2;
 
-    if (startDate) {
-      query += ` AND t.transaction_date >= $${paramIndex++}`;
-      params.push(startDate);
-    }
-    if (endDate) {
-      query += ` AND t.transaction_date <= $${paramIndex++}`;
-      params.push(endDate);
-    }
-    if (categoryId) {
-      query += ` AND t.category_id = $${paramIndex++}`;
-      params.push(categoryId);
-    }
-    if (accountId) {
-      query += ` AND t.account_id = $${paramIndex++}`;
-      params.push(accountId);
-    }
-    if (type && isValidType(type)) {
-      query += ` AND t.type = $${paramIndex++}`;
-      params.push(type);
-    }
-    if (status && isValidStatus(status)) {
-      query += ` AND t.status = $${paramIndex++}`;
-      params.push(status);
-    }
-    if (minAmount) {
-      query += ` AND t.amount >= $${paramIndex++}`;
-      params.push(parseFloat(minAmount));
-    }
-    if (maxAmount) {
-      query += ` AND t.amount <= $${paramIndex++}`;
-      params.push(parseFloat(maxAmount));
-    }
+  if (startDate) {
+    query += ` AND t.transaction_date >= $${paramIndex++}`;
+    params.push(startDate);
+  }
+  if (endDate) {
+    query += ` AND t.transaction_date <= $${paramIndex++}`;
+    params.push(endDate);
+  }
+  if (categoryId) {
+    query += ` AND t.category_id = $${paramIndex++}`;
+    params.push(categoryId);
+  }
+  if (accountId) {
+    query += ` AND t.account_id = $${paramIndex++}`;
+    params.push(accountId);
+  }
+  if (type && isValidType(type)) {
+    query += ` AND t.type = $${paramIndex++}`;
+    params.push(type);
+  }
+  if (status && isValidStatus(status)) {
+    query += ` AND t.status = $${paramIndex++}`;
+    params.push(status);
+  }
+  if (minAmount) {
+    query += ` AND t.amount >= $${paramIndex++}`;
+    params.push(parseFloat(minAmount));
+  }
+  if (maxAmount) {
+    query += ` AND t.amount <= $${paramIndex++}`;
+    params.push(parseFloat(maxAmount));
+  }
 
-    // Get total count for pagination
-    const countQuery = `SELECT COUNT(*) FROM (${query}) as count_q`;
-    const countResult = await pool.query(countQuery, params);
-    const total = parseInt(countResult.rows[0].count);
+  // Get total count for pagination
+  const countQuery = `SELECT COUNT(*) FROM (${query}) as count_q`;
+  const countResult = await pool.query(countQuery, params);
+  const total = parseInt(countResult.rows[0].count);
 
-    query += ' ORDER BY t.transaction_date DESC, t.created_at DESC LIMIT $' + paramIndex++ + ' OFFSET $' + paramIndex;
-    params.push(Number(limit), (Number(page) - 1) * Number(limit));
+  query += ' ORDER BY t.transaction_date DESC, t.created_at DESC LIMIT $' + paramIndex++ + ' OFFSET $' + paramIndex;
+  params.push(Number(limit), (Number(page) - 1) * Number(limit));
 
-    const result = await pool.query(query, params);
+  const result = await pool.query(query, params);
 
-    logger.info('Get transactions success', { userId: req.user.userId, count: result.rows.length });
-    res.json({
-      transactions: result.rows,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      total,
-      totalPages: Math.ceil(total / parseInt(limit))
+  logger.info('Get transactions success', { userId: req.user.userId, count: result.rows.length });
+  res.json({
+    transactions: result.rows,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    total,
+    totalPages: Math.ceil(total / parseInt(limit))
   });
 });
 
 exports.createTransaction = asyncHandler(async (req, res) => {
-    const userId = req.user.userId;
-    const {
-      accountId,
-      categoryId,
-      transferAccountId,
-      amount,
-      type,
-      status,
-      description,
-      merchant,
-      location,
-      transactionDate,
-      postedDate,
-      referenceNumber,
-      tags,
-      notes,
-      receiptUrls,
-      isRecurring,
-      recurringRule
-    } = req.body;
+  const userId = req.user.userId;
+  const {
+    accountId,
+    categoryId,
+    transferAccountId,
+    amount,
+    type,
+    status,
+    description,
+    merchant,
+    location,
+    transactionDate,
+    postedDate,
+    referenceNumber,
+    tags,
+    notes,
+    receiptUrls,
+    isRecurring,
+    recurringRule,
+    isCash,
+    cashSource
+  } = req.body;
 
-    if (!isValidAmount(amount) || !isValidType(type)) {
-      return res.status(400).json({ error: 'Valid amount and type are required.' });
-    }
+  if (!isValidAmount(amount) || !isValidType(type)) {
+    return res.status(400).json({ error: 'Valid amount and type are required.' });
+  }
 
-    if (status && !isValidStatus(status)) {
-      return res.status(400).json({ error: 'Invalid status.' });
-    }
+  if (status && !isValidStatus(status)) {
+    return res.status(400).json({ error: 'Invalid status.' });
+  }
 
-    // Validate transfer account for transfer transactions
-    if (type === 'transfer' && !transferAccountId) {
-      return res.status(400).json({ error: 'Transfer account is required for transfer transactions.' });
-    }
+  // Validate transfer account for transfer transactions
+  if (type === 'transfer' && !transferAccountId) {
+    return res.status(400).json({ error: 'Transfer account is required for transfer transactions.' });
+  }
 
-    if (type === 'transfer' && transferAccountId === accountId) {
-      return res.status(400).json({ error: 'Transfer account must be different from source account.' });
-    }
+  if (type === 'transfer' && transferAccountId === accountId) {
+    return res.status(400).json({ error: 'Transfer account must be different from source account.' });
+  }
 
-    const result = await pool.query(`
+  // validate account or cash
+  if (type !== 'transfer' && !accountId && !isCash) {
+    return res.status(400).json({ error: 'Either an account or Cash must be selected.' });
+  }
+
+  const result = await pool.query(`
       INSERT INTO transactions (
         user_id, account_id, category_id, transfer_account_id, amount, type, status,
         description, merchant, location, transaction_date, posted_date, reference_number,
-        tags, notes, receipt_urls, is_recurring, recurring_rule
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) 
+        tags, notes, receipt_urls, is_recurring, recurring_rule, is_cash, cash_source
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) 
       RETURNING id, amount, type, status, description, merchant, location,
                 transaction_date, posted_date, reference_number, tags, notes,
-                is_recurring, created_at, updated_at
+                is_recurring, created_at, updated_at, is_cash, cash_source
     `, [
-      userId, accountId, categoryId, transferAccountId || null, amount, type, status || 'completed',
-      description, merchant, location, transactionDate, postedDate, referenceNumber,
-      tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null
-    ]);
+    userId, isCash ? null : accountId, categoryId, transferAccountId || null, amount, type, status || 'completed',
+    description, merchant, location, transactionDate, postedDate, referenceNumber,
+    tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null, isCash || false, isCash ? cashSource : null
+  ]);
 
   res.status(201).json(result.rows[0]);
 });
 
 exports.getTransactionById = asyncHandler(async (req, res) => {
-    const userId = req.user.userId;
-    const { id } = req.params;
+  const userId = req.user.userId;
+  const { id } = req.params;
 
-    const result = await pool.query(`
+  const result = await pool.query(`
       SELECT 
         t.id, t.amount, t.type, t.status, t.description, t.merchant, t.location,
         t.transaction_date, t.posted_date, t.reference_number, t.tags, t.notes,
-        t.is_recurring, t.recurring_rule, t.created_at, t.updated_at,
+        t.is_recurring, t.recurring_rule, t.created_at, t.updated_at, t.is_cash, t.cash_source,
         a.id as account_id, a.account_name, a.account_number_masked,
         c.id as category_id, c.name as category_name, c.color as category_color, c.icon as category_icon,
         ta.id as transfer_account_id, ta.account_name as transfer_account_name
@@ -166,115 +173,122 @@ exports.getTransactionById = asyncHandler(async (req, res) => {
       WHERE t.id = $1 AND t.user_id = $2
     `, [id, userId]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Transaction not found.' });
-    }
+  if (result.rows.length === 0) {
+    return res.status(404).json({ error: 'Transaction not found.' });
+  }
 
   res.json(result.rows[0]);
 });
 
 exports.updateTransaction = asyncHandler(async (req, res) => {
-    const userId = req.user.userId;
-    const { id } = req.params;
-    const {
-      accountId,
-      categoryId,
-      transferAccountId,
-      amount,
-      type,
-      status,
-      description,
-      merchant,
-      location,
-      transactionDate,
-      postedDate,
-      referenceNumber,
-      tags,
-      notes,
-      receiptUrls,
-      isRecurring,
-      recurringRule
-    } = req.body;
+  const userId = req.user.userId;
+  const { id } = req.params;
+  const {
+    accountId,
+    categoryId,
+    transferAccountId,
+    amount,
+    type,
+    status,
+    description,
+    merchant,
+    location,
+    transactionDate,
+    postedDate,
+    referenceNumber,
+    tags,
+    notes,
+    receiptUrls,
+    isRecurring,
+    recurringRule,
+    isCash,
+    cashSource
+  } = req.body;
 
-    if (!isValidAmount(amount) || !isValidType(type)) {
-      return res.status(400).json({ error: 'Valid amount and type are required.' });
-    }
+  if (!isValidAmount(amount) || !isValidType(type)) {
+    return res.status(400).json({ error: 'Valid amount and type are required.' });
+  }
 
-    if (status && !isValidStatus(status)) {
-      return res.status(400).json({ error: 'Invalid status.' });
-    }
+  if (status && !isValidStatus(status)) {
+    return res.status(400).json({ error: 'Invalid status.' });
+  }
 
-    // Validate transfer account for transfer transactions
-    if (type === 'transfer' && !transferAccountId) {
-      return res.status(400).json({ error: 'Transfer account is required for transfer transactions.' });
-    }
+  // Validate transfer account for transfer transactions
+  if (type === 'transfer' && !transferAccountId) {
+    return res.status(400).json({ error: 'Transfer account is required for transfer transactions.' });
+  }
 
-    if (type === 'transfer' && transferAccountId === accountId) {
-      return res.status(400).json({ error: 'Transfer account must be different from source account.' });
-    }
+  if (type === 'transfer' && transferAccountId === accountId) {
+    return res.status(400).json({ error: 'Transfer account must be different from source account.' });
+  }
 
-    const result = await pool.query(`
+  if (type !== 'transfer' && !accountId && !isCash) {
+    return res.status(400).json({ error: 'Either an account or Cash must be selected.' });
+  }
+
+  const result = await pool.query(`
       UPDATE transactions SET 
         account_id = $1, category_id = $2, transfer_account_id = $3, amount = $4, type = $5, status = $6,
         description = $7, merchant = $8, location = $9, transaction_date = $10, posted_date = $11,
-        reference_number = $12, tags = $13, notes = $14, receipt_urls = $15, is_recurring = $16, recurring_rule = $17
+        reference_number = $12, tags = $13, notes = $14, receipt_urls = $15, is_recurring = $16, recurring_rule = $17,
+        is_cash = $20, cash_source = $21
       WHERE id = $18 AND user_id = $19 
       RETURNING id, amount, type, status, description, merchant, location,
                 transaction_date, posted_date, reference_number, tags, notes,
-                is_recurring, created_at, updated_at
+                is_recurring, created_at, updated_at, is_cash, cash_source
     `, [
-      accountId, categoryId, transferAccountId || null, amount, type, status || 'completed',
-      description, merchant, location, transactionDate, postedDate, referenceNumber,
-      tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null,
-      id, userId
-    ]);
+    isCash ? null : accountId, categoryId, transferAccountId || null, amount, type, status || 'completed',
+    description, merchant, location, transactionDate, postedDate, referenceNumber,
+    tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null,
+    id, userId, isCash || false, isCash ? cashSource : null
+  ]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Transaction not found.' });
-    }
+  if (result.rows.length === 0) {
+    return res.status(404).json({ error: 'Transaction not found.' });
+  }
 
   res.json(result.rows[0]);
 });
 
 exports.deleteTransaction = asyncHandler(async (req, res) => {
-    const userId = req.user.userId;
-    const { id } = req.params;
+  const userId = req.user.userId;
+  const { id } = req.params;
 
-    const result = await pool.query(
-      'DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING id',
-      [id, userId]
-    );
+  const result = await pool.query(
+    'DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING id',
+    [id, userId]
+  );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Transaction not found.' });
-    }
+  if (result.rows.length === 0) {
+    return res.status(404).json({ error: 'Transaction not found.' });
+  }
 
   res.json({ message: 'Transaction deleted successfully.' });
 });
 
 // Get transaction statistics
 exports.getTransactionStats = asyncHandler(async (req, res) => {
-    const userId = req.user.userId;
-    const { startDate, endDate, accountId } = req.query;
+  const userId = req.user.userId;
+  const { startDate, endDate, accountId } = req.query;
 
-    let whereClause = 'WHERE t.user_id = $1';
-    const params = [userId];
-    let paramIndex = 2;
+  let whereClause = 'WHERE t.user_id = $1';
+  const params = [userId];
+  let paramIndex = 2;
 
-    if (startDate) {
-      whereClause += ` AND t.transaction_date >= $${paramIndex++}`;
-      params.push(startDate);
-    }
-    if (endDate) {
-      whereClause += ` AND t.transaction_date <= $${paramIndex++}`;
-      params.push(endDate);
-    }
-    if (accountId) {
-      whereClause += ` AND t.account_id = $${paramIndex++}`;
-      params.push(accountId);
-    }
+  if (startDate) {
+    whereClause += ` AND t.transaction_date >= $${paramIndex++}`;
+    params.push(startDate);
+  }
+  if (endDate) {
+    whereClause += ` AND t.transaction_date <= $${paramIndex++}`;
+    params.push(endDate);
+  }
+  if (accountId) {
+    whereClause += ` AND t.account_id = $${paramIndex++}`;
+    params.push(accountId);
+  }
 
-    const result = await pool.query(`
+  const result = await pool.query(`
       SELECT 
         COUNT(*) as total_transactions,
         SUM(CASE WHEN t.type = 'income' THEN t.amount ELSE 0 END) as total_income,
