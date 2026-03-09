@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { extractCreditCardInfo, saveCreditCard, getCreditCards, getCreditCardById, updateCreditCard, deleteCreditCard, getCardNameOptions, addCardNameOption } = require('../controllers/creditCardController');
+const { extractCreditCardInfo, saveCreditCard, getCreditCards, getCreditCardById, updateCreditCard, deleteCreditCard, getCardNameOptions, addCardNameOption, getCardTransactions } = require('../controllers/creditCardController');
 
 /**
  * @swagger
@@ -368,6 +368,7 @@ router.post('/card-names', addCardNameOption);
  *       404:
  *         description: Credit card not found
  */
+router.get('/:id/transactions', getCardTransactions);
 router.get('/:id', getCreditCardById);
 router.put('/:id', updateCreditCard);
 router.delete('/:id', deleteCreditCard);

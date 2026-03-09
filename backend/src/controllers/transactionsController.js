@@ -1,22 +1,10 @@
 const pool = require('../db');
 const logger = require('../logger');
+const asyncHandler = require('../middleware/asyncHandler');
+const { isValidAmount, isValidTransactionType: isValidType, isValidTransactionStatus: isValidStatus } = require('../utils/validators');
 
-// Enhanced validation helpers
-function isValidAmount(amount) {
-  return typeof amount === 'number' && !isNaN(amount) && isFinite(amount) && amount !== 0;
-}
-
-function isValidType(type) {
-  return typeof type === 'string' && ['income', 'expense', 'transfer'].includes(type);
-}
-
-function isValidStatus(status) {
-  return typeof status === 'string' && ['pending', 'completed', 'cancelled', 'failed'].includes(status);
-}
-
-exports.getTransactions = async (req, res) => {
+exports.getTransactions = asyncHandler(async (req, res) => {
   logger.info('Get transactions request', { userId: req.user && req.user.userId });
-  try {
     const userId = req.user.userId;
     const {
       page = 1,
@@ -99,15 +87,10 @@ exports.getTransactions = async (req, res) => {
       limit: parseInt(limit),
       total,
       totalPages: Math.ceil(total / parseInt(limit))
-    });
-  } catch (err) {
-    logger.error('Get transactions error:', err);
-    res.status(500).json({ error: 'Failed to fetch transactions.' });
-  }
-};
+  });
+});
 
-exports.createTransaction = async (req, res) => {
-  try {
+exports.createTransaction = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
     const {
       accountId,
@@ -161,15 +144,10 @@ exports.createTransaction = async (req, res) => {
       tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null
     ]);
 
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    logger.error('Create transaction error:', err);
-    res.status(500).json({ error: 'Failed to create transaction.' });
-  }
-};
+  res.status(201).json(result.rows[0]);
+});
 
-exports.getTransactionById = async (req, res) => {
-  try {
+exports.getTransactionById = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
     const { id } = req.params;
 
@@ -192,15 +170,10 @@ exports.getTransactionById = async (req, res) => {
       return res.status(404).json({ error: 'Transaction not found.' });
     }
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    logger.error('Get transaction by id error:', err);
-    res.status(500).json({ error: 'Failed to fetch transaction.' });
-  }
-};
+  res.json(result.rows[0]);
+});
 
-exports.updateTransaction = async (req, res) => {
-  try {
+exports.updateTransaction = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
     const { id } = req.params;
     const {
@@ -260,15 +233,10 @@ exports.updateTransaction = async (req, res) => {
       return res.status(404).json({ error: 'Transaction not found.' });
     }
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    logger.error('Update transaction error:', err);
-    res.status(500).json({ error: 'Failed to update transaction.' });
-  }
-};
+  res.json(result.rows[0]);
+});
 
-exports.deleteTransaction = async (req, res) => {
-  try {
+exports.deleteTransaction = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
     const { id } = req.params;
 
@@ -281,16 +249,11 @@ exports.deleteTransaction = async (req, res) => {
       return res.status(404).json({ error: 'Transaction not found.' });
     }
 
-    res.json({ message: 'Transaction deleted successfully.' });
-  } catch (err) {
-    logger.error('Delete transaction error:', err);
-    res.status(500).json({ error: 'Failed to delete transaction.' });
-  }
-};
+  res.json({ message: 'Transaction deleted successfully.' });
+});
 
 // Get transaction statistics
-exports.getTransactionStats = async (req, res) => {
-  try {
+exports.getTransactionStats = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
     const { startDate, endDate, accountId } = req.query;
 
@@ -324,9 +287,5 @@ exports.getTransactionStats = async (req, res) => {
       ${whereClause}
     `, params);
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    logger.error('Get transaction stats error:', err);
-    res.status(500).json({ error: 'Failed to fetch transaction statistics.' });
-  }
-}; 
+  res.json(result.rows[0]);
+});

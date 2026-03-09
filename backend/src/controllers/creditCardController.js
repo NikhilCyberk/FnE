@@ -480,7 +480,10 @@ exports.getCreditCardById = async (req, res) => {
     const card = cardResult.rows[0];
 
     // Fetch transactions for this card
-    const txResult = await client.query('SELECT * FROM credit_card_transactions WHERE card_id = $1', [id]);
+    const txResult = await client.query(
+      'SELECT * FROM credit_card_transactions WHERE credit_card_id = $1 ORDER BY transaction_date DESC',
+      [id]
+    );
     const transactions = txResult.rows;
 
     // Serialize the card with transactions
@@ -489,9 +492,9 @@ exports.getCreditCardById = async (req, res) => {
       transactions: toCamel(
         transactions.map(tx => ({
           ...tx,
-          date: tx.date instanceof Date
-            ? tx.date.toISOString().slice(0, 10)
-            : (typeof tx.date === 'string' ? tx.date : null)
+          transactionDate: tx.transaction_date instanceof Date
+            ? tx.transaction_date.toISOString().slice(0, 10)
+            : (typeof tx.transaction_date === 'string' ? tx.transaction_date : null)
         }))
       )
     };
@@ -603,6 +606,56 @@ exports.deleteCreditCard = async (req, res) => {
   } catch (err) {
     logger.error('Failed to delete credit card:', err);
     res.status(500).json({ error: 'Failed to delete credit card' });
+  }
+};
+
+// Get transactions for a single credit card (paginated)
+exports.getCardTransactions = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = (page - 1) * limit;
+
+    // Verify card exists
+    const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1', [id]);
+    if (cardCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Credit card not found' });
+    }
+
+    const countResult = await client.query(
+      'SELECT COUNT(*) FROM credit_card_transactions WHERE credit_card_id = $1',
+      [id]
+    );
+    const total = parseInt(countResult.rows[0].count);
+
+    const txResult = await client.query(
+      'SELECT * FROM credit_card_transactions WHERE credit_card_id = $1 ORDER BY transaction_date DESC LIMIT $2 OFFSET $3',
+      [id, limit, offset]
+    );
+
+    const transactions = toCamel(
+      txResult.rows.map(tx => ({
+        ...tx,
+        transactionDate: tx.transaction_date instanceof Date
+          ? tx.transaction_date.toISOString().slice(0, 10)
+          : (typeof tx.transaction_date === 'string' ? tx.transaction_date : null)
+      }))
+    );
+
+    res.json({
+      transactions,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    });
+  } catch (err) {
+    logger.error('Error in getCardTransactions:', err);
+    res.status(500).json({ error: 'Failed to fetch transactions', details: err.message });
+  } finally {
+    client.release();
   }
 };
 

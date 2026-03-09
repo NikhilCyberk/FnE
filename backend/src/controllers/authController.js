@@ -2,29 +2,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 const logger = require('../logger');
+const asyncHandler = require('../middleware/asyncHandler');
+const { isValidEmail, isValidPassword, isValidName } = require('../utils/validators');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
-// WARNING: Do not use the default JWT secret in production. Always set a strong JWT_SECRET in your environment variables.
 
-// Enhanced input validation helper
-function isValidEmail(email) {
-  return typeof email === 'string' && 
-         email.includes('@') && 
-         email.length <= 255 &&
-         /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
-}
-
-function isValidPassword(password) {
-  return typeof password === 'string' && password.length >= 6;
-}
-
-function isValidName(name) {
-  return typeof name === 'string' && name.length > 0 && name.length <= 100;
-}
-
-exports.register = async (req, res) => {
+exports.register = asyncHandler(async (req, res) => {
   logger.info('Register request', { body: req.body });
-  try {
     const { email, password, firstName, lastName, phone, dateOfBirth, timezone, preferredCurrency } = req.body;
     
     if (!isValidEmail(email) || !isValidPassword(password) || !isValidName(firstName) || !isValidName(lastName)) {
@@ -80,15 +64,10 @@ exports.register = async (req, res) => {
         firstName: newUser.first_name,
         lastName: newUser.last_name
       }
-    });
-  } catch (err) {
-    logger.error('Registration error:', err);
-    res.status(500).json({ error: 'Registration failed.' });
-  }
-};
+  });
+});
 
-exports.login = async (req, res) => {
-  try {
+exports.login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     
     if (!isValidEmail(email) || !isValidPassword(password)) {
@@ -160,15 +139,10 @@ exports.login = async (req, res) => {
         firstName: user.first_name,
         lastName: user.last_name
       }
-    });
-  } catch (err) {
-    logger.error('Login error:', err);
-    res.status(500).json({ error: 'Login failed.' });
-  }
-};
+  });
+});
 
-exports.getProfile = async (req, res) => {
-  try {
+exports.getProfile = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
     
     const result = await pool.query(
@@ -193,15 +167,10 @@ exports.getProfile = async (req, res) => {
       locale: user.locale,
       avatarUrl: user.avatar_url,
       createdAt: user.created_at
-    });
-  } catch (err) {
-    logger.error('Get profile error:', err);
-    res.status(500).json({ error: 'Failed to fetch profile.' });
-  }
-};
+  });
+});
 
-exports.updateProfile = async (req, res) => {
-  try {
+exports.updateProfile = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
     const { firstName, lastName, phone, dateOfBirth, timezone, preferredCurrency, locale } = req.body;
 
@@ -234,9 +203,5 @@ exports.updateProfile = async (req, res) => {
       locale: user.locale,
       avatarUrl: user.avatar_url,
       createdAt: user.created_at
-    });
-  } catch (err) {
-    logger.error('Update profile error:', err);
-    res.status(500).json({ error: 'Failed to update profile.' });
-  }
-}; 
+  });
+});

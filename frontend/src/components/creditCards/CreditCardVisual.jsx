@@ -50,8 +50,8 @@ const ChipIcon = () => (
     </svg>
 );
 
-const CreditCardVisual = ({ card, showBalances, setShowBalances, height = 210 }) => {
-    const isLarge = height > 200;
+const CreditCardVisual = ({ card, showBalances, setShowBalances, height = 'auto' }) => {
+    const isLarge = height === 'auto' || height > 200;
     const style = getCardStyle(card.cardType);
 
     return (
@@ -59,6 +59,7 @@ const CreditCardVisual = ({ card, showBalances, setShowBalances, height = 210 })
             sx={{
                 position: 'relative',
                 height: height,
+                aspectRatio: height === 'auto' ? '1.586' : undefined,
                 background: style.bg,
                 p: isLarge ? 3 : 2,
                 color: 'white',

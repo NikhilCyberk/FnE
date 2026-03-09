@@ -102,6 +102,18 @@ export const addCardNameOption = createAsyncThunk(
   }
 );
 
+export const fetchCardTransactions = createAsyncThunk(
+  'creditCards/fetchCardTransactions',
+  async ({ id, page = 1, limit = 50 }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/api/credit-cards/${id}/transactions`, { params: { page, limit } });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch transactions');
+    }
+  }
+);
+
 const initialState = {
   creditCards: [],
   selectedCard: null,
@@ -109,6 +121,9 @@ const initialState = {
   extractedInfo: null,
   loading: false,
   error: null,
+  cardTransactions: [],
+  transactionsTotal: 0,
+  transactionsLoading: false,
 };
 
 const creditCardsSlice = createSlice({
@@ -241,6 +256,18 @@ const creditCardsSlice = createSlice({
       .addCase(addCardNameOption.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // Fetch card transactions
+      .addCase(fetchCardTransactions.pending, (state) => {
+        state.transactionsLoading = true;
+      })
+      .addCase(fetchCardTransactions.fulfilled, (state, action) => {
+        state.transactionsLoading = false;
+        state.cardTransactions = action.payload.transactions || [];
+        state.transactionsTotal = action.payload.total || 0;
+      })
+      .addCase(fetchCardTransactions.rejected, (state) => {
+        state.transactionsLoading = false;
       });
   },
 });

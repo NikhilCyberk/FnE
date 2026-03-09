@@ -59,7 +59,6 @@ const CreditCardItem = ({
                     card={card}
                     showBalances={showBalances}
                     setShowBalances={setShowBalances}
-                    height={210}
                 />
             </Box>
 

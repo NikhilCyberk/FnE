@@ -1,71 +1,50 @@
 const pool = require('../db');
 const logger = require('../logger');
+const asyncHandler = require('../middleware/asyncHandler');
+const { isValidAccountName, isValidAccountType, isValidBalance, isValidCurrency } = require('../utils/validators');
 
-// Enhanced validation helpers
-function isValidAccountName(name) { 
-  return typeof name === 'string' && name.length > 0 && name.length <= 100; 
-}
-
-function isValidAccountType(typeId) { 
-  return typeof typeId === 'string' && typeId.length > 0; 
-}
-
-function isValidBalance(balance) {
-  return typeof balance === 'number' && !isNaN(balance) && isFinite(balance);
-}
-
-function isValidCurrency(currency) {
-  return typeof currency === 'string' && /^[A-Z]{3}$/.test(currency);
-}
-
-exports.getAccounts = async (req, res) => {
+exports.getAccounts = asyncHandler(async (req, res) => {
   logger.info('Get accounts request', { userId: req.user && req.user.userId });
-  try {
-    const userId = req.user.userId;
-    
-    // Pagination
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const offset = (page - 1) * limit;
-    
-    const result = await pool.query(`
-      SELECT 
-        a.id, a.account_name, a.account_number_masked, a.balance, a.available_balance,
-        a.currency, a.credit_limit, a.minimum_balance, a.account_status, a.is_primary,
-        a.notes, a.created_at, a.updated_at,
-        at.name as account_type_name, at.category as account_type_category,
-        fi.name as institution_name, fi.logo_url as institution_logo
-      FROM accounts a
-      LEFT JOIN account_types at ON a.account_type_id = at.id
-      LEFT JOIN financial_institutions fi ON a.institution_id = fi.id
-      WHERE a.user_id = $1 
-      ORDER BY a.is_primary DESC, a.created_at DESC 
-      LIMIT $2 OFFSET $3
-    `, [userId, limit, offset]);
+  const userId = req.user.userId;
+  
+  // Pagination
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const offset = (page - 1) * limit;
+  
+  const result = await pool.query(`
+    SELECT 
+      a.id, a.account_name, a.account_number_masked, a.balance, a.available_balance,
+      a.currency, a.credit_limit, a.minimum_balance, a.account_status, a.is_primary,
+      a.notes, a.created_at, a.updated_at,
+      at.name as account_type_name, at.category as account_type_category,
+      fi.name as institution_name, fi.logo_url as institution_logo
+    FROM accounts a
+    LEFT JOIN account_types at ON a.account_type_id = at.id
+    LEFT JOIN financial_institutions fi ON a.institution_id = fi.id
+    WHERE a.user_id = $1 
+    ORDER BY a.is_primary DESC, a.created_at DESC 
+    LIMIT $2 OFFSET $3
+  `, [userId, limit, offset]);
 
-    // Get total count for pagination
-    const countResult = await pool.query(
-      'SELECT COUNT(*) FROM accounts WHERE user_id = $1',
-      [userId]
-    );
+  // Get total count for pagination
+  const countResult = await pool.query(
+    'SELECT COUNT(*) FROM accounts WHERE user_id = $1',
+    [userId]
+  );
 
-    logger.info('Get accounts success', { userId: req.user.userId, count: result.rows.length });
-    res.json({ 
-      accounts: result.rows, 
-      page, 
-      limit, 
-      total: parseInt(countResult.rows[0].count),
-      totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limit)
-    });
-  } catch (err) {
-    logger.error('Get accounts error:', err);
-    res.status(500).json({ error: 'Failed to fetch accounts.' });
-  }
-};
+  logger.info('Get accounts success', { userId: req.user.userId, count: result.rows.length });
+  res.json({ 
+    accounts: result.rows, 
+    page, 
+    limit, 
+    total: parseInt(countResult.rows[0].count),
+    totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limit)
+  });
+});
 
-exports.createAccount = async (req, res) => {
-  try {
-    const userId = req.user.userId;
+exports.createAccount = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
     const { 
       accountName, 
       accountTypeId, 
@@ -119,16 +98,11 @@ exports.createAccount = async (req, res) => {
       notes || null
     ]);
 
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    logger.error('Create account error:', err);
-    res.status(500).json({ error: 'Failed to create account.' });
-  }
-};
+  res.status(201).json(result.rows[0]);
+});
 
-exports.getAccountById = async (req, res) => {
-  try {
-    const userId = req.user.userId;
+exports.getAccountById = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
     const { id } = req.params;
     
     const result = await pool.query(`
@@ -148,16 +122,11 @@ exports.getAccountById = async (req, res) => {
       return res.status(404).json({ error: 'Account not found.' });
     }
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    logger.error('Get account by id error:', err);
-    res.status(500).json({ error: 'Failed to fetch account.' });
-  }
-};
+  res.json(result.rows[0]);
+});
 
-exports.updateAccount = async (req, res) => {
-  try {
-    const userId = req.user.userId;
+exports.updateAccount = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
     const { id } = req.params;
     const { 
       accountName, 
@@ -218,16 +187,11 @@ exports.updateAccount = async (req, res) => {
       return res.status(404).json({ error: 'Account not found.' });
     }
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    logger.error('Update account error:', err);
-    res.status(500).json({ error: 'Failed to update account.' });
-  }
-};
+  res.json(result.rows[0]);
+});
 
-exports.deleteAccount = async (req, res) => {
-  try {
-    const userId = req.user.userId;
+exports.deleteAccount = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
     const { id } = req.params;
 
     // Check if account has transactions
@@ -251,43 +215,28 @@ exports.deleteAccount = async (req, res) => {
       return res.status(404).json({ error: 'Account not found.' });
     }
 
-    res.json({ message: 'Account deleted successfully.' });
-  } catch (err) {
-    logger.error('Delete account error:', err);
-    res.status(500).json({ error: 'Failed to delete account.' });
-  }
-};
+  res.json({ message: 'Account deleted successfully.' });
+});
 
 // Get account types for dropdown
-exports.getAccountTypes = async (req, res) => {
-  try {
-    const result = await pool.query(
+exports.getAccountTypes = asyncHandler(async (req, res) => {
+  const result = await pool.query(
       'SELECT id, name, category, description FROM account_types WHERE is_active = true ORDER BY name'
     );
-    res.json(result.rows);
-  } catch (err) {
-    logger.error('Get account types error:', err);
-    res.status(500).json({ error: 'Failed to fetch account types.' });
-  }
-};
+  res.json(result.rows);
+});
 
 // Get financial institutions for dropdown
-exports.getFinancialInstitutions = async (req, res) => {
-  try {
-    const result = await pool.query(
+exports.getFinancialInstitutions = asyncHandler(async (req, res) => {
+  const result = await pool.query(
       'SELECT id, name, code, country, logo_url FROM financial_institutions WHERE is_active = true ORDER BY name'
     );
-    res.json(result.rows);
-  } catch (err) {
-    logger.error('Get financial institutions error:', err);
-    res.status(500).json({ error: 'Failed to fetch financial institutions.' });
-  }
-};
+  res.json(result.rows);
+});
 
 // Get account summary/overview
-exports.getAccountSummary = async (req, res) => {
-  try {
-    const userId = req.user.userId;
+exports.getAccountSummary = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
     
     const result = await pool.query(`
       SELECT 
@@ -300,9 +249,5 @@ exports.getAccountSummary = async (req, res) => {
       WHERE a.user_id = $1 AND a.account_status = 'active'
     `, [userId]);
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    logger.error('Get account summary error:', err);
-    res.status(500).json({ error: 'Failed to fetch account summary.' });
-  }
-}; 
+  res.json(result.rows[0]);
+});
