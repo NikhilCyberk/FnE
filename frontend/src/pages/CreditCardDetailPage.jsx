@@ -7,6 +7,8 @@ import {
 } from '../slices/creditCardsSlice';
 import CreditCardVisual from '../components/creditCards/CreditCardVisual';
 import CreditCardEditDialog from '../components/creditCards/CreditCardEditDialog';
+import CreditCardTransactionList from '../components/creditCards/CreditCardTransactionList';
+import CreditCardPaymentDialog from '../components/creditCards/CreditCardPaymentDialog';
 import {
   Box, Typography, Grid, Button, IconButton, CircularProgress,
   LinearProgress, Chip, Divider, Paper, Table, TableHead, TableBody,
@@ -18,7 +20,7 @@ import {
   ArrowBack, Edit, Delete, CreditCard, AccountBalanceWallet,
   Warning, TrendingUp, CalendarToday, PieChart, Receipt,
   VisibilityOff, Visibility, LocalAtm, Percent, EventNote,
-  CheckCircle, Block,
+  CheckCircle, Block, Payment,
 } from '@mui/icons-material';
 
 /* ─── Helpers ─────────────────────────────────────────────────── */
@@ -89,6 +91,7 @@ const CreditCardDetailPage = () => {
   const [showBalances, setShowBalances] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [paymentOpen, setPaymentOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [txPage, setTxPage] = useState(0);
   const [txRowsPerPage, setTxRowsPerPage] = useState(10);
@@ -370,24 +373,29 @@ const CreditCardDetailPage = () => {
                 p: 2.5, borderRadius: '16px',
                 background: 'linear-gradient(135deg, rgba(234,179,8,0.12), rgba(234,179,8,0.04))',
                 border: '1px solid rgba(234,179,8,0.3)',
-                display: 'flex', alignItems: 'center', gap: 2,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2,
               }}>
-                <Box sx={{ p: 1.2, borderRadius: '10px', bgcolor: 'rgba(234,179,8,0.2)' }}>
-                  <CalendarToday sx={{ color: 'warning.main', fontSize: 22 }} />
-                </Box>
-                <Box>
-                  <Typography variant="caption" fontWeight={800} color="warning.dark" display="block" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                    Payment Due
-                  </Typography>
-                  <Typography variant="body2" fontWeight="700" color="warning.dark">
-                    {fmtDate(dueDate)}
-                  </Typography>
-                  {minDue > 0 && (
-                    <Typography variant="caption" color="text.secondary">
-                      Min: {fmt(minDue, showBalances)}
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Box sx={{ p: 1.2, borderRadius: '10px', bgcolor: 'rgba(234,179,8,0.2)' }}>
+                    <CalendarToday sx={{ color: 'warning.main', fontSize: 22 }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" fontWeight={800} color="warning.dark" display="block" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Payment Due
                     </Typography>
-                  )}
+                    <Typography variant="body2" fontWeight="700" color="warning.dark">
+                      {fmtDate(dueDate)}
+                    </Typography>
+                    {minDue > 0 && (
+                      <Typography variant="caption" color="text.secondary">
+                        Min: {fmt(minDue, showBalances)}
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
+                <Button variant="contained" color="warning" size="small" sx={{ borderRadius: '8px', fontWeight: 600, color: 'warning.dark', bgcolor: 'rgba(234,179,8,0.2)', boxShadow: 'none', '&:hover': { bgcolor: 'rgba(234,179,8,0.3)', boxShadow: 'none' }, whiteSpace: 'nowrap' }} onClick={() => setPaymentOpen(true)}>
+                  Pay Now
+                </Button>
               </Box>
             )}
           </Stack>
@@ -395,140 +403,22 @@ const CreditCardDetailPage = () => {
 
         {/* ── Right Column ────────────────────────────────────────── */}
         <Grid size={{ xs: 12, lg: 8 }}>
-          {/* Transactions Table */}
-          <Box sx={{
-            borderRadius: '16px', border: '1px solid', borderColor: 'divider',
-            overflow: 'hidden',
-            background: (t) => t.palette.mode === 'dark'
-              ? 'linear-gradient(160deg, rgba(30,30,46,1) 0%, rgba(22,22,35,0.95) 100%)'
-              : 'background.paper',
-          }}>
-            {/* Table Header */}
-            <Box sx={{
-              p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              borderBottom: '1px solid', borderColor: 'divider',
-              bgcolor: 'rgba(79,70,229,0.06)',
-            }}>
-              <Box display="flex" alignItems="center" gap={1.5}>
-                <Receipt sx={{ color: '#8b5cf6', fontSize: 20 }} />
-                <Typography variant="subtitle1" fontWeight="700">Transactions</Typography>
-                {cardTransactions.length > 0 && (
-                  <Box sx={{ px: 1, py: 0.2, borderRadius: '12px', bgcolor: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.25)' }}>
-                    <Typography variant="caption" fontWeight={700} color="primary.light">
-                      {transactionsTotal || cardTransactions.length} total
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            </Box>
-
-            {/* Table Body */}
-            {transactionsLoading ? (
-              <Box display="flex" justifyContent="center" alignItems="center" py={6}>
-                <CircularProgress size={32} />
-              </Box>
-            ) : cardTransactions.length === 0 ? (
-              <Box sx={{ p: 6, textAlign: 'center' }}>
-                <Receipt sx={{ fontSize: 48, color: 'text.disabled', opacity: 0.4, mb: 1.5 }} />
-                <Typography variant="body2" color="text.secondary" mb={1}>
-                  No transactions recorded yet.
-                </Typography>
-                <Typography variant="caption" color="text.disabled">
-                  Transactions will appear here once you import a PDF statement.
-                </Typography>
-              </Box>
-            ) : (
-              <Box>
-                <Box sx={{ overflowX: 'auto' }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        {['Date', 'Description', 'Merchant', 'Category', 'Amount'].map((h, i) => (
-                          <TableCell key={h} align={i === 4 ? 'right' : 'left'} sx={{
-                            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(20,20,32,0.6)' : 'rgba(247,248,250,0.8)',
-                            fontWeight: 700, fontSize: '0.73rem',
-                            color: 'text.secondary', py: 1, px: 2,
-                            borderBottom: '1px solid', borderColor: 'divider',
-                            whiteSpace: 'nowrap',
-                          }}>
-                            {h}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {txSlice.map((tx, i) => {
-                        const amount = Number(tx.amount) || 0;
-                        const isDebit = tx.transactionType === 'purchase' || tx.transactionType === 'fee' || amount < 0 || (tx.transactionType !== 'credit' && tx.transactionType !== 'payment');
-                        return (
-                          <TableRow key={i} sx={{
-                            '&:hover': { bgcolor: 'action.hover' },
-                            '& td': { borderBottom: '1px solid', borderColor: 'divider', px: 2, py: 1.1 }
-                          }}>
-                            <TableCell>
-                              <Typography variant="body2" fontSize="0.8rem" color="text.secondary" whiteSpace="nowrap">
-                                {fmtDate(tx.transactionDate || tx.date)}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" fontSize="0.82rem" fontWeight={500}>
-                                {tx.description || tx.details || '—'}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" fontSize="0.8rem" color="text.secondary">
-                                {tx.merchant || tx.name || '—'}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              {tx.category ? (
-                                <Box sx={{
-                                  display: 'inline-flex', px: 1, py: 0.2,
-                                  borderRadius: '10px', bgcolor: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)',
-                                }}>
-                                  <Typography variant="caption" fontWeight={600} color="primary.light">
-                                    {tx.category}
-                                  </Typography>
-                                </Box>
-                              ) : (
-                                <Typography variant="body2" color="text.disabled">—</Typography>
-                              )}
-                            </TableCell>
-                            <TableCell align="right">
-                              <Typography
-                                variant="body2" fontSize="0.84rem" fontWeight={700}
-                                sx={{ color: isDebit ? '#f87171' : '#34d399' }}
-                              >
-                                {isDebit ? '-' : '+'}{fmt(Math.abs(amount), showBalances)}
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </Box>
-
-                <TablePagination
-                  component="div"
-                  count={cardTransactions.length}
-                  page={txPage}
-                  rowsPerPage={txRowsPerPage}
-                  rowsPerPageOptions={[5, 10, 25, 50]}
-                  onPageChange={(_, p) => setTxPage(p)}
-                  onRowsPerPageChange={(e) => { setTxRowsPerPage(parseInt(e.target.value, 10)); setTxPage(0); }}
-                  sx={{
-                    borderTop: '1px solid', borderColor: 'divider', color: 'text.secondary',
-                    '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': { fontSize: '0.78rem' },
-                    '.MuiTablePagination-select': { fontSize: '0.78rem' },
-                    '.MuiIconButton-root': { borderRadius: '8px', '&:hover': { bgcolor: 'rgba(99,102,241,0.1)' } },
-                  }}
-                />
-              </Box>
-            )}
-          </Box>
+          {/* New Credit Card Transaction List */}
+          <CreditCardTransactionList creditCard={card} />
         </Grid>
       </Grid>
+
+      {/* ── Payment Dialog ─────────────────────────────────────────── */}
+      <CreditCardPaymentDialog
+        open={paymentOpen}
+        onClose={() => setPaymentOpen(false)}
+        creditCard={card}
+        onPaymentComplete={() => {
+          showSnack('Payment processed successfully');
+          dispatch(fetchCreditCardById(id));
+          dispatch(fetchCardTransactions({ id, page: txPage + 1, limit: txRowsPerPage }));
+        }}
+      />
 
       {/* ── Edit Dialog ────────────────────────────────────────────── */}
       <CreditCardEditDialog

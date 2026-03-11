@@ -42,6 +42,18 @@ const LoginPage = () => {
     }
   };
 
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    try {
+      await dispatch(loginUser({ email: 'nikhilkumar7585@gmail.com', password: '123456' })).unwrap();
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Direct login failed:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to your FinanceEase account">
       <Paper elevation={0} sx={{ p: 4, borderRadius: 4, bgcolor: 'background.paper' }}>
@@ -88,13 +100,28 @@ const LoginPage = () => {
             variant="contained"
             disabled={isLoading}
             sx={{
-              mt: 3, mb: 2, py: 1.5,
+              mt: 3, mb: 1, py: 1.5,
               background: 'linear-gradient(45deg, #6366f1 30%, #ec4899 90%)',
               color: 'white',
               '&:hover': { background: 'linear-gradient(45deg, #4f46e5 30%, #db2777 90%)' }
             }}
           >
             {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign in'}
+          </Button>
+          
+          <Button
+            fullWidth
+            variant="outlined"
+            disabled={isLoading}
+            onClick={handleDemoLogin}
+            sx={{
+              mb: 2, py: 1.5,
+              borderColor: '#6366f1',
+              color: '#6366f1',
+              '&:hover': { borderColor: '#4f46e5', backgroundColor: 'rgba(99, 102, 241, 0.04)' }
+            }}
+          >
+            Direct Login (Demo)
           </Button>
         </form>
 

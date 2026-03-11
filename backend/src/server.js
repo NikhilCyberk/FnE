@@ -1,22 +1,17 @@
-// Ensure you have a .env file in the project root with the following content:
-// DATABASE_URL=postgresql://fneuser:fnepassword@localhost:5432/fnedb
-// JWT_SECRET=your_jwt_secret
-//
-// If running with Docker Compose, the database will be available at the above URL.
 const express = require('express');
-const cors = require('cors');
 const dotenv = require('dotenv');
-const swaggerUi = require('swagger-ui-express');
-const swaggerJsdoc = require('swagger-jsdoc');
-const authRoutes = require('./routes/auth');
-const accountsRoutes = require('./routes/accounts');
-const transactionsRoutes = require('./routes/transactions');
-const budgetsRoutes = require('./routes/budgets');
-const reportsRoutes = require('./routes/reports');
 const logger = require('./logger');
 const { Pool } = require('pg');
-const creditCardRoutes = require('./routes/creditCard');
 const ensureDatabaseExists = require('./ensureDatabase');
+const { setupRoutes } = require('./routes');
+const {
+  setupCors,
+  setupJsonParsing,
+  setupLogging,
+  setupSwagger,
+  setupStaticFiles,
+  setupErrorHandling
+} = require('./middleware');
 
 dotenv.config();
 
@@ -24,49 +19,15 @@ dotenv.config();
   await ensureDatabaseExists();
 
   const app = express();
-  app.use(cors());
-  app.use(express.json());
-  // Swagger setup
-  const swaggerOptions = {
-    definition: {
-      openapi: '3.0.0',
-      info: {
-        title: 'FnE API',
-        version: '1.0.0',
-        description: 'Finance & Expense API documentation',
-      },
-      servers: [
-        { url: 'http://localhost:3000' },
-      ],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-            description: 'JWT token obtained from login endpoint'
-          }
-        }
-      },
-      security: [
-        {
-          bearerAuth: []
-        }
-      ]
-    },
-    apis: ['./src/routes/*.js', './src/server.js'],
-  };
-  const swaggerSpec = swaggerJsdoc(swaggerOptions);
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  
+  // Setup middleware
+  setupCors(app);
+  setupJsonParsing(app);
+  setupLogging(app);
+  setupSwagger(app);
 
-  app.use((req, res, next) => {
-    logger.info(`${req.method} ${req.url} from ${req.ip}`);
-    next();
-  });
-
-  app.get('/health', (req, res) => {
-    res.json({ status: 'ok' });
-  });
+  // Setup routes
+  setupRoutes(app);
 
   /**
    * @swagger
@@ -111,29 +72,13 @@ dotenv.config();
     }
   });
 
-  app.use('/api/auth', authRoutes);
-  app.use('/api/accounts', accountsRoutes);
-  app.use('/api/transactions', transactionsRoutes);
-  app.use('/api/budgets', budgetsRoutes);
-  app.use('/api/reports', reportsRoutes);
-  app.use('/api/categories', require('./routes/categories'));
-  app.use('/api/budget-categories', require('./routes/budgetCategories'));
-  app.use('/api/user', require('./routes/user'));
-  app.use('/api/credit-cards', creditCardRoutes);
-  app.use('/api/loans', require('./routes/loans'));
-
-  // Serve static files from the React frontend app
+  // Setup static files and error handling
+  setupStaticFiles(app);
+  
+  // Catch-all handler for SPA
   const path = require('path');
-  app.use(express.static(path.join(__dirname, '../../frontend/dist')));
-
-  // Root route for API
-  app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to FnE API' });
-  });
-
-  // Anything that doesn't match the above, send back index.html
   app.get('/{*path}', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'), (err) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'), (err) => {
       if (err) {
         // If dist doesn't exist (dev mode), just send 404
         res.status(404).send('Not found. Please make sure the frontend is built or use the dev server.');
@@ -141,14 +86,11 @@ dotenv.config();
     });
   });
 
-  app.use((err, req, res, next) => {
-    logger.error(`Unhandled error: ${err.message}`, { stack: err.stack });
-    res.status(500).json({ error: 'Internal Server Error', details: err.message });
-  });
+  setupErrorHandling(app);
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     logger.info(`Server running on port ${PORT}`);
     logger.info(`Swagger docs at http://localhost:${PORT}/api-docs`);
   });
-})(); 
+})();

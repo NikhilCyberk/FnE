@@ -322,7 +322,7 @@ exports.saveCreditCard = async (req, res) => {
     logger.info('Saving credit card', { body: req.body });
     const card = req.body;
 
-    const resolvedUserId = await resolveUserId(client, card.user_id);
+    const resolvedUserId = req.user.userId;
 
     const insertCardQuery = `
       INSERT INTO credit_cards (
@@ -437,11 +437,16 @@ function serializeCard(card) {
 exports.getCreditCards = async (req, res) => {
   const client = await pool.connect();
   try {
+    const userId = req.user.userId;
     // Fetch all cards
-    const cardsResult = await client.query('SELECT * FROM credit_cards');
+    const cardsResult = await client.query('SELECT * FROM credit_cards WHERE user_id = $1', [userId]);
     const cards = cardsResult.rows;
     // Fetch all transactions
-    const txResult = await client.query('SELECT * FROM credit_card_transactions');
+    const txResult = await client.query(`
+      SELECT t.* FROM credit_card_transactions t
+      JOIN credit_cards c ON t.credit_card_id = c.id
+      WHERE c.user_id = $1
+    `, [userId]);
     const transactions = txResult.rows;
     // Attach transactions to their cards, serialize dates, and convert to camelCase
     const cardsWithTx = cards.map(card => ({
@@ -470,9 +475,10 @@ exports.getCreditCardById = async (req, res) => {
   const client = await pool.connect();
   try {
     const id = req.params.id;
+    const userId = req.user.userId;
 
     // Fetch the card
-    const cardResult = await client.query('SELECT * FROM credit_cards WHERE id = $1', [id]);
+    const cardResult = await client.query('SELECT * FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
     if (cardResult.rows.length === 0) {
       return res.status(404).json({ error: 'Credit card not found' });
     }
@@ -513,11 +519,12 @@ exports.updateCreditCard = async (req, res) => {
   const client = await pool.connect();
   try {
     const id = req.params.id;
+    const userId = req.user.userId;
     const card = req.body;
     logger.info('Updating credit card', { id, body: req.body });
 
     // Check if card exists
-    const checkResult = await client.query('SELECT id FROM credit_cards WHERE id = $1', [id]);
+    const checkResult = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
     if (checkResult.rows.length === 0) {
       return res.status(404).json({ error: 'Credit card not found' });
     }
@@ -542,7 +549,7 @@ exports.updateCreditCard = async (req, res) => {
         expiry_date          = $16,
         rewards_program      = $17,
         updated_at           = CURRENT_TIMESTAMP
-      WHERE id = $18
+      WHERE id = $18 AND user_id = $19
       RETURNING *
     `;
     const cardValues = [
@@ -564,6 +571,7 @@ exports.updateCreditCard = async (req, res) => {
       parseDate(card.expiryDate),
       card.rewardsProgram || null,
       id,
+      userId
     ];
     await client.query(updateCardQuery, cardValues);
 
@@ -597,8 +605,9 @@ exports.updateCreditCard = async (req, res) => {
 
 exports.deleteCreditCard = async (req, res) => {
   const id = req.params.id;
+  const userId = req.user.userId;
   try {
-    const result = await pool.query('DELETE FROM credit_cards WHERE id = $1', [id]);
+    const result = await pool.query('DELETE FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Credit card not found' });
     }
@@ -614,12 +623,13 @@ exports.getCardTransactions = async (req, res) => {
   const client = await pool.connect();
   try {
     const { id } = req.params;
+    const userId = req.user.userId;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
     const offset = (page - 1) * limit;
 
     // Verify card exists
-    const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1', [id]);
+    const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
     if (cardCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Credit card not found' });
     }

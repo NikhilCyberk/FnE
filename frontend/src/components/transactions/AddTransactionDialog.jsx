@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
@@ -6,71 +6,75 @@ import {
     Grid, Alert, CircularProgress, InputAdornment,
 } from '@mui/material';
 import { createTransaction, updateTransaction, fetchTransactions } from '../../slices/transactionsSlice';
+import { fetchCashSources } from '../../slices/cashSourcesSlice';
 import { accountsAPI, categoriesAPI } from '../../api';
-
-const TODAY = new Date().toISOString().slice(0, 10);
+import { useForm, useDialog, useAsyncState } from '../../hooks';
+import { getToday } from '../../utils';
+import { DEFAULT_CURRENCY, ACCOUNT_TYPES, TRANSACTION_STATUS } from '../../constants';
 
 const DEFAULTS = {
-    description: '', type: 'expense', amount: '', transactionDate: TODAY,
-    accountId: '', cashSource: '', categoryId: '', transferAccountId: '', status: 'completed',
+    description: '', type: 'expense', amount: '', transactionDate: getToday(),
+    accountId: '', cashSource: '', categoryId: '', transferAccountId: '', status: TRANSACTION_STATUS.COMPLETED,
     merchant: '', notes: '', postedDate: '', referenceNumber: '',
 };
-
-const CURRENCIES_SIGN = '₹';
 
 const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
     const dispatch = useDispatch();
     const isEdit = !!transaction;
 
-    const [form, setForm] = useState(DEFAULTS);
-    const [accounts, setAccounts] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const { form, set, reset, updateForm } = useForm(DEFAULTS);
+    const { data: accounts, setData: setAccounts, execute: loadAccounts } = useAsyncState([]);
+    const { data: categories, setData: setCategories, execute: loadCategories } = useAsyncState([]);
+    const { data: cashSources, setData: setCashSources, execute: loadCashSources } = useAsyncState([]);
+    const { data: creditCards, setData: setCreditCards, execute: loadCreditCards } = useAsyncState([]);
+    const { loading, error, setError, setLoading } = useAsyncState(null);
 
     // Load accounts + categories when dialog opens
     useEffect(() => {
         if (!open) return;
-        setError('');
+        setError(null);
 
         // Pre-fill if editing
         if (isEdit && transaction) {
-            setForm({
+            updateForm({
                 description: transaction.description || '',
                 type: transaction.type || 'expense',
                 amount: Math.abs(Number(transaction.amount)) || '',
-                transactionDate: (transaction.transaction_date || transaction.transactionDate || TODAY).slice(0, 10),
+                transactionDate: (transaction.transaction_date || transaction.transactionDate || getToday()).slice(0, 10),
                 accountId: transaction.is_cash || transaction.isCash ? 'CASH' : (transaction.account_id || transaction.accountId || ''),
                 cashSource: transaction.cash_source || transaction.cashSource || '',
                 categoryId: transaction.category_id || transaction.categoryId || '',
                 transferAccountId: transaction.transfer_account_id || transaction.transferAccountId || '',
-                status: transaction.status || 'completed',
+                status: transaction.status || TRANSACTION_STATUS.COMPLETED,
                 merchant: transaction.merchant || '',
                 notes: transaction.notes || '',
                 postedDate: (transaction.posted_date || transaction.postedDate || '').slice(0, 10),
                 referenceNumber: transaction.reference_number || transaction.referenceNumber || '',
             });
         } else {
-            setForm(DEFAULTS);
+            reset();
         }
 
         // Fetch reference data
-        const load = async () => {
+        const loadData = async () => {
             try {
-                const [accRes, catRes] = await Promise.all([
+                const [accRes, catRes, cashRes, ccRes] = await Promise.all([
                     accountsAPI.getAll(),
                     categoriesAPI.getAll(),
+                    fetchCashSources(),
+                    fetch('/api/credit-cards').then(res => res.json())
                 ]);
                 setAccounts(accRes.data?.accounts || accRes.data || []);
                 setCategories(catRes.data?.categories || catRes.data || []);
+                setCashSources(cashRes.payload || []);
+                setCreditCards(ccRes || []);
             } catch {
                 // non-fatal — user can still type
             }
         };
-        load();
+        loadData();
     }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
     const handleSubmit = async () => {
         if (!form.amount || !form.type || !form.transactionDate) {
@@ -86,41 +90,86 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
         setLoading(true);
         setError('');
 
+        // Check if this is a credit card transaction
+        const isCreditCard = form.accountId && form.accountId.startsWith('CC_');
+        const creditCardId = isCreditCard ? form.accountId.replace('CC_', '') : null;
+        
         const isCash = form.accountId === 'CASH';
 
-        const payload = {
-            description: form.description,
-            type: form.type,
-            amount: parseFloat(form.amount),
-            transactionDate: form.transactionDate,
-            accountId: isCash ? undefined : (form.accountId || undefined),
-            isCash,
-            cashSource: isCash ? form.cashSource : undefined,
-            categoryId: form.categoryId || undefined,
-            transferAccountId: form.type === 'transfer' ? form.transferAccountId : undefined,
-            status: form.status,
-            merchant: form.merchant || undefined,
-            notes: form.notes || undefined,
-            postedDate: form.postedDate || undefined,
-            referenceNumber: form.referenceNumber || undefined,
-        };
+        if (isCreditCard && creditCardId) {
+            // Handle credit card transaction through credit card API
+            try {
+                const creditCardPayload = {
+                    transactionDate: form.transactionDate,
+                    postedDate: form.postedDate || undefined,
+                    description: form.description,
+                    merchant: form.merchant || undefined,
+                    category: form.categoryId || undefined,
+                    amount: parseFloat(form.amount),
+                    transactionType: 'purchase', // Default to purchase
+                    referenceNumber: form.referenceNumber || undefined,
+                    isPayment: form.type === 'expense' && form.description.toLowerCase().includes('payment'),
+                    paymentMethod: 'credit_card'
+                };
 
-        try {
-            let result;
-            if (isEdit) {
-                result = await dispatch(updateTransaction({ id: transaction.id, transaction: payload }));
-                if (updateTransaction.rejected.match(result)) throw new Error(result.payload);
-            } else {
-                result = await dispatch(createTransaction(payload));
-                if (createTransaction.rejected.match(result)) throw new Error(result.payload);
+                const response = await fetch(`/api/credit-cards/${creditCardId}/transactions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(creditCardPayload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to create credit card transaction');
+                }
+
+                const result = await response.json();
+                onSuccess?.('Credit card transaction added successfully!');
+                onClose();
+            } catch (err) {
+                setError(err.message || 'Failed to add credit card transaction.');
+            } finally {
+                setLoading(false);
             }
-            dispatch(fetchTransactions()); // refresh to get joined fields (accountName, categoryName)
-            onSuccess?.(`Transaction ${isEdit ? 'updated' : 'added'} successfully!`);
-            onClose();
-        } catch (err) {
-            setError(err.message || `Failed to ${isEdit ? 'update' : 'add'} transaction.`);
-        } finally {
-            setLoading(false);
+        } else {
+            // Handle regular transaction through existing API
+            const payload = {
+                description: form.description,
+                type: form.type,
+                amount: parseFloat(form.amount),
+                transactionDate: form.transactionDate,
+                accountId: isCash ? undefined : (form.accountId || undefined),
+                isCash,
+                cashSource: isCash ? form.cashSource : undefined,
+                categoryId: form.categoryId || undefined,
+                transferAccountId: form.type === 'transfer' ? form.transferAccountId : undefined,
+                status: form.status,
+                merchant: form.merchant || undefined,
+                notes: form.notes || undefined,
+                postedDate: form.postedDate || undefined,
+                referenceNumber: form.referenceNumber || undefined,
+            };
+
+            try {
+                let result;
+                if (isEdit) {
+                    result = await dispatch(updateTransaction({ id: transaction.id, transaction: payload }));
+                    if (updateTransaction.rejected.match(result)) throw new Error(result.payload);
+                } else {
+                    result = await dispatch(createTransaction(payload));
+                    if (createTransaction.rejected.match(result)) throw new Error(result.payload);
+                }
+                dispatch(fetchTransactions()); // refresh to get joined fields (accountName, categoryName)
+                onSuccess?.(`Transaction ${isEdit ? 'updated' : 'added'} successfully!`);
+                onClose();
+            } catch (err) {
+                setError(err.message || `Failed to ${isEdit ? 'update' : 'add'} transaction.`);
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -172,7 +221,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                                 placeholder="0.00"
                                 value={form.amount} onChange={set('amount')}
                                 InputProps={{
-                                    startAdornment: <InputAdornment position="start">{CURRENCIES_SIGN}</InputAdornment>,
+                                    startAdornment: <InputAdornment position="start">{DEFAULT_CURRENCY.symbol}</InputAdornment>,
                                 }}
                             />
                         </Grid>
@@ -214,6 +263,11 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                     >
                         <MenuItem value=""><em>— None —</em></MenuItem>
                         {form.type !== 'transfer' && <MenuItem value="CASH">💵 Cash</MenuItem>}
+                        {form.type !== 'transfer' && creditCards.map((cc) => (
+                            <MenuItem key={cc.id} value={`CC_${cc.id}`}>
+                                💳 {cc.cardName} · ****{cc.cardNumberLastFour}
+                            </MenuItem>
+                        ))}
                         {accounts.map((a) => (
                             <MenuItem key={a.id} value={a.id}>
                                 {a.account_name || a.accountName}
@@ -225,10 +279,16 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                     {/* Cash Source */}
                     {form.accountId === 'CASH' && (
                         <TextField
-                            fullWidth size="small" label="Cash Source (optional)"
-                            placeholder="e.g. ATM Withdrawal, Friend, etc."
+                            select fullWidth size="small" label="Cash Source (optional)"
                             value={form.cashSource} onChange={set('cashSource')}
-                        />
+                        >
+                            <MenuItem value=""><em>— Select Source —</em></MenuItem>
+                            {cashSources.map((cs) => (
+                                <MenuItem key={cs.id} value={cs.name}>
+                                    {cs.name}
+                                </MenuItem>
+                            ))}
+                        </TextField>
                     )}
 
                     {/* Transfer — destination account */}

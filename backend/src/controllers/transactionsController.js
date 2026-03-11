@@ -3,6 +3,33 @@ const logger = require('../logger');
 const asyncHandler = require('../middleware/asyncHandler');
 const { isValidAmount, isValidTransactionType: isValidType, isValidTransactionStatus: isValidStatus } = require('../utils/validators');
 
+// Helper function to get or create cash account
+const getOrCreateCashAccount = async (userId) => {
+  const result = await pool.query('SELECT get_or_create_cash_account($1) as account_id', [userId]);
+  return result.rows[0].account_id;
+};
+
+// Helper function to check if account is cash type
+const isCashAccount = async (accountId) => {
+  const result = await pool.query(`
+    SELECT at.name as account_type_name 
+    FROM accounts a 
+    JOIN account_types at ON a.account_type_id = at.id 
+    WHERE a.id = $1 AND at.name = 'Cash'
+  `, [accountId]);
+  return result.rows.length > 0;
+};
+
+// Helper function to validate cash source
+const isValidCashSource = async (cashSource) => {
+  if (!cashSource) return true; // cash_source is optional
+  const result = await pool.query(
+    'SELECT id FROM cash_sources WHERE name = $1 AND is_active = true',
+    [cashSource]
+  );
+  return result.rows.length > 0;
+};
+
 exports.getTransactions = asyncHandler(async (req, res) => {
   logger.info('Get transactions request', { userId: req.user && req.user.userId });
   const userId = req.user.userId;
@@ -23,7 +50,7 @@ exports.getTransactions = asyncHandler(async (req, res) => {
       SELECT 
         t.id, t.amount, t.type, t.status, t.description, t.merchant, t.location,
         t.transaction_date, t.posted_date, t.reference_number, t.tags, t.notes,
-        t.is_recurring, t.created_at, t.updated_at, t.is_cash, t.cash_source,
+        t.is_recurring, t.created_at, t.updated_at,
         a.account_name, a.account_number_masked,
         c.name as category_name, c.color as category_color, c.icon as category_icon,
         ta.account_name as transfer_account_name
@@ -136,19 +163,30 @@ exports.createTransaction = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'Either an account or Cash must be selected.' });
   }
 
+  let finalAccountId = accountId;
+  if (isCash) {
+    finalAccountId = await getOrCreateCashAccount(userId);
+  }
+
+  // Validate cash source only if provided
+  if (cashSource && !(await isValidCashSource(cashSource))) {
+    return res.status(400).json({ error: 'Invalid cash source.' });
+  }
+
   const result = await pool.query(`
       INSERT INTO transactions (
         user_id, account_id, category_id, transfer_account_id, amount, type, status,
         description, merchant, location, transaction_date, posted_date, reference_number,
-        tags, notes, receipt_urls, is_recurring, recurring_rule, is_cash, cash_source
+        tags, notes, receipt_urls, is_recurring, recurring_rule, cash_source, source_description
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) 
       RETURNING id, amount, type, status, description, merchant, location,
                 transaction_date, posted_date, reference_number, tags, notes,
-                is_recurring, created_at, updated_at, is_cash, cash_source
+                is_recurring, cash_source, source_description, created_at, updated_at
     `, [
-    userId, isCash ? null : accountId, categoryId, transferAccountId || null, amount, type, status || 'completed',
+    userId, finalAccountId, categoryId, transferAccountId || null, amount, type, status || 'completed',
     description, merchant, location, transactionDate, postedDate, referenceNumber,
-    tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null, isCash || false, isCash ? cashSource : null
+    tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null,
+    cashSource || null, sourceDescription || null
   ]);
 
   res.status(201).json(result.rows[0]);
@@ -231,16 +269,16 @@ exports.updateTransaction = asyncHandler(async (req, res) => {
         account_id = $1, category_id = $2, transfer_account_id = $3, amount = $4, type = $5, status = $6,
         description = $7, merchant = $8, location = $9, transaction_date = $10, posted_date = $11,
         reference_number = $12, tags = $13, notes = $14, receipt_urls = $15, is_recurring = $16, recurring_rule = $17,
-        is_cash = $20, cash_source = $21
+        cash_source = $21, source_description = $22
       WHERE id = $18 AND user_id = $19 
       RETURNING id, amount, type, status, description, merchant, location,
                 transaction_date, posted_date, reference_number, tags, notes,
-                is_recurring, created_at, updated_at, is_cash, cash_source
+                is_recurring, cash_source, source_description, created_at, updated_at
     `, [
     isCash ? null : accountId, categoryId, transferAccountId || null, amount, type, status || 'completed',
     description, merchant, location, transactionDate, postedDate, referenceNumber,
     tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null,
-    id, userId, isCash || false, isCash ? cashSource : null
+    id, userId, isCash || false, isCash ? cashSource : null, isCash ? sourceDescription || null : null
   ]);
 
   if (result.rows.length === 0) {

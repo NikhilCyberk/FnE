@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { extractCreditCardInfo, saveCreditCard, getCreditCards, getCreditCardById, updateCreditCard, deleteCreditCard, getCardNameOptions, addCardNameOption, getCardTransactions } = require('../controllers/creditCardController');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// Apply authentication middleware to all routes
+router.use(authMiddleware);
 
 /**
  * @swagger
