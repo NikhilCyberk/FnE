@@ -9,12 +9,29 @@ exports.getBudgets = async (req, res) => {
   try {
     const userId = req.user.userId;
     // Pagination
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-    const offset = (page - 1) * limit;
-    const result = await pool.query('SELECT * FROM budgets WHERE user_id = $1 ORDER BY id LIMIT $2 OFFSET $3', [userId, limit, offset]);
+    const { page = 1, limit = 20 } = req.query;
+    
+    // Validate limit and page
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
+
+    // Get total count for pagination
+    const countResult = await pool.query('SELECT COUNT(*) FROM budgets WHERE user_id = $1', [userId]);
+    const total = parseInt(countResult.rows[0].count);
+    const totalPages = Math.ceil(total / limitNum);
+
+    const result = await pool.query('SELECT * FROM budgets WHERE user_id = $1 ORDER BY id LIMIT $2 OFFSET $3', [userId, limitNum, offset]);
     logger.info('Get budgets success', { userId: req.user && req.user.id });
-    res.json({ budgets: result.rows, page, limit });
+    res.json({
+      budgets: result.rows,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages
+      }
+    });
   } catch (err) {
     logger.error('Get budgets error:', err);
     res.status(500).json({ error: 'Failed to fetch budgets.' });

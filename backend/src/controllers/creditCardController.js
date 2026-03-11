@@ -618,15 +618,40 @@ exports.deleteCreditCard = async (req, res) => {
   }
 };
 
+// Make a payment on a credit card
+exports.makePayment = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const creditCardId = req.params.id;
+    
+    // Import service here to avoid circular dependency
+    const creditCardPaymentService = require('../services/creditCardPaymentService');
+    
+    // Add credit card ID to the payment data
+    const paymentData = {
+      ...req.body,
+      creditCardId
+    };
+
+    const result = await creditCardPaymentService.makePayment(paymentData, userId);
+    
+    res.json({ success: true, data: result });
+  } catch (err) {
+    logger.error('Error in makePayment:', err);
+    res.status(400).json({ error: err.message || 'Failed to process credit card payment' });
+  }
+};
+
 // Get transactions for a single credit card (paginated)
 exports.getCardTransactions = async (req, res) => {
   const client = await pool.connect();
   try {
     const { id } = req.params;
     const userId = req.user.userId;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
-    const offset = (page - 1) * limit;
+    const { page = 1, limit = 50 } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
 
     // Verify card exists
     const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
@@ -642,7 +667,7 @@ exports.getCardTransactions = async (req, res) => {
 
     const txResult = await client.query(
       'SELECT * FROM credit_card_transactions WHERE credit_card_id = $1 ORDER BY transaction_date DESC LIMIT $2 OFFSET $3',
-      [id, limit, offset]
+      [id, limitNum, offset]
     );
 
     const transactions = toCamel(
@@ -657,9 +682,9 @@ exports.getCardTransactions = async (req, res) => {
     res.json({
       transactions,
       total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum)
     });
   } catch (err) {
     logger.error('Error in getCardTransactions:', err);

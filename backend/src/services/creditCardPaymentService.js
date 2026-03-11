@@ -1,6 +1,6 @@
-const pool = require('../../db');
-const logger = require('../../logger');
-const asyncHandler = require('../../middleware/asyncHandler');
+const pool = require('../db');
+const logger = require('../logger');
+const asyncHandler = require('../middleware/asyncHandler');
 
 class CreditCardPaymentService {
   async makePayment(paymentData, userId) {
@@ -13,7 +13,7 @@ class CreditCardPaymentService {
       isMinimumPayment = false,
       accountId,
       isCash = false,
-      cashSource = null
+      cashSourceId = null
     } = paymentData;
 
     // Validate payment data
@@ -36,8 +36,8 @@ class CreditCardPaymentService {
 
       const creditCard = cardResult.rows[0];
 
-      // Validate payment amount
-      if (paymentAmount > (creditCard.total_payment_due || 0)) {
+      // Validate payment amount (against current_balance or statement_balance)
+      if (paymentAmount > Math.max((creditCard.current_balance || 0), (creditCard.statement_balance || 0))) {
         throw new Error('Payment amount exceeds total due');
       }
 
@@ -79,33 +79,61 @@ class CreditCardPaymentService {
             `INSERT INTO transactions (
                 user_id, account_id, category_id, amount, type, status,
                 description, transaction_date, posted_date, notes,
-                is_recurring, is_cash, cash_source, source_description
+                is_recurring, is_cash, cash_source_id, source_description
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
             [
                 userId, finalAccountId, categoryId, paymentAmount, 'expense', 'completed',
                 transactionDescription, paymentDate, paymentDate, transactionNotes,
-                false, isCash, isCash ? cashSource : null, isCash ? 'Credit Card Payment' : null
+                false, isCash, isCash ? cashSourceId : null, isCash ? 'Credit Card Payment' : null
             ]
         );
       }
 
+      // Add actual credit card transaction for the payment so it shows in the history
+      await pool.query(
+        `INSERT INTO credit_card_transactions (
+           credit_card_id, transaction_date, posted_date, description,
+           amount, transaction_type, is_payment, payment_method
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [
+          creditCardId, 
+          paymentDate, 
+          paymentDate, 
+          'Payment - Thank You', 
+          paymentAmount, 
+          'payment', 
+          true, 
+          paymentMethod
+        ]
+      );
+
       // Update credit card payment info
-      const newTotalDue = Math.max(0, (creditCard.total_payment_due || 0) - paymentAmount);
-      const newMinDue = newTotalDue * 0.03; // 3% minimum payment
+      const newCurrentBalance = Math.max(0, (creditCard.current_balance || 0) - paymentAmount);
+      const newStatementBalance = Math.max(0, (creditCard.statement_balance || 0) - paymentAmount);
+      
+      const newAvailableCredit = creditCard.credit_limit !== null 
+        ? Math.min(parseFloat(creditCard.credit_limit), parseFloat((creditCard.available_credit || 0)) + parseFloat(paymentAmount))
+        : creditCard.available_credit;
+      
+      const newMinDue = newStatementBalance * 0.03; // 3% minimum payment
       
       await pool.query(
         `UPDATE credit_cards SET 
-           total_payment_due = $1,
-           min_payment_due = $2,
-           bill_paid = $3,
-           bill_paid_on = $4,
+           current_balance = $1,
+           statement_balance = $2,
+           minimum_payment = $3,
+           available_credit = $4,
+           last_payment_amount = $5,
+           last_payment_date = $6,
            updated_at = CURRENT_TIMESTAMP
-         WHERE id = $5`,
+         WHERE id = $7`,
         [
-          newTotalDue <= 0.01 ? 0 : newTotalDue,
-          newTotalDue <= 0.01 ? 0 : newMinDue,
-          newTotalDue <= 0.01,
-          newTotalDue <= 0.01 ? paymentDate : null,
+          newCurrentBalance,
+          newStatementBalance,
+          newStatementBalance <= 0.01 ? 0 : newMinDue,
+          newAvailableCredit,
+          paymentAmount,
+          paymentDate,
           creditCardId
         ]
       );
@@ -118,10 +146,12 @@ class CreditCardPaymentService {
         payment,
         updatedCard: {
           ...creditCard,
-          total_payment_due: newTotalDue <= 0.01 ? 0 : newTotalDue,
-          min_payment_due: newTotalDue <= 0.01 ? 0 : newMinDue,
-          bill_paid: newTotalDue <= 0.01,
-          bill_paid_on: newTotalDue <= 0.01 ? paymentDate : null
+          current_balance: newCurrentBalance,
+          statement_balance: newStatementBalance,
+          minimum_payment: newStatementBalance <= 0.01 ? 0 : newMinDue,
+          available_credit: newAvailableCredit,
+          last_payment_amount: paymentAmount,
+          last_payment_date: paymentDate
         }
       };
     } catch (error) {
@@ -133,7 +163,9 @@ class CreditCardPaymentService {
 
   async getPaymentHistory(creditCardId, userId, options = {}) {
     const { page = 1, limit = 10 } = options;
-    const offset = (page - 1) * limit;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
 
     try {
       const result = await pool.query(
@@ -148,7 +180,7 @@ class CreditCardPaymentService {
          WHERE ccp.credit_card_id = $1 AND ccp.user_id = $2
          ORDER BY ccp.payment_date DESC
          LIMIT $3 OFFSET $4`,
-        [creditCardId, userId, limit, offset]
+        [creditCardId, userId, limitNum, offset]
       );
 
       // Get total count
@@ -158,17 +190,17 @@ class CreditCardPaymentService {
       );
 
       const total = parseInt(countResult.rows[0].total);
-      const totalPages = Math.ceil(total / limit);
+      const totalPages = Math.ceil(total / limitNum);
 
       return {
         payments: result.rows,
         pagination: {
-          page,
-          limit,
+          page: pageNum,
+          limit: limitNum,
           total,
           totalPages,
-          hasNext: page < totalPages,
-          hasPrev: page > 1
+          hasNext: pageNum < totalPages,
+          hasPrev: pageNum > 1
         }
       };
     } catch (error) {

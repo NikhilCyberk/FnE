@@ -169,18 +169,19 @@ exports.getCreditCardTransactions = asyncHandler(async (req, res) => {
     params.push(isPayment === 'true');
   }
 
-  if (category) {
-    query += ` AND cct.category = $${paramIndex++}`;
-    params.push(category);
-  }
-
   // Get total count for pagination
   const countQuery = query.replace(/SELECT.*?FROM/, 'SELECT COUNT(*) FROM').replace(/ORDER BY.*$/, '');
   const countResult = await pool.query(countQuery, params);
   const total = parseInt(countResult.rows[0].count);
 
-  query += ' ORDER BY cct.transaction_date DESC, cct.created_at DESC LIMIT $' + paramIndex++ + ' OFFSET $' + paramIndex;
-  params.push(parseInt(limit), (parseInt(page) - 1) * parseInt(limit));
+  query += ' ORDER BY cct.transaction_date DESC, cct.created_at DESC';
+
+  let offset = 0;
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  offset = (pageNum - 1) * limitNum;
+  query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+  params.push(limitNum, offset);
 
   const result = await pool.query(query, params);
 
@@ -211,10 +212,10 @@ exports.getCreditCardTransactions = asyncHandler(async (req, res) => {
 
   res.json({
     transactions,
-    page: parseInt(page),
-    limit: parseInt(limit),
+    page: pageNum,
+    limit: limitNum,
     total,
-    totalPages: Math.ceil(total / parseInt(limit))
+    totalPages: Math.ceil(total / limitNum)
   });
 });
 

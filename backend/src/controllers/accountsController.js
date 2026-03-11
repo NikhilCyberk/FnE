@@ -8,9 +8,10 @@ exports.getAccounts = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
   
   // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
-  const offset = (page - 1) * limit;
+  const { page = 1, limit = 20 } = req.query;
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  const offset = (pageNum - 1) * limitNum;
   
   const result = await pool.query(`
     SELECT 
@@ -25,7 +26,7 @@ exports.getAccounts = asyncHandler(async (req, res) => {
     WHERE a.user_id = $1 
     ORDER BY a.is_primary DESC, a.created_at DESC 
     LIMIT $2 OFFSET $3
-  `, [userId, limit, offset]);
+  `, [userId, limitNum, offset]);
 
   // Get total count for pagination
   const countResult = await pool.query(
@@ -36,10 +37,10 @@ exports.getAccounts = asyncHandler(async (req, res) => {
   logger.info('Get accounts success', { userId: req.user.userId, count: result.rows.length });
   res.json({ 
     accounts: result.rows, 
-    page, 
-    limit, 
+    page: pageNum, 
+    limit: limitNum, 
     total: parseInt(countResult.rows[0].count),
-    totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limit)
+    totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limitNum)
   });
 });
 

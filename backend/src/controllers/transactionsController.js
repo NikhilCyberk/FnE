@@ -21,11 +21,11 @@ const isCashAccount = async (accountId) => {
 };
 
 // Helper function to validate cash source
-const isValidCashSource = async (cashSource) => {
-  if (!cashSource) return true; // cash_source is optional
+const isValidCashSource = async (cashSourceId) => {
+  if (!cashSourceId) return true; // cash_source_id is optional
   const result = await pool.query(
-    'SELECT id FROM cash_sources WHERE name = $1 AND is_active = true',
-    [cashSource]
+    'SELECT id FROM cash_sources WHERE id = $1 AND is_active = true',
+    [cashSourceId]
   );
   return result.rows.length > 0;
 };
@@ -102,18 +102,23 @@ exports.getTransactions = asyncHandler(async (req, res) => {
   const countResult = await pool.query(countQuery, params);
   const total = parseInt(countResult.rows[0].count);
 
-  query += ' ORDER BY t.transaction_date DESC, t.created_at DESC LIMIT $' + paramIndex++ + ' OFFSET $' + paramIndex;
-  params.push(Number(limit), (Number(page) - 1) * Number(limit));
+  query += ' ORDER BY t.transaction_date DESC, t.created_at DESC';
+  let offset = 0;
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  offset = (pageNum - 1) * limitNum;
+  query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+  params.push(limitNum, offset);
 
   const result = await pool.query(query, params);
 
   logger.info('Get transactions success', { userId: req.user.userId, count: result.rows.length });
   res.json({
     transactions: result.rows,
-    page: parseInt(page),
-    limit: parseInt(limit),
+    page: pageNum,
+    limit: limitNum,
     total,
-    totalPages: Math.ceil(total / parseInt(limit))
+    totalPages: Math.ceil(total / limitNum)
   });
 });
 
@@ -138,7 +143,7 @@ exports.createTransaction = asyncHandler(async (req, res) => {
     isRecurring,
     recurringRule,
     isCash,
-    cashSource
+    cashSourceId
   } = req.body;
 
   if (!isValidAmount(amount) || !isValidType(type)) {
@@ -169,7 +174,7 @@ exports.createTransaction = asyncHandler(async (req, res) => {
   }
 
   // Validate cash source only if provided
-  if (cashSource && !(await isValidCashSource(cashSource))) {
+  if (cashSourceId && !(await isValidCashSource(cashSourceId))) {
     return res.status(400).json({ error: 'Invalid cash source.' });
   }
 
@@ -177,16 +182,16 @@ exports.createTransaction = asyncHandler(async (req, res) => {
       INSERT INTO transactions (
         user_id, account_id, category_id, transfer_account_id, amount, type, status,
         description, merchant, location, transaction_date, posted_date, reference_number,
-        tags, notes, receipt_urls, is_recurring, recurring_rule, cash_source, source_description
+        tags, notes, receipt_urls, is_recurring, recurring_rule, cash_source_id, source_description
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) 
       RETURNING id, amount, type, status, description, merchant, location,
                 transaction_date, posted_date, reference_number, tags, notes,
-                is_recurring, cash_source, source_description, created_at, updated_at
+                is_recurring, cash_source_id, source_description, created_at, updated_at
     `, [
     userId, finalAccountId, categoryId, transferAccountId || null, amount, type, status || 'completed',
     description, merchant, location, transactionDate, postedDate, referenceNumber,
     tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null,
-    cashSource || null, sourceDescription || null
+    cashSourceId || null, req.body.sourceDescription || null
   ]);
 
   res.status(201).json(result.rows[0]);
@@ -200,7 +205,7 @@ exports.getTransactionById = asyncHandler(async (req, res) => {
       SELECT 
         t.id, t.amount, t.type, t.status, t.description, t.merchant, t.location,
         t.transaction_date, t.posted_date, t.reference_number, t.tags, t.notes,
-        t.is_recurring, t.recurring_rule, t.created_at, t.updated_at, t.is_cash, t.cash_source,
+        t.is_recurring, t.recurring_rule, t.created_at, t.updated_at, t.is_cash, t.cash_source_id,
         a.id as account_id, a.account_name, a.account_number_masked,
         c.id as category_id, c.name as category_name, c.color as category_color, c.icon as category_icon,
         ta.id as transfer_account_id, ta.account_name as transfer_account_name
@@ -240,7 +245,7 @@ exports.updateTransaction = asyncHandler(async (req, res) => {
     isRecurring,
     recurringRule,
     isCash,
-    cashSource
+    cashSourceId
   } = req.body;
 
   if (!isValidAmount(amount) || !isValidType(type)) {
@@ -269,16 +274,16 @@ exports.updateTransaction = asyncHandler(async (req, res) => {
         account_id = $1, category_id = $2, transfer_account_id = $3, amount = $4, type = $5, status = $6,
         description = $7, merchant = $8, location = $9, transaction_date = $10, posted_date = $11,
         reference_number = $12, tags = $13, notes = $14, receipt_urls = $15, is_recurring = $16, recurring_rule = $17,
-        cash_source = $21, source_description = $22
+        cash_source_id = $21, source_description = $22
       WHERE id = $18 AND user_id = $19 
       RETURNING id, amount, type, status, description, merchant, location,
                 transaction_date, posted_date, reference_number, tags, notes,
-                is_recurring, cash_source, source_description, created_at, updated_at
+                is_recurring, cash_source_id, source_description, created_at, updated_at
     `, [
     isCash ? null : accountId, categoryId, transferAccountId || null, amount, type, status || 'completed',
     description, merchant, location, transactionDate, postedDate, referenceNumber,
     tags || [], notes, receiptUrls || [], isRecurring || false, recurringRule || null,
-    id, userId, isCash || false, isCash ? cashSource : null, isCash ? sourceDescription || null : null
+    id, userId, isCash || false, isCash ? cashSourceId : null, isCash && req.body.sourceDescription ? req.body.sourceDescription : null
   ]);
 
   if (result.rows.length === 0) {

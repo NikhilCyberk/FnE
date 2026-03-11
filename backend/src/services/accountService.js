@@ -160,8 +160,6 @@ class AccountService {
       if (result.rows.length === 0) {
         throw new Error('Account not found');
       }
-
-      return result.rows[0];
     } catch (error) {
       if (error.message === 'Account not found' || error.message === 'Cannot delete account with existing transactions') {
         throw error;

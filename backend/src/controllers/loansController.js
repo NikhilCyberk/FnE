@@ -393,7 +393,7 @@ exports.updateLoan = async (req, res) => {
 
         // Edit an existing transaction entry by index, then recalc all balances
         if (_action === 'edit_entry' && req.body._entry_index !== undefined && req.body._entry) {
-            const idx = parseInt(req.body._entry_index);
+            const idx = req.body._entry_index ? req.body._entry_index : null;
             const updatedEntry = req.body._entry;
             if (idx >= 0 && idx < currentTransactions.length) {
                 const modified = [...currentTransactions];
@@ -413,7 +413,7 @@ exports.updateLoan = async (req, res) => {
 
         // Delete an existing transaction entry by index, then recalc all balances
         if (_action === 'delete_entry' && req.body._entry_index !== undefined) {
-            const idx = parseInt(req.body._entry_index);
+            const idx = req.body._entry_index ? req.body._entry_index : null;
             if (idx >= 0 && idx < currentTransactions.length) {
                 const modified = currentTransactions.filter((_, i) => i !== idx);
                 const { repairedTxs, finalBalance } = recalcTransactionBalances(modified, existing.loan_amount, existing.interest_rate);

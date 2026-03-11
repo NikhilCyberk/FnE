@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { extractCreditCardInfo, saveCreditCard, getCreditCards, getCreditCardById, updateCreditCard, deleteCreditCard, getCardNameOptions, addCardNameOption, getCardTransactions } = require('../controllers/creditCardController');
+const { extractCreditCardInfo, saveCreditCard, getCreditCards, getCreditCardById, updateCreditCard, deleteCreditCard, getCardNameOptions, addCardNameOption, getCardTransactions, makePayment } = require('../controllers/creditCardController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // Apply authentication middleware to all routes
@@ -373,6 +373,7 @@ router.post('/card-names', addCardNameOption);
  *         description: Credit card not found
  */
 router.get('/:id/transactions', getCardTransactions);
+router.post('/:id/payment', makePayment);
 router.get('/:id', getCreditCardById);
 router.put('/:id', updateCreditCard);
 router.delete('/:id', deleteCreditCard);
