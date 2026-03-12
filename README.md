@@ -32,10 +32,28 @@ FinanceEase is a comprehensive personal finance management application designed 
 
 ### Prerequisites
 - Node.js (v24+ recommended)
-- PostgreSQL
-- Docker (optional, for containerized database)
+- PostgreSQL (or Docker for automated setup)
+- Docker & Docker Compose (recommended)
 
-### Installation
+### Docker Setup (Recommended for Database)
+The easiest way to get the database running is using the provided `docker-compose.yml` file.
+
+1. **Start the PostgreSQL container**:
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Database Credentials**:
+   By default, the following credentials are configured:
+   - **User**: `fneuser`
+   - **Password**: `fnepassword`
+   - **Database**: `fnedb`
+   - **Port**: `5432`
+
+3. **Verify Connection**:
+   The database should now be accessible at `localhost:5432`.
+
+### Manual Installation
 
 1. **Clone the repository**:
    ```bash
@@ -47,7 +65,7 @@ FinanceEase is a comprehensive personal finance management application designed 
    ```bash
    cd backend
    npm install
-   # Create a .env file based on the environment variables needed (DB_USER, DB_HOST, DB_NAME, etc.)
+   # Create a .env file and update with credentials from Docker step
    npm run dev
    ```
 
