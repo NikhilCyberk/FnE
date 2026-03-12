@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { createTransaction, updateTransaction, fetchTransactions } from '../../slices/transactionsSlice';
 import { fetchCashSources } from '../../slices/cashSourcesSlice';
-import { accountsAPI, categoriesAPI } from '../../api';
+import { accountsAPI, categoriesAPI, loansAPI, creditCardsAPI } from '../../api';
 import { useForm, useDialog, useAsyncState } from '../../hooks';
 import { getToday } from '../../utils';
 import { DEFAULT_CURRENCY, ACCOUNT_TYPES, TRANSACTION_STATUS } from '../../constants';
@@ -20,13 +20,14 @@ const DEFAULTS = {
 
 const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
     const dispatch = useDispatch();
-    const isEdit = !!transaction;
+    const isEdit = !!(transaction && transaction.id);
 
     const { form, set, reset, updateForm } = useForm(DEFAULTS);
     const { data: accounts, setData: setAccounts, execute: loadAccounts } = useAsyncState([]);
     const { data: categories, setData: setCategories, execute: loadCategories } = useAsyncState([]);
     const { data: cashSources, setData: setCashSources, execute: loadCashSources } = useAsyncState([]);
     const { data: creditCards, setData: setCreditCards, execute: loadCreditCards } = useAsyncState([]);
+    const { data: loans, setData: setLoans } = useAsyncState([]);
     const { loading, error, setError, setLoading } = useAsyncState(null);
 
     // Load accounts + categories when dialog opens
@@ -53,21 +54,30 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
             });
         } else {
             reset();
+            if (transaction && (transaction.accountId || transaction.account_id)) {
+                const accountId = transaction.accountId || transaction.account_id;
+                updateForm({ 
+                    accountId: accountId.startsWith('LOAN_') ? '' : accountId,
+                    transferAccountId: accountId.startsWith('LOAN_') ? accountId : ''
+                });
+            }
         }
 
         // Fetch reference data
         const loadData = async () => {
             try {
-                const [accRes, catRes, cashRes, ccRes] = await Promise.all([
-                    accountsAPI.getAll(),
+                const [accRes, catRes, cashRes, ccRes, loansRes] = await Promise.all([
+                    accountsAPI.getAll({ includeLiabilities: 'true', limit: 100 }),
                     categoriesAPI.getAll(),
                     fetchCashSources(),
-                    fetch('/api/credit-cards').then(res => res.json())
+                    creditCardsAPI.getAll(),
+                    loansAPI.getAll()
                 ]);
                 setAccounts(accRes.data?.accounts || accRes.data || []);
                 setCategories(catRes.data?.categories || catRes.data || []);
                 setCashSources(cashRes.payload || []);
-                setCreditCards(ccRes || []);
+                setCreditCards(ccRes.data?.creditCards || ccRes.data || []);
+                setLoans(loansRes.data?.loans || loansRes.data || []);
             } catch {
                 // non-fatal — user can still type
             }
@@ -158,7 +168,51 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                 if (isEdit) {
                     result = await dispatch(updateTransaction({ id: transaction.id, transaction: payload }));
                     if (updateTransaction.rejected.match(result)) throw new Error(result.payload);
-                } else {
+                } else if (form.type === 'transfer' && form.transferAccountId.startsWith('LOAN_')) {
+            // Handle loan payment via transfer
+            const loanId = form.transferAccountId.replace('LOAN_', '');
+            try {
+                const loanPayload = {
+                    _action: 'payment',
+                    _payment_amount: parseFloat(form.amount),
+                    notes: form.notes || `Transfer from ${accounts.find(a => a.id === form.accountId)?.account_name || 'Account'}`,
+                };
+
+                const response = await fetch(`/api/loans/${loanId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(loanPayload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to process loan payment');
+                }
+
+                // Also create a regular transaction to record the outflow from the source account
+                const outflowPayload = {
+                    description: `Loan Payment: ${form.description || 'Transfer to Loan'}`,
+                    type: 'expense',
+                    amount: parseFloat(form.amount),
+                    transactionDate: form.transactionDate,
+                    accountId: form.accountId,
+                    categoryId: form.categoryId || undefined, // Maybe a default 'Loan Repayment' category?
+                    status: form.status,
+                    notes: form.notes,
+                };
+                await dispatch(createTransaction(outflowPayload));
+
+                onSuccess?.('Loan payment processed successfully!');
+                onClose();
+            } catch (err) {
+                setError(err.message || 'Failed to process loan payment.');
+            } finally {
+                setLoading(false);
+            }
+        } else {
                     result = await dispatch(createTransaction(payload));
                     if (createTransaction.rejected.match(result)) throw new Error(result.payload);
                 }
@@ -187,7 +241,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
             fullWidth
             PaperProps={{ sx: { borderRadius: '20px' } }}
         >
-            <DialogTitle sx={{ pb: 1 }}>
+            <DialogTitle sx={{ pb: 1 }} component="div">
                 <Typography variant="h6" fontWeight={800} letterSpacing={-0.3}>
                     {isEdit ? 'Edit Transaction' : 'New Transaction'}
                 </Typography>
@@ -259,9 +313,14 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                     <TextField
                         select fullWidth size="small"
                         label={form.type === 'transfer' ? 'From Account' : 'Account'}
-                        value={form.accountId} onChange={set('accountId')}
+                        value={form.accountId || ''} onChange={set('accountId')}
                     >
                         <MenuItem value=""><em>— None —</em></MenuItem>
+                        {/* Fallback for pre-filled value before accounts load */}
+                        {form.accountId && form.accountId !== 'CASH' && !form.accountId.startsWith('CC_') && 
+                         !accounts.some(a => a.id === form.accountId) && (
+                            <MenuItem value={form.accountId} sx={{ display: 'none' }}>Loading account...</MenuItem>
+                        )}
                         {form.type !== 'transfer' && <MenuItem value="CASH">💵 Cash</MenuItem>}
                         {form.type !== 'transfer' && creditCards.map((cc) => (
                             <MenuItem key={cc.id} value={`CC_${cc.id}`}>
@@ -297,14 +356,43 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                             select fullWidth size="small" label="To Account"
                             value={form.transferAccountId} onChange={set('transferAccountId')}
                         >
-                            <MenuItem value=""><em>— Select —</em></MenuItem>
+                        <MenuItem value=""><em>— Select —</em></MenuItem>
+                            
+                            <Typography variant="overline" sx={{ px: 2, py: 0.5, display: 'block', fontWeight: 700, bgcolor: 'action.hover' }}>
+                                Bank Accounts
+                            </Typography>
                             {accounts
-                                .filter((a) => a.id !== form.accountId)
+                                .filter((a) => a.id !== form.accountId && a.account_type_category === 'asset')
                                 .map((a) => (
                                     <MenuItem key={a.id} value={a.id}>
-                                        {a.account_name || a.accountName}
+                                        🏦 {a.account_name || a.accountName}
                                     </MenuItem>
                                 ))}
+
+                            <Typography variant="overline" sx={{ px: 2, py: 0.5, display: 'block', fontWeight: 700, bgcolor: 'action.hover' }}>
+                                Credit Cards
+                            </Typography>
+                            {accounts
+                                .filter((a) => a.id !== form.accountId && a.account_type_category === 'liability')
+                                .map((a) => (
+                                    <MenuItem key={a.id} value={a.id}>
+                                        💳 {a.account_name || a.accountName}
+                                    </MenuItem>
+                                ))}
+                            {creditCards.map((cc) => (
+                                <MenuItem key={cc.id} value={`CC_${cc.id}`}>
+                                    💳 {cc.cardName} · ****{cc.cardNumberLastFour}
+                                </MenuItem>
+                            ))}
+
+                            <Typography variant="overline" sx={{ px: 2, py: 0.5, display: 'block', fontWeight: 700, bgcolor: 'action.hover' }}>
+                                Loans
+                            </Typography>
+                            {loans.map((loan) => (
+                                <MenuItem key={loan.id} value={`LOAN_${loan.id}`}>
+                                    📉 {loan.loan_type} · {loan.lender_name}
+                                </MenuItem>
+                            ))}
                         </TextField>
                     )}
 

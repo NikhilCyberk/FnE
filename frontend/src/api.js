@@ -135,4 +135,12 @@ export const creditCardsAPI = {
   getTransactions: (cardId, params) => api.get(`/api/credit-cards/${cardId}/transactions`, { params }),
 };
 
+export const loansAPI = {
+  getAll: () => api.get('/api/loans'),
+  getById: (id) => api.get(`/api/loans/${id}`),
+  create: (loanData) => api.post('/api/loans', loanData),
+  update: (id, loanData) => api.put(`/api/loans/${id}`, loanData),
+  delete: (id) => api.delete(`/api/loans/${id}`),
+};
+
 export default api; 

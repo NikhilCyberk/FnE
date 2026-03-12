@@ -366,18 +366,28 @@ exports.saveCreditCard = async (req, res) => {
 
     // Insert statement transactions if provided (from PDF extraction)
     if (Array.isArray(card.transactions) && card.transactions.length > 0) {
-      const insertTxQuery = `
-        INSERT INTO credit_card_transactions
-          (credit_card_id, transaction_date, description, merchant, category, amount, transaction_type)
-        VALUES ($1,$2,$3,$4,$5,$6,$7)
-      `;
       for (const tx of card.transactions) {
-        await client.query(insertTxQuery, [
+        const merchantName = tx.name || tx.merchant || null;
+        let merchantId = null;
+        
+        if (merchantName) {
+          const mResult = await client.query(
+            'INSERT INTO merchants (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
+            [merchantName]
+          );
+          merchantId = mResult.rows[0].id;
+        }
+
+        await client.query(`
+          INSERT INTO credit_card_transactions
+            (credit_card_id, transaction_date, description, merchant_id, category_id, amount, transaction_type)
+          VALUES ($1,$2,$3,$4,$5,$6,$7)
+        `, [
           cardId,
           parseDate(tx.date) || parseDate(tx.transactionDate),
           tx.details || tx.description || null,
-          tx.name || tx.merchant || null,
-          tx.category || null,
+          merchantId,
+          null, // category_id - can be improved later
           tx.amount ? parseFloat(String(tx.amount).replace(/,/g, '')) : null,
           'purchase',
         ]);

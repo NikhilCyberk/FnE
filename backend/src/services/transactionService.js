@@ -33,13 +33,23 @@ class TransactionService {
       // Start transaction
       await pool.query('BEGIN');
 
+      // Resolve merchant name to ID
+      let merchantId = null;
+      if (merchant) {
+        const mResult = await pool.query(
+          'INSERT INTO merchants (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
+          [merchant]
+        );
+        merchantId = mResult.rows[0].id;
+      }
+
       // Create transaction
       const result = await pool.query(
         `INSERT INTO transactions (
            user_id, account_id, category_id, description, amount, type, 
-           transaction_date, merchant, notes, status, created_at
+           transaction_date, merchant_id, notes, status, created_at
          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP) RETURNING *`,
-        [userId, accountId, categoryId, description, amount, type, date, merchant, notes, status]
+        [userId, accountId, categoryId, description, amount, type, date, merchantId, notes, status]
       );
 
       const newTransaction = result.rows[0];
@@ -81,8 +91,8 @@ class TransactionService {
     try {
       let query = `
         SELECT 
-          t.id, t.amount, t.type, t.status, t.description, t.merchant, t.location,
-          t.transaction_date, t.posted_date, t.reference_number, t.tags, t.notes,
+          t.id, t.amount, t.type, t.status, t.description, m.name as merchant, t.location,
+          t.transaction_date, t.posted_date, t.reference_number, t.notes,
           t.is_recurring, t.created_at, t.updated_at,
           a.account_name, a.account_number_masked,
           c.name as category_name, c.color as category_color, c.icon as category_icon,
@@ -91,6 +101,7 @@ class TransactionService {
         LEFT JOIN accounts a ON t.account_id = a.id
         LEFT JOIN categories c ON t.category_id = c.id
         LEFT JOIN accounts ta ON t.transfer_account_id = ta.id
+        LEFT JOIN merchants m ON t.merchant_id = m.id
         WHERE t.user_id = $1
       `;
       
@@ -109,7 +120,7 @@ class TransactionService {
       }
 
       if (search) {
-        query += ` AND (t.description ILIKE $${paramIndex++} OR t.merchant ILIKE $${paramIndex++})`;
+        query += ` AND (t.description ILIKE $${paramIndex++} OR m.name ILIKE $${paramIndex++})`;
         params.push(`%${search}%`, `%${search}%`);
         paramIndex += 2;
       }
@@ -149,7 +160,7 @@ class TransactionService {
       }
 
       if (search) {
-        countQuery += ` AND (t.description ILIKE $${countParamIndex++} OR t.merchant ILIKE $${countParamIndex++})`;
+        countQuery += ` AND (t.description ILIKE $${countParamIndex++} OR m.name ILIKE $${countParamIndex++})`;
         countParams.push(`%${search}%`, `%${search}%`);
         countParamIndex += 2;
       }
@@ -189,8 +200,8 @@ class TransactionService {
     try {
       const result = await pool.query(
         `SELECT 
-          t.id, t.amount, t.type, t.status, t.description, t.merchant, t.location,
-          t.transaction_date, t.posted_date, t.reference_number, t.tags, t.notes,
+          t.id, t.amount, t.type, t.status, t.description, m.name as merchant, t.location,
+          t.transaction_date, t.posted_date, t.reference_number, t.notes,
           t.is_recurring, t.created_at, t.updated_at,
           a.account_name, a.account_number_masked,
           c.name as category_name, c.color as category_color, c.icon as category_icon,
@@ -199,6 +210,7 @@ class TransactionService {
          LEFT JOIN accounts a ON t.account_id = a.id
          LEFT JOIN categories c ON t.category_id = c.id
          LEFT JOIN accounts ta ON t.transfer_account_id = ta.id
+         LEFT JOIN merchants m ON t.merchant_id = m.id
          WHERE t.id = $1 AND t.user_id = $2`,
         [transactionId, userId]
       );
@@ -263,8 +275,12 @@ class TransactionService {
         values.push(date);
       }
       if (merchant) {
-        setClause.push(`merchant = $${paramIndex++}`);
-        values.push(merchant);
+        const mResult = await pool.query(
+          'INSERT INTO merchants (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
+          [merchant]
+        );
+        setClause.push(`merchant_id = $${paramIndex++}`);
+        values.push(mResult.rows[0].id);
       }
       if (notes) {
         setClause.push(`notes = $${paramIndex++}`);

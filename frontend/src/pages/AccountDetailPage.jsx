@@ -5,7 +5,7 @@ import {
     Box, Typography, Paper, Chip, IconButton, Button,
     Divider, Grid, CircularProgress, LinearProgress,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Alert, Avatar, Tooltip,
+    Alert, Avatar, Tooltip, Snackbar,
 } from '@mui/material';
 import {
     ArrowBack, Edit, AccountBalance, CreditCard, Savings, BusinessCenter,
@@ -14,6 +14,8 @@ import {
 import { fetchAccountById } from '../slices/accountsSlice';
 import { transactionsAPI } from '../api';
 import EditAccountDialog from '../components/accounts/EditAccountDialog';
+import AddTransactionDialog from '../components/transactions/AddTransactionDialog';
+import { Add } from '@mui/icons-material';
 
 /* ─── Helpers ─────────────────────────────────────────────────────────── */
 const fmt = (val) =>
@@ -101,22 +103,25 @@ const AccountDetailPage = () => {
     const [txLoading, setTxLoading] = useState(true);
     const [txError, setTxError] = useState('');
     const [editOpen, setEditOpen] = useState(false);
+    const [addTxOpen, setAddTxOpen] = useState(false);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     useEffect(() => { dispatch(fetchAccountById(id)); }, [dispatch, id]);
 
+    const fetchTx = async () => {
+        setTxLoading(true);
+        setTxError('');
+        try {
+            const res = await transactionsAPI.getAll({ accountId: id, limit: 20 });
+            setTransactions(res.data.transactions || res.data || []);
+        } catch {
+            setTxError('Failed to load transactions.');
+        } finally {
+            setTxLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchTx = async () => {
-            setTxLoading(true);
-            setTxError('');
-            try {
-                const res = await transactionsAPI.getAll({ accountId: id, limit: 20 });
-                setTransactions(res.data.transactions || res.data || []);
-            } catch {
-                setTxError('Failed to load transactions.');
-            } finally {
-                setTxLoading(false);
-            }
-        };
         if (id) fetchTx();
     }, [id]);
 
@@ -363,13 +368,33 @@ const AccountDetailPage = () => {
                         <Box sx={{ width: 4, height: 20, borderRadius: 2, background: gradient }} />
                         <Typography variant="h6" fontWeight={700} letterSpacing={-0.3}>Recent Transactions</Typography>
                     </Box>
-                    <Button
-                        size="small"
-                        onClick={() => navigate(`/transactions`)}
-                        sx={{ fontWeight: 600, fontSize: '0.8rem', color: 'primary.main' }}
-                    >
-                        View All →
-                    </Button>
+                    <Box display="flex" alignItems="center" gap={1}>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<Add fontSize="small" />}
+                            onClick={() => setAddTxOpen(true)}
+                            sx={{
+                                borderRadius: '10px',
+                                fontWeight: 700,
+                                px: 2,
+                                height: 32,
+                                background: gradient,
+                                color: 'white',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                '&:hover': { opacity: 0.9, background: gradient }
+                            }}
+                        >
+                            Add Transaction
+                        </Button>
+                        <Button
+                            size="small"
+                            onClick={() => navigate(`/transactions`)}
+                            sx={{ fontWeight: 600, fontSize: '0.8rem', color: 'primary.main' }}
+                        >
+                            View All →
+                        </Button>
+                    </Box>
                 </Box>
 
                 {txLoading ? (
@@ -410,15 +435,15 @@ const AccountDetailPage = () => {
                                         </TableCell>
                                         <TableCell>
                                             <Typography variant="body2" fontWeight={600}>
-                                                {tx.description || tx.merchant || '—'}
+                                                {tx.description || (tx.type === 'transfer' ? (tx.account_id === id ? `Transfer to ${tx.transfer_account_name || 'unknown'}` : `Transfer from ${tx.account_name || 'unknown'}`) : tx.merchant || '—')}
                                             </Typography>
-                                            {tx.merchant && tx.description && (
+                                            {(tx.description || tx.type === 'transfer') && tx.merchant && (
                                                 <Typography variant="caption" color="text.secondary">{tx.merchant}</Typography>
                                             )}
                                         </TableCell>
                                         <TableCell>
                                             <Typography variant="body2" color="text.secondary">
-                                                {tx.categoryName || tx.category_name || '—'}
+                                                {tx.categoryName || tx.category_name || (tx.type === 'transfer' ? 'Transfer' : '—')}
                                             </Typography>
                                         </TableCell>
                                         <TableCell>
@@ -436,14 +461,14 @@ const AccountDetailPage = () => {
                                                 variant="body2"
                                                 fontWeight={800}
                                                 sx={{
-                                                    color: tx.type === 'income'
+                                                    color: tx.type === 'income' || (tx.type === 'transfer' && tx.transfer_account_id === id)
                                                         ? 'success.main'
-                                                        : tx.type === 'expense'
+                                                        : tx.type === 'expense' || (tx.type === 'transfer' && tx.account_id === id)
                                                             ? 'error.main'
                                                             : 'text.primary',
                                                 }}
                                             >
-                                                {tx.type === 'income' ? '+' : tx.type === 'expense' ? '−' : ''}
+                                                {tx.type === 'income' || (tx.type === 'transfer' && tx.transfer_account_id === id) ? '+' : '−'}
                                                 {fmt(Math.abs(tx.amount))}
                                             </Typography>
                                         </TableCell>
@@ -473,6 +498,32 @@ const AccountDetailPage = () => {
                 onClose={() => setEditOpen(false)}
                 onSuccess={() => dispatch(fetchAccountById(id))}
             />
+
+            <AddTransactionDialog
+                open={addTxOpen}
+                transaction={{ accountId: id }}
+                onClose={() => setAddTxOpen(false)}
+                onSuccess={(msg) => {
+                    setSnackbar({ open: true, message: msg, severity: 'success' });
+                    fetchTx(); // Reload transactions
+                    dispatch(fetchAccountById(id)); // Reload account balance
+                }}
+            />
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    severity={snackbar.severity}
+                    onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+                    sx={{ width: '100%', borderRadius: 2 }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

@@ -41,16 +41,9 @@ class CreditCardPaymentService {
         throw new Error('Payment amount exceeds total due');
       }
 
-      // Create payment transaction
-      const paymentResult = await pool.query(
-        `INSERT INTO credit_card_payments (
-           credit_card_id, payment_amount, payment_method, payment_date,
-           notes, is_minimum_payment, user_id, created_at
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP) RETURNING *`,
-        [creditCardId, paymentAmount, paymentMethod, paymentDate, notes, isMinimumPayment, userId]
-      );
-
-      const payment = paymentResult.rows[0];
+      // We no longer use a separate credit_card_payments table. 
+      // All logic will now revolve around credit_card_transactions with is_payment = true.
+      let mainTransactionId = null;
 
       // If either accountId or isCash is provided, we deduct the amount from that source by creating an expense transaction
       if (accountId || isCash) {
@@ -73,28 +66,31 @@ class CreditCardPaymentService {
         }
 
         const transactionDescription = `Payment for Credit Card: ${creditCard.card_name}`;
-        const transactionNotes = `Linked to credit card payment ${payment.id}. ${notes || ''}`;
+        const transactionNotes = `Linked to credit card payment. ${notes || ''}`;
 
-        await pool.query(
+        const mainTxResult = await pool.query(
             `INSERT INTO transactions (
                 user_id, account_id, category_id, amount, type, status,
                 description, transaction_date, posted_date, notes,
-                is_recurring, is_cash, cash_source_id, source_description
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+                is_recurring, cash_source, source_description
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            RETURNING id`,
             [
                 userId, finalAccountId, categoryId, paymentAmount, 'expense', 'completed',
                 transactionDescription, paymentDate, paymentDate, transactionNotes,
-                false, isCash, isCash ? cashSourceId : null, isCash ? 'Credit Card Payment' : null
+                false, isCash ? 'cash' : null, isCash ? (cashSourceId || 'Credit Card Payment') : 'Credit Card Payment'
             ]
         );
+        mainTransactionId = mainTxResult.rows[0].id;
       }
 
       // Add actual credit card transaction for the payment so it shows in the history
-      await pool.query(
+      // We pass main_transaction_id to prevent the DB trigger from creating a duplicate
+      const paymentTxResult = await pool.query(
         `INSERT INTO credit_card_transactions (
            credit_card_id, transaction_date, posted_date, description,
-           amount, transaction_type, is_payment, payment_method
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+           amount, transaction_type, is_payment, payment_method, main_transaction_id
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
         [
           creditCardId, 
           paymentDate, 
@@ -103,60 +99,59 @@ class CreditCardPaymentService {
           paymentAmount, 
           'payment', 
           true, 
-          paymentMethod
+          paymentMethod,
+          mainTransactionId
         ]
       );
 
-      // Update credit card payment info
-      const newCurrentBalance = Math.max(0, (creditCard.current_balance || 0) - paymentAmount);
+      const payment = paymentTxResult.rows[0];
+
+      // Update credit card info
+      // NOTE: current_balance and available_credit are automatically updated by the 
+      // trigger_update_credit_card_balance on credit_card_transactions.
+      // We only need to update the statement_balance, minimum_payment, and last_payment info.
       const newStatementBalance = Math.max(0, (creditCard.statement_balance || 0) - paymentAmount);
-      
-      const newAvailableCredit = creditCard.credit_limit !== null 
-        ? Math.min(parseFloat(creditCard.credit_limit), parseFloat((creditCard.available_credit || 0)) + parseFloat(paymentAmount))
-        : creditCard.available_credit;
-      
       const newMinDue = newStatementBalance * 0.03; // 3% minimum payment
       
       await pool.query(
         `UPDATE credit_cards SET 
-           current_balance = $1,
-           statement_balance = $2,
-           minimum_payment = $3,
-           available_credit = $4,
-           last_payment_amount = $5,
-           last_payment_date = $6,
+           statement_balance = $1,
+           minimum_payment = $2,
+           last_payment_amount = $3,
+           last_payment_date = $4,
            updated_at = CURRENT_TIMESTAMP
-         WHERE id = $7`,
+         WHERE id = $5`,
         [
-          newCurrentBalance,
           newStatementBalance,
           newStatementBalance <= 0.01 ? 0 : newMinDue,
-          newAvailableCredit,
           paymentAmount,
           paymentDate,
           creditCardId
         ]
       );
 
+      // Refetch updated card to return accurate current_balance and available_credit (after triggers)
+      const updatedCardResult = await pool.query(
+        'SELECT * FROM credit_cards WHERE id = $1',
+        [creditCardId]
+      );
+      const updatedCard = updatedCardResult.rows[0];
+
       await pool.query('COMMIT');
 
-      logger.businessLogger.logPaymentCreated(payment.id, userId, creditCardId, paymentAmount);
+      logger.info(`Payment created: ${payment.id} for user ${userId} and card ${creditCardId} with amount ${paymentAmount}`);
       
       return {
-        payment,
-        updatedCard: {
-          ...creditCard,
-          current_balance: newCurrentBalance,
-          statement_balance: newStatementBalance,
-          minimum_payment: newStatementBalance <= 0.01 ? 0 : newMinDue,
-          available_credit: newAvailableCredit,
-          last_payment_amount: paymentAmount,
-          last_payment_date: paymentDate
-        }
+        payment: {
+            ...payment,
+            payment_amount: payment.amount, // Alias for frontend compatibility if needed
+            payment_date: payment.transaction_date
+        },
+        updatedCard
       };
     } catch (error) {
       await pool.query('ROLLBACK');
-      logger.dbLogger.logTransactionError('makePayment', error);
+      logger.error(`Error in makePayment: ${error.message}`, { error });
       throw new Error('Failed to process credit card payment');
     }
   }
@@ -170,22 +165,24 @@ class CreditCardPaymentService {
     try {
       const result = await pool.query(
         `SELECT 
-           ccp.*,
-           TO_CHAR(ccp.payment_date, 'YYYY-MM-DD') as formatted_date,
-           CASE 
-             WHEN ccp.is_minimum_payment THEN 'Minimum Payment'
-             ELSE 'Full Payment'
-           END as payment_type
-         FROM credit_card_payments ccp
-         WHERE ccp.credit_card_id = $1 AND ccp.user_id = $2
-         ORDER BY ccp.payment_date DESC
+           cct.*,
+           cct.amount as payment_amount,
+           TO_CHAR(cct.transaction_date, 'YYYY-MM-DD') as formatted_date,
+           'Credit Card Payment' as payment_type
+         FROM credit_card_transactions cct
+         JOIN credit_cards cc ON cct.credit_card_id = cc.id
+         WHERE cct.credit_card_id = $1 AND cc.user_id = $2 AND cct.is_payment = true
+         ORDER BY cct.transaction_date DESC
          LIMIT $3 OFFSET $4`,
         [creditCardId, userId, limitNum, offset]
       );
 
       // Get total count
       const countResult = await pool.query(
-        'SELECT COUNT(*) as total FROM credit_card_payments WHERE credit_card_id = $1 AND user_id = $2',
+        `SELECT COUNT(*) as total 
+         FROM credit_card_transactions cct
+         JOIN credit_cards cc ON cct.credit_card_id = cc.id
+         WHERE cct.credit_card_id = $1 AND cc.user_id = $2 AND cct.is_payment = true`,
         [creditCardId, userId]
       );
 
@@ -204,7 +201,7 @@ class CreditCardPaymentService {
         }
       };
     } catch (error) {
-      logger.dbLogger.logTransactionError('getPaymentHistory', error);
+      logger.error(`Error in getPaymentHistory: ${error.message}`, { error });
       throw new Error('Failed to retrieve payment history');
     }
   }
@@ -228,11 +225,11 @@ class CreditCardPaymentService {
         [creditCardId, userId, paymentAmount, paymentMethod, scheduleType, nextPaymentDate, autoPayMinimum]
       );
 
-      logger.businessLogger.logAutoPaymentScheduled(result.rows[0].id, userId, creditCardId, scheduleType);
+      logger.info(`Auto payment scheduled: ${result.rows[0].id} for user ${userId} and card ${creditCardId}`);
       
       return result.rows[0];
     } catch (error) {
-      logger.dbLogger.logTransactionError('scheduleAutoPayment', error);
+      logger.error(`Error in scheduleAutoPayment: ${error.message}`, { error });
       throw new Error('Failed to schedule auto payment');
     }
   }
@@ -260,7 +257,7 @@ class CreditCardPaymentService {
       const result = await pool.query(query, params);
       return result.rows;
     } catch (error) {
-      logger.dbLogger.logTransactionError('getScheduledPayments', error);
+      logger.error(`Error in getScheduledPayments: ${error.message}`, { error });
       throw new Error('Failed to retrieve scheduled payments');
     }
   }

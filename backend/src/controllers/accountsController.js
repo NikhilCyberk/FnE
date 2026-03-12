@@ -8,11 +8,13 @@ exports.getAccounts = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
   
   // Pagination
-  const { page = 1, limit = 20 } = req.query;
+  const { page = 1, limit = 20, includeLiabilities = 'false' } = req.query;
   const pageNum = parseInt(page);
   const limitNum = parseInt(limit);
   const offset = (pageNum - 1) * limitNum;
   
+  const categoryFilter = includeLiabilities === 'true' ? "" : "AND at.category = 'asset'";
+
   const result = await pool.query(`
     SELECT 
       a.id, a.account_name, a.account_number_masked, a.balance, a.available_balance,
@@ -21,16 +23,18 @@ exports.getAccounts = asyncHandler(async (req, res) => {
       at.name as account_type_name, at.category as account_type_category,
       fi.name as institution_name, fi.logo_url as institution_logo
     FROM accounts a
-    LEFT JOIN account_types at ON a.account_type_id = at.id
+    JOIN account_types at ON a.account_type_id = at.id
     LEFT JOIN financial_institutions fi ON a.institution_id = fi.id
-    WHERE a.user_id = $1 
+    WHERE a.user_id = $1 ${categoryFilter}
     ORDER BY a.is_primary DESC, a.created_at DESC 
     LIMIT $2 OFFSET $3
   `, [userId, limitNum, offset]);
 
   // Get total count for pagination
   const countResult = await pool.query(
-    'SELECT COUNT(*) FROM accounts WHERE user_id = $1',
+    `SELECT COUNT(*) FROM accounts a
+     JOIN account_types at ON a.account_type_id = at.id
+     WHERE a.user_id = $1 ${categoryFilter}`,
     [userId]
   );
 
@@ -242,12 +246,12 @@ exports.getAccountSummary = asyncHandler(async (req, res) => {
     const result = await pool.query(`
       SELECT 
         COUNT(*) as total_accounts,
-        SUM(CASE WHEN at.category = 'asset' THEN a.balance ELSE 0 END) as total_assets,
-        SUM(CASE WHEN at.category = 'liability' THEN ABS(a.balance) ELSE 0 END) as total_liabilities,
-        SUM(CASE WHEN at.category = 'asset' THEN a.balance ELSE -a.balance END) as net_worth
+        SUM(balance) as total_assets,
+        0 as total_liabilities, -- Liabilities move to Credit Cards/Loans pages
+        SUM(balance) as net_worth
       FROM accounts a
-      LEFT JOIN account_types at ON a.account_type_id = at.id
-      WHERE a.user_id = $1 AND a.account_status = 'active'
+      JOIN account_types at ON a.account_type_id = at.id
+      WHERE a.user_id = $1 AND a.account_status = 'active' AND at.category = 'asset'
     `, [userId]);
 
   res.json(result.rows[0]);

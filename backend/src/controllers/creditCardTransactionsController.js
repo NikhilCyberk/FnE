@@ -11,7 +11,7 @@ exports.createCreditCardTransaction = asyncHandler(async (req, res) => {
     postedDate,
     description,
     merchant,
-    category,
+    category_id,
     amount,
     transactionType,
     referenceNumber,
@@ -32,7 +32,8 @@ exports.createCreditCardTransaction = asyncHandler(async (req, res) => {
   }
 
   // Validate amount
-  if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+  const numericAmount = parseFloat(amount);
+  if (isNaN(numericAmount) || numericAmount <= 0) {
     return res.status(400).json({ error: 'Amount must be a positive number.' });
   }
 
@@ -50,11 +51,21 @@ exports.createCreditCardTransaction = asyncHandler(async (req, res) => {
   try {
     await client.query('BEGIN');
 
+    // Resolve merchant name to ID
+    let merchantId = null;
+    if (merchant) {
+      const mResult = await client.query(
+        'INSERT INTO merchants (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
+        [merchant]
+      );
+      merchantId = mResult.rows[0].id;
+    }
+
     // Insert credit card transaction
     const result = await client.query(`
       INSERT INTO credit_card_transactions (
-        credit_card_id, transaction_date, posted_date, description, merchant,
-        category, amount, transaction_type, reference_number, rewards_earned,
+        credit_card_id, transaction_date, posted_date, description, merchant_id,
+        category_id, amount, transaction_type, reference_number, rewards_earned,
         foreign_transaction, statement_date, is_payment, payment_method
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *
@@ -63,9 +74,9 @@ exports.createCreditCardTransaction = asyncHandler(async (req, res) => {
       transactionDate,
       postedDate || null,
       description,
-      merchant || null,
-      category || null,
-      parseFloat(amount),
+      merchantId,
+      category_id || null,
+      numericAmount,
       transactionType || 'purchase',
       referenceNumber || null,
       rewardsEarned ? parseFloat(rewardsEarned) : null,
@@ -138,11 +149,15 @@ exports.getCreditCardTransactions = asyncHandler(async (req, res) => {
       t.type as main_transaction_type,
       t.status as main_transaction_status,
       a.account_name,
-      cc.card_name
+      cc.card_name,
+      m.name as merchant,
+      cat.name as category_name
     FROM credit_card_transactions cct
     LEFT JOIN transactions t ON cct.main_transaction_id = t.id
     LEFT JOIN accounts a ON t.account_id = a.id
     LEFT JOIN credit_cards cc ON cct.credit_card_id = cc.id
+    LEFT JOIN merchants m ON cct.merchant_id = m.id
+    LEFT JOIN categories cat ON cct.category_id = cat.id
     WHERE cct.credit_card_id = $1
   `;
 
@@ -193,7 +208,8 @@ exports.getCreditCardTransactions = asyncHandler(async (req, res) => {
     postedDate: tx.posted_date,
     description: tx.description,
     merchant: tx.merchant,
-    category: tx.category,
+    category: tx.category_name,
+    categoryId: tx.category_id,
     amount: parseFloat(tx.amount),
     transactionType: tx.transaction_type,
     referenceNumber: tx.reference_number,
@@ -228,7 +244,7 @@ exports.updateCreditCardTransaction = asyncHandler(async (req, res) => {
     postedDate,
     description,
     merchant,
-    category,
+    category_id,
     amount,
     transactionType,
     referenceNumber,
@@ -252,7 +268,8 @@ exports.updateCreditCardTransaction = asyncHandler(async (req, res) => {
   }
 
   // Validate amount if provided
-  if (amount !== undefined && (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0)) {
+  const numericAmount = amount !== undefined ? parseFloat(amount) : undefined;
+  if (numericAmount !== undefined && (isNaN(numericAmount) || numericAmount <= 0)) {
     return res.status(400).json({ error: 'Amount must be a positive number.' });
   }
 
@@ -267,14 +284,28 @@ exports.updateCreditCardTransaction = asyncHandler(async (req, res) => {
     );
     const oldTransaction = oldTxResult.rows[0];
 
+    // Resolve merchant name to ID
+    let merchantId = undefined;
+    if (merchant !== undefined) {
+      if (merchant === null) {
+        merchantId = null;
+      } else {
+        const mResult = await client.query(
+          'INSERT INTO merchants (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
+          [merchant]
+        );
+        merchantId = mResult.rows[0].id;
+      }
+    }
+
     // Update credit card transaction
     const result = await client.query(`
       UPDATE credit_card_transactions SET
         transaction_date = COALESCE($1, transaction_date),
         posted_date = $2,
         description = COALESCE($3, description),
-        merchant = $4,
-        category = $5,
+        merchant_id = COALESCE($4, merchant_id),
+        category_id = COALESCE($5, category_id),
         amount = COALESCE($6, amount),
         transaction_type = COALESCE($7, transaction_type),
         reference_number = $8,
@@ -290,8 +321,8 @@ exports.updateCreditCardTransaction = asyncHandler(async (req, res) => {
       transactionDate,
       postedDate,
       description,
-      merchant,
-      category,
+      merchantId !== undefined ? merchantId : null,
+      category_id,
       amount ? parseFloat(amount) : null,
       transactionType,
       referenceNumber,
@@ -306,9 +337,9 @@ exports.updateCreditCardTransaction = asyncHandler(async (req, res) => {
     const updatedTransaction = result.rows[0];
 
     // Adjust credit card balance if amount changed
-    if (amount && parseFloat(amount) !== parseFloat(oldTransaction.amount)) {
-      const amountDifference = parseFloat(amount) - parseFloat(oldTransaction.amount);
-      
+    const numericAmountDifference = numericAmount !== undefined ? numericAmount - parseFloat(oldTransaction.amount) : 0;
+    
+    if (numericAmountDifference !== 0) {
       if (oldTransaction.is_payment) {
         // Payment transaction
         await client.query(`
@@ -316,7 +347,7 @@ exports.updateCreditCardTransaction = asyncHandler(async (req, res) => {
           SET current_balance = current_balance - $1,
               available_credit = available_credit + $1
           WHERE id = $2
-        `, [amountDifference, creditCardId]);
+        `, [numericAmountDifference, creditCardId]);
       } else {
         // Purchase transaction
         await client.query(`
@@ -324,7 +355,7 @@ exports.updateCreditCardTransaction = asyncHandler(async (req, res) => {
           SET current_balance = current_balance + $1,
               available_credit = available_credit - $1
           WHERE id = $2
-        `, [amountDifference, creditCardId]);
+        `, [numericAmountDifference, creditCardId]);
       }
     }
 
@@ -459,13 +490,14 @@ exports.getCreditCardTransactionSummary = asyncHandler(async (req, res) => {
   // Get category breakdown
   const categoryResult = await pool.query(`
     SELECT 
-      cct.category,
+      cat.name as category,
       COUNT(*) as transaction_count,
       SUM(cct.amount) as total_amount,
       AVG(cct.amount) as average_amount
     FROM credit_card_transactions cct
-    ${whereClause} AND cct.category IS NOT NULL
-    GROUP BY cct.category
+    LEFT JOIN categories cat ON cct.category_id = cat.id
+    ${whereClause} AND cct.category_id IS NOT NULL
+    GROUP BY cat.name
     ORDER BY total_amount DESC
   `, params);
 

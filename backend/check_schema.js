@@ -1,6 +1,18 @@
-require('dotenv').config();
-const { Pool } = require('pg');
-const pool = new Pool({ user: process.env.DB_USER, host: process.env.DB_HOST, database: process.env.DB_NAME, password: process.env.DB_PASSWORD, port: process.env.DB_PORT });
-pool.query(`SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid = 'credit_cards'::regclass AND contype = 'c'`)
-    .then(r => { r.rows.forEach(row => console.log(row.conname + ':\n  ' + row.pg_get_constraintdef)); pool.end(); })
-    .catch(e => { console.error(e.message); pool.end(); });
+const pool = require('./src/db');
+
+async function checkSchema() {
+  try {
+    const categories = await pool.query("SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'categories'");
+    console.log('Categories Table:', JSON.stringify(categories.rows, null, 2));
+    
+    const groups = await pool.query("SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'category_groups'");
+    console.log('Category Groups Table:', JSON.stringify(groups.rows, null, 2));
+    
+    process.exit(0);
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
+  }
+}
+
+checkSchema();

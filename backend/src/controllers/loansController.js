@@ -129,7 +129,10 @@ exports.getLoans = async (req, res) => {
     try {
         const userId = req.user.userId || req.user.id;
         const result = await pool.query(
-            'SELECT * FROM loans WHERE user_id = $1 ORDER BY created_at DESC',
+            `SELECT l.*, le.name as lender_name 
+             FROM loans l 
+             LEFT JOIN lenders le ON l.lender_id = le.id 
+             WHERE l.user_id = $1 ORDER BY l.created_at DESC`,
             [userId]
         );
         res.json(result.rows);
@@ -145,7 +148,10 @@ exports.getLoan = async (req, res) => {
         const userId = req.user.userId || req.user.id;
         const loanId = req.params.id;
         const result = await pool.query(
-            'SELECT * FROM loans WHERE id = $1 AND user_id = $2',
+            `SELECT l.*, le.name as lender_name 
+             FROM loans l 
+             LEFT JOIN lenders le ON l.lender_id = le.id 
+             WHERE l.id = $1 AND l.user_id = $2`,
             [loanId, userId]
         );
         if (result.rows.length === 0) return res.status(404).json({ error: 'Loan not found' });
@@ -162,6 +168,16 @@ exports.createLoan = async (req, res) => {
         const userId = req.user.userId || req.user.id;
         const { lender_name, loan_type, loan_amount, interest_rate, start_date, end_date, emi_amount, remaining_balance, penalty_amount, status, next_emi_due_date } = req.body;
 
+        // Resolve lender name to ID (get or create)
+        let lenderId = null;
+        if (lender_name) {
+            const lResult = await pool.query(
+                'INSERT INTO lenders (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
+                [lender_name]
+            );
+            lenderId = lResult.rows[0].id;
+        }
+
         // Auto-generate installment schedule
         const schedule = generateSchedule(loan_amount, interest_rate, emi_amount, start_date);
 
@@ -176,18 +192,18 @@ exports.createLoan = async (req, res) => {
 
         const result = await pool.query(
             `INSERT INTO loans 
-             (user_id, lender_name, loan_type, loan_amount, interest_rate, start_date, end_date, emi_amount, remaining_balance, penalty_amount, status, next_emi_due_date, penalty_history, loan_schedule, transactions) 
+             (user_id, lender_id, loan_type, loan_amount, interest_rate, start_date, end_date, emi_amount, remaining_balance, penalty_amount, status, next_emi_due_date, penalty_history, loan_schedule, transactions) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10, 0.00), COALESCE($11, 'Active'), $12, '[]'::jsonb, $13, $14) 
              RETURNING *`,
             [
-                userId, lender_name, loan_type || 'Personal', loan_amount, interest_rate,
+                userId, lenderId, loan_type || 'Personal', loan_amount, interest_rate,
                 start_date, end_date, emi_amount, remaining_balance || loan_amount,
                 penalty_amount || 0.00, status, next_emi_due_date || null,
                 JSON.stringify(schedule), JSON.stringify(initialTransactions)
             ]
         );
 
-        res.status(201).json(result.rows[0]);
+        res.status(201).json({ ...result.rows[0], lender_name });
     } catch (err) {
         logger.error('Error creating loan', err.message);
         res.status(500).json({ error: 'Server error' });
@@ -423,15 +439,25 @@ exports.updateLoan = async (req, res) => {
             }
         }
 
+        // Resolve lender to ID if lender_name provided
+        let lenderId = existing.lender_id;
+        if (lender_name && lender_name !== existing.lender_name) {
+            const lResult = await pool.query(
+                'INSERT INTO lenders (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
+                [lender_name]
+            );
+            lenderId = lResult.rows[0].id;
+        }
+
         const result = await pool.query(
             `UPDATE loans 
-             SET lender_name=$1, loan_type=$2, loan_amount=$3, interest_rate=$4, start_date=$5, end_date=$6, 
+             SET lender_id=$1, loan_type=$2, loan_amount=$3, interest_rate=$4, start_date=$5, end_date=$6, 
                  emi_amount=$7, remaining_balance=$8, penalty_amount=$9, status=$10, next_emi_due_date=$11, 
                  penalty_history=$12, loan_schedule=$13, transactions=$14
              WHERE id=$15 AND user_id=$16 
              RETURNING *`,
             [
-                lender_name || existing.lender_name,
+                lenderId,
                 loan_type || existing.loan_type,
                 loan_amount || existing.loan_amount,
                 interest_rate || existing.interest_rate,
