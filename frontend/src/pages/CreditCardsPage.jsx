@@ -33,7 +33,12 @@ const CreditCardsPage = () => {
 
   /* ── Metrics ── */
   const totalCreditLimit = (creditCards || []).reduce((s, c) => s + (Number(c.creditLimit) || 0), 0);
-  const totalBalance = (creditCards || []).reduce((s, c) => s + (Number(c.totalPaymentDue) || 0), 0);
+  const totalBalance = (creditCards || []).reduce((s, c) => {
+    const limit = Number(c.creditLimit) || 0;
+    const avail = c.availableCredit !== undefined ? Number(c.availableCredit) : Math.max(0, limit - (Number(c.currentBalance) || 0));
+    const balance = limit > 0 && c.availableCredit !== undefined ? Math.max(0, limit - avail) : (Number(c.currentBalance) || 0);
+    return s + balance;
+  }, 0);
   const totalAvailable = totalCreditLimit - totalBalance;
   const utilisation = totalCreditLimit > 0 ? (totalBalance / totalCreditLimit) * 100 : 0;
 

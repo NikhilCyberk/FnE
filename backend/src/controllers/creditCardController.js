@@ -377,6 +377,15 @@ exports.saveCreditCard = async (req, res) => {
     if (cl !== null && ac === null) cardValues[5] = cl;             // default available = limit
     const cardResult = await client.query(insertCardQuery, cardValues);
     const cardId = cardResult.rows[0].id;
+    
+    // Automatically get or create a linked account for this credit card
+    try {
+      await client.query('SELECT get_or_create_credit_card_account($1)', [cardId]);
+    } catch (accErr) {
+      logger.error('Error creating linked account for credit card:', accErr);
+      // We don't fail the whole request if just the account linkage fails, 
+      // but it's important to log.
+    }
 
     // Insert statement transactions if provided (from PDF extraction)
     if (Array.isArray(card.transactions) && card.transactions.length > 0) {

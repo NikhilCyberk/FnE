@@ -22,9 +22,9 @@ const CreditCardItem = ({
     const [menuAnchor, setMenuAnchor] = React.useState(null);
 
     const limit = Number(card.creditLimit) || 0;
-    const balance = Number(card.currentBalance) || 0;
+    const avail = card.availableCredit !== undefined ? Number(card.availableCredit) : Math.max(0, limit - (Number(card.currentBalance) || 0));
+    const balance = limit > 0 && card.availableCredit !== undefined ? Math.max(0, limit - avail) : (Number(card.currentBalance) || 0);
     const stmtBalance = Number(card.statementBalance) || 0;
-    const available = Number(card.availableCredit) || Math.max(0, limit - balance);
     const minDue = Number(card.minimumPayment) || 0;
     const utilisation = limit > 0 ? Math.min((balance / limit) * 100, 100) : 0;
     const dueDate = card.paymentDueDate;
@@ -103,7 +103,7 @@ const CreditCardItem = ({
                             <AccountBalanceWallet sx={{ fontSize: 14 }} color="success" /> Available
                         </Typography>
                         <Typography variant="body1" fontWeight="800" color="success.main" mt={0.5}>
-                            {fmt(available, showBalances)}
+                            {fmt(avail, showBalances)}
                         </Typography>
                     </Box>
                 </Box>
