@@ -170,10 +170,22 @@ const TransactionTable = ({ filteredTransactions, setShowAddModal, onEdit, onSuc
 
                                     {/* Account */}
                                     <TableCell>
-                                        <Typography variant="body2" color="text.secondary" noWrap>
-                                            {tx.is_cash || tx.isCash
-                                                ? (tx.cash_source || tx.cashSource ? `💵 Cash (${tx.cash_source || tx.cashSource})` : '💵 Cash')
-                                                : (tx.account_name || tx.accountName || '—')}
+                                        <Typography variant="body2" color="text.secondary" noWrap sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            {tx.type === 'transfer' ? (
+                                                <>
+                                                    <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                                        {tx.account_name || tx.accountName || '—'}
+                                                    </Box>
+                                                    <SwapHoriz sx={{ fontSize: 14, opacity: 0.5 }} />
+                                                    <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                                                        {tx.transfer_account_name || tx.transferAccountName || '—'}
+                                                    </Box>
+                                                </>
+                                            ) : (
+                                                tx.is_cash || tx.isCash
+                                                    ? (tx.cash_source || tx.cashSource ? `💵 Cash (${tx.cash_source || tx.cashSource})` : '💵 Cash')
+                                                    : (tx.account_name || tx.accountName || '—')
+                                            )}
                                         </Typography>
                                     </TableCell>
 

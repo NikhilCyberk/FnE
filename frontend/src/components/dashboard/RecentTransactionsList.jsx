@@ -80,12 +80,22 @@ const RecentTransactionsList = ({ transactions }) => {
                                             : <TrendingDown sx={{ fontSize: 18, color: '#ef4444' }} />
                                         }
                                     </Box>
-                                    <Box>
+                                    <Box sx={{ minWidth: 0, flex: 1 }}>
                                         <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 220 }}>
                                             {t.description || 'Transaction'}
                                         </Typography>
-                                        <Typography variant="caption" color="text.secondary">
-                                            {t.categoryName || t.category_name || t.category || 'Uncategorized'} · {date ? dayjs(date).format('D MMM') : '—'}
+                                        <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            {t.type === 'transfer' ? (
+                                                <>
+                                                    {t.account_name || t.accountName} 
+                                                    <SwapHoriz sx={{ fontSize: 12, opacity: 0.5 }} /> 
+                                                    {t.transfer_account_name || t.transferAccountName}
+                                                </>
+                                            ) : (
+                                                (t.categoryName || t.category_name || t.category || 'Uncategorized')
+                                            )}
+                                            {' · '}
+                                            {date ? dayjs(date).format('D MMM') : '—'}
                                         </Typography>
                                     </Box>
                                 </Box>
