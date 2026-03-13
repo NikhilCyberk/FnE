@@ -28,7 +28,7 @@ const buildMonthlyData = (transactions) => {
   return months.map((m) => {
     const txInMonth = (type) =>
       transactions
-        .filter(t => t.type === type && dayjs(t.transactionDate || t.date).isSame(m, 'month'))
+        .filter(t => t.type === type && dayjs(t.transactionDate || t.date || t.transaction_date).isSame(m, 'month'))
         .reduce((sum, t) => sum + Number(t.amount || 0), 0);
     return { month: m.format('MMM'), income: txInMonth('income'), expenses: txInMonth('expense') };
   });
@@ -39,7 +39,7 @@ const buildCategoryData = (transactions) => {
   const PALETTE = ['#6366f1', '#0d9488', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16'];
   const map = {};
   transactions.filter(t => t.type === 'expense').forEach(t => {
-    const cat = t.categoryName || t.category || 'Other';
+    const cat = t.categoryName || t.category_name || t.category || 'Other';
     map[cat] = (map[cat] || 0) + Number(t.amount || 0);
   });
   const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 6);
@@ -79,11 +79,11 @@ const DashboardPage = () => {
   const activeBudgets = budgets.filter(b => b.status === 'active').length;
 
   const activeLoans = loans.filter(l => l.status === 'Active');
-  const totalDebt = activeLoans.reduce((s, l) => s + parseFloat(l.remaining_balance || 0), 0);
-  const totalEMI = activeLoans.reduce((s, l) => s + parseFloat(l.emi_amount || 0), 0);
+  const totalDebt = activeLoans.reduce((s, l) => s + parseFloat(l.remaining_balance || l.remainingBalance || 0), 0);
+  const totalEMI = activeLoans.reduce((s, l) => s + parseFloat(l.emi_amount || l.emiAmount || 0), 0);
 
-  const totalCCDebt = creditCards.reduce((s, c) => s + parseFloat(c.current_balance || c.outstanding_balance || 0), 0);
-  const totalCCLimit = creditCards.reduce((s, c) => s + parseFloat(c.credit_limit || 0), 0);
+  const totalCCDebt = creditCards.reduce((s, c) => s + parseFloat(c.current_balance || c.currentBalance || c.outstanding_balance || c.outstandingBalance || 0), 0);
+  const totalCCLimit = creditCards.reduce((s, c) => s + parseFloat(c.credit_limit || c.creditLimit || 0), 0);
   const utilisation = totalCCLimit > 0 ? Math.min((totalCCDebt / totalCCLimit) * 100, 100) : 0;
 
   // ── Month-over-month trends ───────────────────────────────────────────────

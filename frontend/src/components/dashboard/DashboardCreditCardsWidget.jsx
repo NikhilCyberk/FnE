@@ -75,8 +75,8 @@ const DashboardCreditCardsWidget = ({ creditCards, totalCCDebt, totalCCLimit, ut
                     {/* Per-card utilisation */}
                     <Box sx={{ mt: 2 }}>
                         {creditCards.slice(0, 3).map((card) => {
-                            const bal = parseFloat(card.current_balance || card.outstanding_balance || 0);
-                            const lim = parseFloat(card.credit_limit || 0);
+                            const bal = parseFloat(card.current_balance || card.currentBalance || card.outstanding_balance || card.outstandingBalance || 0);
+                            const lim = parseFloat(card.credit_limit || card.creditLimit || 0);
                             const u = lim > 0 ? Math.min((bal / lim) * 100, 100) : 0;
                             return (
                                 <Box key={card.id} sx={{ mb: 1.25 }}>

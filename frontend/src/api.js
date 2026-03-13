@@ -133,6 +133,8 @@ export const creditCardsAPI = {
   update: (id, cardData) => api.put(`/api/credit-cards/${id}`, cardData),
   delete: (id) => api.delete(`/api/credit-cards/${id}`),
   getTransactions: (cardId, params) => api.get(`/api/credit-cards/${cardId}/transactions`, { params }),
+  getStatements: (cardId) => api.get(`/api/credit-cards/${cardId}/statements`),
+  saveStatement: (cardId, statementData) => api.post(`/api/credit-cards/${cardId}/statements`, statementData),
 };
 
 export const loansAPI = {

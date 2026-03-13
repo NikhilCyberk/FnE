@@ -241,7 +241,7 @@ const CreditCardTransactionList = ({ creditCard }) => {
                             {tx.description || tx.merchant || 'Transaction'}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {tx.transactionType.replace('_', ' ').toUpperCase()}
+                            {(tx.transactionType || 'PURCHASE').replace('_', ' ').toUpperCase()}
                           </Typography>
                         </Box>
                       </Box>

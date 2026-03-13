@@ -193,13 +193,14 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                 }
 
                 // Also create a regular transaction to record the outflow from the source account
+                const emiCategory = categories.find(c => c.name === 'EMI');
                 const outflowPayload = {
                     description: `Loan Payment: ${form.description || 'Transfer to Loan'}`,
                     type: 'expense',
                     amount: parseFloat(form.amount),
                     transactionDate: form.transactionDate,
                     accountId: form.accountId,
-                    categoryId: form.categoryId || undefined, // Maybe a default 'Loan Repayment' category?
+                    categoryId: emiCategory ? emiCategory.id : (form.categoryId || undefined),
                     status: form.status,
                     notes: form.notes,
                 };

@@ -288,19 +288,33 @@ exports.extractCreditCardInfo = [
   }
 ];
 
-// Helper to safely parse dates
+// Helper to safely parse dates in local time to match pg behavior
 function parseDate(dateString) {
   if (!dateString || dateString === '') return null;
+  
+  // If it's already a Date object
+  if (dateString instanceof Date) return dateString;
+
+  // Handle DD/MM/YYYY
   if (typeof dateString === 'string' && dateString.includes('/')) {
     const parts = dateString.split('/');
     if (parts.length === 3) {
       const [day, month, year] = parts.map(Number);
       if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+        // Create in local midnight
         const d = new Date(year, month - 1, day);
         return isNaN(d.getTime()) ? null : d;
       }
     }
   }
+
+  // Handle YYYY-MM-DD or other standard formats
+  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateString)) {
+    // Treat "YYYY-MM-DD" as local midnight by parsing components manually
+    const [y, m, d] = dateString.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
   const d = new Date(dateString);
   return isNaN(d.getTime()) ? null : d;
 }
@@ -407,7 +421,7 @@ exports.saveCreditCard = async (req, res) => {
 
 // Helper to convert snake_case to camelCase
 function toCamel(obj) {
-  if (!obj || typeof obj !== 'object') return obj;
+  if (!obj || typeof obj !== 'object' || obj instanceof Date) return obj;
   if (Array.isArray(obj)) return obj.map(toCamel);
   return Object.fromEntries(
     Object.entries(obj).map(([k, v]) => [
@@ -419,27 +433,31 @@ function toCamel(obj) {
 
 // Helper function to serialize date fields
 function serializeCard(card) {
+  const camelCard = toCamel(card);
+  
+  // Helper to format any date to YYYY-MM-DD
+  const format = (d) => {
+    if (d instanceof Date) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    if (typeof d === 'string' && d.length >= 10) return d.slice(0, 10);
+    return null;
+  };
+
   return {
-    ...toCamel(card),
-    // Serialize all date fields to ISO strings
-    paymentDueDate: card.payment_due_date instanceof Date
-      ? card.payment_due_date.toISOString().slice(0, 10)
-      : (typeof card.payment_due_date === 'string' ? card.payment_due_date : null),
-    statementGenDate: card.statement_gen_date instanceof Date
-      ? card.statement_gen_date.toISOString().slice(0, 10)
-      : (typeof card.statement_gen_date === 'string' ? card.statement_gen_date : null),
-    statementPeriodStart: card.statement_period_start instanceof Date
-      ? card.statement_period_start.toISOString().slice(0, 10)
-      : (typeof card.statement_period_start === 'string' ? card.statement_period_start : null),
-    statementPeriodEnd: card.statement_period_end instanceof Date
-      ? card.statement_period_end.toISOString().slice(0, 10)
-      : (typeof card.statement_period_end === 'string' ? card.statement_period_end : null),
-    createdAt: card.created_at instanceof Date
-      ? card.created_at.toISOString()
-      : (typeof card.created_at === 'string' ? card.created_at : null),
-    updatedAt: card.updated_at instanceof Date
-      ? card.updated_at.toISOString()
-      : (typeof card.updated_at === 'string' ? card.updated_at : null)
+    ...camelCard,
+    paymentDueDate: format(card.payment_due_date),
+    statementDate: format(card.statement_date),
+    lastPaymentDate: format(card.last_payment_date),
+    expiryDate: format(card.expiry_date),
+    statementGenDate: format(card.statement_gen_date),
+    statementPeriodStart: format(card.statement_period_start),
+    statementPeriodEnd: format(card.statement_period_end),
+    createdAt: card.created_at instanceof Date ? card.created_at.toISOString() : card.created_at,
+    updatedAt: card.updated_at instanceof Date ? card.updated_at.toISOString() : card.updated_at
   };
 }
 
@@ -484,11 +502,11 @@ exports.getCreditCards = async (req, res) => {
 exports.getCreditCardById = async (req, res) => {
   const client = await pool.connect();
   try {
-    const id = req.params.id;
+    const { creditCardId } = req.params;
     const userId = req.user.userId;
 
     // Fetch the card
-    const cardResult = await client.query('SELECT * FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
+    const cardResult = await client.query('SELECT * FROM credit_cards WHERE id = $1 AND user_id = $2', [creditCardId, userId]);
     if (cardResult.rows.length === 0) {
       return res.status(404).json({ error: 'Credit card not found' });
     }
@@ -498,7 +516,7 @@ exports.getCreditCardById = async (req, res) => {
     // Fetch transactions for this card
     const txResult = await client.query(
       'SELECT * FROM credit_card_transactions WHERE credit_card_id = $1 ORDER BY transaction_date DESC',
-      [id]
+      [creditCardId]
     );
     const transactions = txResult.rows;
 
@@ -528,13 +546,13 @@ exports.getCreditCardById = async (req, res) => {
 exports.updateCreditCard = async (req, res) => {
   const client = await pool.connect();
   try {
-    const id = req.params.id;
+    const { creditCardId } = req.params;
     const userId = req.user.userId;
     const card = req.body;
     logger.info('Updating credit card', { id, body: req.body });
 
     // Check if card exists
-    const checkResult = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
+    const checkResult = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [creditCardId, userId]);
     if (checkResult.rows.length === 0) {
       return res.status(404).json({ error: 'Credit card not found' });
     }
@@ -580,15 +598,15 @@ exports.updateCreditCard = async (req, res) => {
       card.status || 'Active',
       parseDate(card.expiryDate),
       card.rewardsProgram || null,
-      id,
+      creditCardId,
       userId
     ];
     await client.query(updateCardQuery, cardValues);
 
     // Fetch updated card
-    const finalCardResult = await client.query('SELECT * FROM credit_cards WHERE id = $1', [id]);
+    const finalCardResult = await client.query('SELECT * FROM credit_cards WHERE id = $1', [creditCardId]);
     const txResult = await client.query(
-      'SELECT * FROM credit_card_transactions WHERE credit_card_id = $1 ORDER BY transaction_date DESC', [id]
+      'SELECT * FROM credit_card_transactions WHERE credit_card_id = $1 ORDER BY transaction_date DESC', [creditCardId]
     );
 
     const finalCard = {
@@ -603,7 +621,7 @@ exports.updateCreditCard = async (req, res) => {
       ),
     };
 
-    logger.info('Credit card updated successfully', { id });
+    logger.info('Credit card updated successfully', { creditCardId });
     res.json(finalCard);
   } catch (err) {
     logger.error('Error in updateCreditCard:', err);
@@ -614,10 +632,10 @@ exports.updateCreditCard = async (req, res) => {
 };
 
 exports.deleteCreditCard = async (req, res) => {
-  const id = req.params.id;
+  const { creditCardId } = req.params;
   const userId = req.user.userId;
   try {
-    const result = await pool.query('DELETE FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
+    const result = await pool.query('DELETE FROM credit_cards WHERE id = $1 AND user_id = $2', [creditCardId, userId]);
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Credit card not found' });
     }
@@ -628,11 +646,106 @@ exports.deleteCreditCard = async (req, res) => {
   }
 };
 
+// Get statements for a credit card
+exports.getStatements = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { creditCardId } = req.params;
+    const userId = req.user.userId;
+
+    // Verify card exists and belongs to user
+    const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
+    if (cardCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Credit card not found' });
+    }
+
+    const result = await client.query(
+      'SELECT * FROM credit_card_statements WHERE credit_card_id = $1 ORDER BY statement_date DESC',
+      [id]
+    );
+
+    res.json(toCamel(result.rows));
+  } catch (err) {
+    logger.error('Error in getStatements:', err);
+    res.status(500).json({ error: 'Failed to fetch statements', details: err.message });
+  } finally {
+    client.release();
+  }
+};
+
+// Save a new statement
+exports.saveStatement = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { creditCardId } = req.params; // credit_card_id
+    const userId = req.user.userId;
+    const stmt = req.body;
+
+    // Verify card exists
+    const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
+    if (cardCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Credit card not found' });
+    }
+
+    await client.query('BEGIN');
+
+    const insertStmtQuery = `
+      INSERT INTO credit_card_statements (
+        credit_card_id, statement_date, statement_period_start, statement_period_end,
+        total_amount_due, minimum_amount_due, payment_due_date, available_credit
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
+    `;
+    const stmtValues = [
+      id,
+      parseDate(stmt.statementDate),
+      parseDate(stmt.statementPeriodStart),
+      parseDate(stmt.statementPeriodEnd),
+      parseFloat(stmt.totalAmountDue),
+      parseFloat(stmt.minimumAmountDue),
+      parseDate(stmt.paymentDueDate),
+      stmt.availableCredit ? parseFloat(stmt.availableCredit) : null
+    ];
+
+    const stmtResult = await client.query(insertStmtQuery, stmtValues);
+
+    // Update the parent credit card with the latest statement info
+    const updateCardQuery = `
+      UPDATE credit_cards SET
+        current_balance = $1,
+        statement_balance = $1,
+        minimum_payment = $2,
+        payment_due_date = $3,
+        statement_date = $4,
+        available_credit = COALESCE($5, available_credit),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $6
+    `;
+    await client.query(updateCardQuery, [
+      parseFloat(stmt.totalAmountDue),
+      parseFloat(stmt.minimumAmountDue),
+      parseDate(stmt.paymentDueDate),
+      parseDate(stmt.statementDate),
+      stmt.availableCredit ? parseFloat(stmt.availableCredit) : null,
+      id
+    ]);
+
+    await client.query('COMMIT');
+    res.status(201).json({ success: true, id: stmtResult.rows[0].id });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    logger.error('Error in saveStatement:', err);
+    res.status(500).json({ error: 'Failed to save statement', details: err.message });
+  } finally {
+    client.release();
+  }
+};
+
 // Make a payment on a credit card
 exports.makePayment = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const creditCardId = req.params.id;
+    const creditCardId = req.params.creditCardId;
     
     // Import service here to avoid circular dependency
     const creditCardPaymentService = require('../services/creditCardPaymentService');

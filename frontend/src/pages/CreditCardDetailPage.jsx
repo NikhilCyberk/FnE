@@ -1,27 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  fetchCreditCardById, deleteCreditCard, updateCreditCard,
-  fetchCardTransactions, clearSelectedCard,
-} from '../slices/creditCardsSlice';
 import CreditCardVisual from '../components/creditCards/CreditCardVisual';
 import CreditCardEditDialog from '../components/creditCards/CreditCardEditDialog';
 import CreditCardTransactionList from '../components/creditCards/CreditCardTransactionList';
 import CreditCardPaymentDialog from '../components/creditCards/CreditCardPaymentDialog';
+import AddStatementDialog from '../components/creditCards/AddStatementDialog';
 import {
   Box, Typography, Grid, Button, IconButton, CircularProgress,
   LinearProgress, Chip, Divider, Paper, Table, TableHead, TableBody,
-  TableRow, TableCell, TablePagination, Dialog, DialogTitle,
+  TableRow, TableCell, TablePagination, TableContainer, Dialog, DialogTitle,
   DialogContent, DialogContentText, DialogActions, Snackbar, Alert,
-  Tooltip, Stack,
+  Tooltip, Stack, Tabs, Tab,
 } from '@mui/material';
 import {
   ArrowBack, Edit, Delete, CreditCard, AccountBalanceWallet,
   Warning, TrendingUp, CalendarToday, PieChart, Receipt,
   VisibilityOff, Visibility, LocalAtm, Percent, EventNote,
-  CheckCircle, Block, Payment,
+  CheckCircle, Block, Payment, ListAlt, Add
 } from '@mui/icons-material';
+import {
+  fetchCreditCardById, deleteCreditCard, updateCreditCard,
+  fetchCardTransactions, clearSelectedCard,
+  fetchCardStatements, saveCardStatement
+} from '../slices/creditCardsSlice';
 
 /* ─── Helpers ─────────────────────────────────────────────────── */
 const fmt = (val, show = true) =>
@@ -29,8 +31,13 @@ const fmt = (val, show = true) =>
     ? `₹${(Number(val) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     : '••••••';
 
-const fmtDate = (d) =>
-  d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDate = (d) => {
+  if (!d) return '—';
+  const dateObj = typeof d === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d)
+    ? (() => { const [y, m, day] = d.split('-').map(Number); return new Date(y, m - 1, day); })()
+    : new Date(d);
+  return isNaN(dateObj.getTime()) ? '—' : dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+};
 
 const utilColor = (u) => (u > 75 ? '#ef4444' : u > 40 ? '#f59e0b' : '#22c55e');
 
@@ -92,15 +99,20 @@ const CreditCardDetailPage = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [statementOpen, setStatementOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
   const [deleting, setDeleting] = useState(false);
   const [txPage, setTxPage] = useState(0);
   const [txRowsPerPage, setTxRowsPerPage] = useState(10);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
+  const { cardStatements, statementsLoading } = useSelector((s) => s.creditCards);
+
   useEffect(() => {
     if (id) {
       dispatch(fetchCreditCardById(id));
       dispatch(fetchCardTransactions({ id, page: 1, limit: 200 }));
+      dispatch(fetchCardStatements(id));
     }
     return () => { dispatch(clearSelectedCard()); };
   }, [id, dispatch]);
@@ -131,9 +143,9 @@ const CreditCardDetailPage = () => {
 
   /* ── Computed Values ── */
   const limit = Number(card.creditLimit) || 0;
-  const balance = Number(card.currentBalance) || 0;
+  const avail = card.availableCredit !== undefined ? Number(card.availableCredit) : Math.max(0, limit - (Number(card.currentBalance) || 0));
+  const balance = limit > 0 && card.availableCredit !== undefined ? Math.max(0, limit - avail) : (Number(card.currentBalance) || 0);
   const stmtBal = Number(card.statementBalance) || 0;
-  const avail = Number(card.availableCredit) || Math.max(0, limit - balance);
   const minDue = Number(card.minimumPayment) || 0;
   const util = limit > 0 ? Math.min((balance / limit) * 100, 100) : 0;
   const cashLim = Number(card.cashAdvanceLimit) || 0;
@@ -141,7 +153,7 @@ const CreditCardDetailPage = () => {
   const annFee = Number(card.annualFee) || 0;
   const dueDate = card.paymentDueDate;
   const isDueClose = dueDate && (new Date(dueDate) - new Date()) < 7 * 24 * 60 * 60 * 1000;
-  const isOverdue = dueDate && new Date(dueDate) < new Date();
+  const isOverdue = dueDate && new Date(dueDate) < new Date() && minDue > 0;
 
   /* ── Handlers ── */
   const showSnack = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
@@ -156,6 +168,18 @@ const CreditCardDetailPage = () => {
       dispatch(fetchCreditCardById(id));
     } catch (err) {
       showSnack(err.message || 'Failed to update card.', 'error');
+    }
+  };
+
+  const handleSaveStatement = async (statementData) => {
+    try {
+      const res = await dispatch(saveCardStatement({ id: card.id, statementData }));
+      if (saveCardStatement.rejected.match(res)) throw new Error(res.payload);
+      showSnack('Statement saved successfully!');
+      dispatch(fetchCreditCardById(id));
+      dispatch(fetchCardStatements(id));
+    } catch (err) {
+      showSnack(err.message || 'Failed to save statement.', 'error');
     }
   };
 
@@ -403,10 +427,73 @@ const CreditCardDetailPage = () => {
 
         {/* ── Right Column ────────────────────────────────────────── */}
         <Grid size={{ xs: 12, lg: 8 }}>
-          {/* New Credit Card Transaction List */}
-          <CreditCardTransactionList creditCard={card} />
+          <Box sx={{ mb: 2 }}>
+            <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tab icon={<ListAlt fontSize="small" />} iconPosition="start" label="Transactions" sx={{ fontWeight: 700 }} />
+              <Tab icon={<Receipt fontSize="small" />} iconPosition="start" label="Statements" sx={{ fontWeight: 700 }} />
+            </Tabs>
+          </Box>
+
+          {activeTab === 0 ? (
+            <CreditCardTransactionList creditCard={card} />
+          ) : (
+            <Box>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6" fontWeight={700}>Statement History</Typography>
+                <Button variant="contained" startIcon={<Add />} size="small"
+                  onClick={() => setStatementOpen(true)}
+                  sx={{ borderRadius: '8px', background: 'linear-gradient(135deg,#0ea5e9,#38bdf8)' }}>
+                  Add Statement
+                </Button>
+              </Box>
+
+              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: '16px', overflow: 'hidden' }}>
+                <Table size="small">
+                  <TableHead sx={{ bgcolor: 'action.hover' }}>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700 }}>Statement Date</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Period</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }} align="right">Amount Due</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }} align="right">Min Due</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Due Date</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {statementsLoading ? (
+                      <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}><CircularProgress size={24} /></TableCell></TableRow>
+                    ) : cardStatements.length === 0 ? (
+                      <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}><Typography color="text.secondary">No statements found</Typography></TableCell></TableRow>
+                    ) : (
+                      cardStatements.map((s) => (
+                        <TableRow key={s.id} hover>
+                          <TableCell sx={{ fontWeight: 600 }}>{fmtDate(s.statementDate)}</TableCell>
+                          <TableCell variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem' }}>
+                            {s.statementPeriodStart ? fmtDate(s.statementPeriodStart) : '—'} to {s.statementPeriodEnd ? fmtDate(s.statementPeriodEnd) : '—'}
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontWeight: 700 }}>{fmt(s.totalAmountDue)}</TableCell>
+                          <TableCell align="right" color="text.secondary">{fmt(s.minimumAmountDue)}</TableCell>
+                          <TableCell>{fmtDate(s.paymentDueDate)}</TableCell>
+                          <TableCell>
+                            <Chip label={s.isPaid ? 'Paid' : 'Unpaid'} size="small" color={s.isPaid ? 'success' : 'warning'} variant="outlined" sx={{ fontWeight: 700, height: 20, fontSize: '0.65rem' }} />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
         </Grid>
       </Grid>
+
+      {/* ── Statement Dialog ─────────────────────────────────────────── */}
+      <AddStatementDialog
+        open={statementOpen}
+        onClose={() => setStatementOpen(false)}
+        onSave={handleSaveStatement}
+      />
 
       {/* ── Payment Dialog ─────────────────────────────────────────── */}
       <CreditCardPaymentDialog

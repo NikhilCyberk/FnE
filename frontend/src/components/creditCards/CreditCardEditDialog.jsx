@@ -272,7 +272,7 @@ const CreditCardEditDialog = ({ open, onClose, card, onSave }) => {
           <Section title="Balance & Payments" />
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField fullWidth size="small" label="Current Balance" type="number"
+              <TextField fullWidth size="small" label={isEdit ? "Current Balance" : "Initial Balance / Credit Used"} type="number"
                 value={form.currentBalance} onChange={set('currentBalance')}
                 InputProps={{ startAdornment: Rupee }} />
             </Grid>

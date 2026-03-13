@@ -5,7 +5,6 @@ const budgetsRoutes = require('./budgets');
 const reportsRoutes = require('./reports');
 const creditCardRoutes = require('./creditCard');
 const cashSourcesRoutes = require('./cashSources');
-const creditCardTransactionsRoutes = require('./creditCardTransactions');
 
 const setupRoutes = (app) => {
   // Health check routes
@@ -23,7 +22,6 @@ const setupRoutes = (app) => {
   app.use('/api/budget-categories', require('./budgetCategories'));
   app.use('/api/user', require('./user'));
   app.use('/api/credit-cards', creditCardRoutes);
-  app.use('/api/credit-cards', creditCardTransactionsRoutes);
   app.use('/api/loans', require('./loans'));
   app.use('/api/cash-sources', cashSourcesRoutes);
 

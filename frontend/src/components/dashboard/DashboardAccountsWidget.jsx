@@ -43,10 +43,10 @@ const DashboardAccountsWidget = ({ accounts }) => (
                             </Box>
                             <Box>
                                 <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 140 }}>
-                                    {account.accountName || account.name || 'Account'}
+                                    {account.accountName || account.account_name || account.name || 'Account'}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
-                                    {account.accountType || account.type || '—'}
+                                    {account.accountType || account.account_type || account.type || '—'}
                                 </Typography>
                             </Box>
                         </Box>

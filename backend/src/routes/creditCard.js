@@ -1,7 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { extractCreditCardInfo, saveCreditCard, getCreditCards, getCreditCardById, updateCreditCard, deleteCreditCard, getCardNameOptions, addCardNameOption, getCardTransactions, makePayment } = require('../controllers/creditCardController');
+const {
+  extractCreditCardInfo, saveCreditCard, getCreditCards, getCreditCardById,
+  updateCreditCard, deleteCreditCard, getCardNameOptions, addCardNameOption,
+  getCardTransactions, makePayment, getStatements, saveStatement
+} = require('../controllers/creditCardController');
+const {
+  createCreditCardTransaction,
+  getCreditCardTransactions,
+  updateCreditCardTransaction,
+  deleteCreditCardTransaction,
+  getCreditCardTransactionSummary
+} = require('../controllers/creditCardTransactionsController');
 const authMiddleware = require('../middleware/authMiddleware');
+const logger = require('../logger');
 
 // Apply authentication middleware to all routes
 router.use(authMiddleware);
@@ -372,10 +384,17 @@ router.post('/card-names', addCardNameOption);
  *       404:
  *         description: Credit card not found
  */
-router.get('/:id/transactions', getCardTransactions);
-router.post('/:id/payment', makePayment);
-router.get('/:id', getCreditCardById);
-router.put('/:id', updateCreditCard);
-router.delete('/:id', deleteCreditCard);
+router.get('/:creditCardId/statements', getStatements);
+router.post('/:creditCardId/statements', saveStatement);
+router.post('/:creditCardId/transactions', createCreditCardTransaction);
+router.get('/:creditCardId/transactions', getCreditCardTransactions);
+router.get('/:creditCardId/transactions/summary', getCreditCardTransactionSummary);
+router.put('/:creditCardId/transactions/:transactionId', updateCreditCardTransaction);
+router.delete('/:creditCardId/transactions/:transactionId', deleteCreditCardTransaction);
+
+router.post('/:creditCardId/payment', makePayment);
+router.get('/:creditCardId', getCreditCardById);
+router.put('/:creditCardId', updateCreditCard);
+router.delete('/:creditCardId', deleteCreditCard);
 
 module.exports = router; 

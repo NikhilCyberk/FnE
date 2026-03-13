@@ -114,6 +114,30 @@ export const fetchCardTransactions = createAsyncThunk(
   }
 );
 
+export const fetchCardStatements = createAsyncThunk(
+  'creditCards/fetchCardStatements',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/api/credit-cards/${id}/statements`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch statements');
+    }
+  }
+);
+
+export const saveCardStatement = createAsyncThunk(
+  'creditCards/saveCardStatement',
+  async ({ id, statementData }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/api/credit-cards/${id}/statements`, statementData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to save statement');
+    }
+  }
+);
+
 const initialState = {
   creditCards: [],
   selectedCard: null,
@@ -124,6 +148,8 @@ const initialState = {
   cardTransactions: [],
   transactionsTotal: 0,
   transactionsLoading: false,
+  cardStatements: [],
+  statementsLoading: false,
 };
 
 const creditCardsSlice = createSlice({
@@ -268,6 +294,26 @@ const creditCardsSlice = createSlice({
       })
       .addCase(fetchCardTransactions.rejected, (state) => {
         state.transactionsLoading = false;
+      })
+      // Card statements
+      .addCase(fetchCardStatements.pending, (state) => {
+        state.statementsLoading = true;
+      })
+      .addCase(fetchCardStatements.fulfilled, (state, action) => {
+        state.statementsLoading = false;
+        state.cardStatements = action.payload || [];
+      })
+      .addCase(fetchCardStatements.rejected, (state) => {
+        state.statementsLoading = false;
+      })
+      .addCase(saveCardStatement.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(saveCardStatement.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(saveCardStatement.rejected, (state) => {
+        state.loading = false;
       });
   },
 });

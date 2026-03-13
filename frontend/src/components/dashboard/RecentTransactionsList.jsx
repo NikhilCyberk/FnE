@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 
 const RecentTransactionsList = ({ transactions }) => {
     const recent = [...(transactions || [])]
-        .sort((a, b) => new Date(b.transactionDate || b.date) - new Date(a.transactionDate || a.date))
+        .sort((a, b) => new Date(b.transactionDate || b.date || b.transaction_date) - new Date(a.transactionDate || a.date || a.transaction_date))
         .slice(0, 6);
 
     return (
@@ -85,7 +85,7 @@ const RecentTransactionsList = ({ transactions }) => {
                                             {t.description || 'Transaction'}
                                         </Typography>
                                         <Typography variant="caption" color="text.secondary">
-                                            {t.categoryName || t.category || 'Uncategorized'} · {date ? dayjs(date).format('D MMM') : '—'}
+                                            {t.categoryName || t.category_name || t.category || 'Uncategorized'} · {date ? dayjs(date).format('D MMM') : '—'}
                                         </Typography>
                                     </Box>
                                 </Box>

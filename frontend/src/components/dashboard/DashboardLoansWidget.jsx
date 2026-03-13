@@ -39,16 +39,15 @@ const DashboardLoansWidget = ({ activeLoans, totalDebt, totalEMI }) => (
                 {/* Per-loan repayment progress */}
                 <Box sx={{ mt: 2 }}>
                     {activeLoans.slice(0, 3).map((loan) => {
-                        const paid = Math.max(
-                            parseFloat(loan.loan_amount) - parseFloat(loan.remaining_balance),
-                            0
-                        );
-                        const pct = Math.min((paid / parseFloat(loan.loan_amount)) * 100, 100);
+                        const loanAmt = parseFloat(loan.loan_amount || loan.loanAmount || 0);
+                        const remBal = parseFloat(loan.remaining_balance || loan.remainingBalance || 0);
+                        const paid = Math.max(loanAmt - remBal, 0);
+                        const pct = loanAmt > 0 ? Math.min((paid / loanAmt) * 100, 100) : 0;
                         return (
                             <Box key={loan.id} sx={{ mb: 1.5 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.4 }}>
                                     <Typography variant="caption" fontWeight={600} noWrap sx={{ maxWidth: 140 }}>
-                                        {loan.lender_name}
+                                        {loan.lender_name || loan.lenderName || 'Lender'}
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary" fontWeight={600}>
                                         {pct.toFixed(0)}% paid
