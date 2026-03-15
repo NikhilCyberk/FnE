@@ -227,11 +227,16 @@ const CreditCardPaymentDialog = ({
           >
             <MenuItem value=""><em>None (Don't deduct from balance)</em></MenuItem>
             <MenuItem value="cash">Cash</MenuItem>
-            {accounts.map((account) => (
-              <MenuItem key={account.id} value={account.id}>
-                {account.account_name} ({formatAmount(account.balance)})
-              </MenuItem>
-            ))}
+            {accounts
+              .filter(a => 
+                (a.account_type_category || a.accountTypeCategory) !== 'liability' && 
+                !(a.account_name || a.accountName)?.toLowerCase().startsWith('credit card - ')
+              )
+              .map((account) => (
+                <MenuItem key={account.id} value={account.id}>
+                  {account.account_name || account.accountName} ({formatAmount(account.balance)})
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
 

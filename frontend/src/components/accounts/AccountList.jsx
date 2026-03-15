@@ -7,6 +7,7 @@ import {
     Visibility, VisibilityOff,
     AccountBalance, CreditCard, Savings, BusinessCenter,
     MoreVert, OpenInNew, Edit, Delete, Star,
+    GridView, ViewList,
 } from '@mui/icons-material';
 
 const CATEGORY_GRADIENT = {
@@ -42,6 +43,7 @@ const AccountList = ({
 }) => {
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [menuAccount, setMenuAccount] = useState(null);
+    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'compact'
 
     const openMenu = (e, account) => {
         e.stopPropagation();
@@ -92,144 +94,267 @@ const AccountList = ({
     return (
         <Box>
             {/* Toolbar */}
-            <Box display="flex" justifyContent="flex-end" mb={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Box sx={{ display: 'flex', gap: 1, p: 0.5, bgcolor: 'action.hover', borderRadius: '10px' }}>
+                    <IconButton 
+                        size="small" 
+                        onClick={() => setViewMode('grid')}
+                        sx={{ 
+                            borderRadius: '8px',
+                            color: viewMode === 'grid' ? 'primary.main' : 'text.disabled',
+                            bgcolor: viewMode === 'grid' ? 'background.paper' : 'transparent',
+                            boxShadow: viewMode === 'grid' ? 1 : 0,
+                            '&:hover': { bgcolor: viewMode === 'grid' ? 'background.paper' : 'action.selected' }
+                        }}
+                    >
+                        <GridView fontSize="small" />
+                    </IconButton>
+                    <IconButton 
+                        size="small" 
+                        onClick={() => setViewMode('compact')}
+                        sx={{ 
+                            borderRadius: '8px',
+                            color: viewMode === 'compact' ? 'primary.main' : 'text.disabled',
+                            bgcolor: viewMode === 'compact' ? 'background.paper' : 'transparent',
+                            boxShadow: viewMode === 'compact' ? 1 : 0,
+                            '&:hover': { bgcolor: viewMode === 'compact' ? 'background.paper' : 'action.selected' }
+                        }}
+                    >
+                        <ViewList fontSize="small" />
+                    </IconButton>
+                </Box>
                 <Button
                     size="small"
                     startIcon={showBalances ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                     onClick={() => setShowBalances(!showBalances)}
-                    sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.8rem' }}
+                    sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem' }}
                 >
                     {showBalances ? 'Hide Balances' : 'Show Balances'}
                 </Button>
             </Box>
 
-            <Grid container spacing={2.5}>
-                {accounts.map((account) => {
-                    const category = account.account_type_category || account.accountTypeCategory || 'asset';
-                    const typeName = account.account_type_name || account.accountTypeName || '';
-                    const institution = account.institution_name || account.institutionName || '';
-                    const maskedNum = account.account_number_masked || account.accountNumberMasked || '';
-                    const status = account.account_status || account.accountStatus || 'active';
-                    const isPrimary = account.is_primary || account.isPrimary;
-                    const gradient = CATEGORY_GRADIENT[category] || CATEGORY_GRADIENT.asset;
-                    const name = account.account_name || account.accountName || 'Account';
-
-                    return (
-                        <Grid key={account.id} size={{ xs: 12, sm: 6, lg: 4 }}>
-                            <Paper
-                                elevation={0}
-                                onClick={() => onViewDetail?.(account)}
-                                sx={{
-                                    borderRadius: '20px',
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                    overflow: 'hidden',
-                                    cursor: 'pointer',
-                                    background: (theme) =>
-                                        theme.palette.mode === 'dark'
-                                            ? CATEGORY_BG_DARK[category] || CATEGORY_BG_DARK.asset
-                                            : CATEGORY_BG_LIGHT[category] || CATEGORY_BG_LIGHT.asset,
-                                    backdropFilter: 'blur(12px)',
-                                    transition: 'all 0.22s ease',
-                                    position: 'relative',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: '0 16px 40px rgba(0,0,0,0.14)',
-                                        borderColor: 'primary.main',
-                                    },
-                                }}
-                            >
-                                {/* Gradient top bar */}
-                                <Box sx={{ height: 4, background: gradient }} />
-
-                                {/* Card content */}
-                                <Box p={2.5}>
-                                    {/* Row 1: Icon + Menu */}
-                                    <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={2}>
-                                        <Box
-                                            sx={{
-                                                width: 52, height: 52, borderRadius: '14px',
-                                                background: gradient,
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
-                                                '& svg': { fontSize: 26, color: 'white' },
-                                            }}
-                                        >
-                                            {getAccountIcon(typeName)}
-                                        </Box>
-
-                                        <IconButton
-                                            size="small"
-                                            onClick={(e) => openMenu(e, account)}
-                                            sx={{ color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
-                                        >
-                                            <MoreVert fontSize="small" />
-                                        </IconButton>
-                                    </Box>
-
-                                    {/* Row 2: Name + Primary star */}
-                                    <Box display="flex" alignItems="center" gap={0.75} mb={0.4}>
-                                        <Typography variant="subtitle1" fontWeight={800} letterSpacing={-0.2} noWrap>
-                                            {name}
-                                        </Typography>
-                                        {isPrimary && (
-                                            <Tooltip title="Primary Account">
-                                                <Star sx={{ fontSize: 14, color: 'warning.main', flexShrink: 0 }} />
-                                            </Tooltip>
-                                        )}
-                                    </Box>
-
-                                    {/* Row 3: Institution / masked number */}
-                                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.78rem' }} noWrap mb={1.5}>
-                                        {institution || 'No institution'}
-                                        {maskedNum ? ` · ${maskedNum}` : ''}
-                                    </Typography>
-
-                                    {/* Row 4: Balance */}
-                                    <Typography
-                                        variant="h5"
-                                        fontWeight={800}
-                                        letterSpacing={-0.5}
-                                        sx={{
-                                            mb: 0.5,
-                                            background: gradient,
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: showBalances ? 'transparent' : 'inherit',
-                                            backgroundClip: 'text',
+            {viewMode === 'compact' ? (
+                <Paper
+                    elevation={0}
+                    sx={{
+                        borderRadius: '16px',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        overflow: 'hidden',
+                        background: (theme) => theme.palette.mode === 'dark' ? 'rgba(30,30,46,0.6)' : '#fff',
+                    }}
+                >
+                    <Box sx={{ overflowX: 'auto' }}>
+                        <Box sx={{ minWidth: 800 }}>
+                            {/* Header Row */}
+                            <Box sx={{ 
+                                display: 'flex', px: 2, py: 1, 
+                                borderBottom: '1px solid', borderColor: 'divider', 
+                                bgcolor: 'action.hover' 
+                            }}>
+                                <Typography sx={{ flex: 1.5, fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'text.disabled' }}>Account</Typography>
+                                <Typography sx={{ flex: 1, fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'text.disabled' }}>Type</Typography>
+                                <Typography sx={{ flex: 1, fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'text.disabled' }}>Institution</Typography>
+                                <Typography sx={{ flex: 1.2, textAlign: 'right', fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', color: 'text.disabled' }}>Balance</Typography>
+                                <Typography sx={{ width: 40 }} />
+                            </Box>
+                            
+                            {/* Account Rows */}
+                            {accounts
+                            .filter(a => 
+                                (a.account_type_category || a.accountTypeCategory) !== 'liability' && 
+                                !(a.account_name || a.accountName)?.toLowerCase().startsWith('credit card - ')
+                            )
+                            .map((account, idx, filteredArr) => {
+                                const category = account.account_type_category || account.accountTypeCategory || 'asset';
+                                const typeName = account.account_type_name || account.accountTypeName || '';
+                                const institution = account.institution_name || account.institutionName || '';
+                                const gradient = CATEGORY_GRADIENT[category] || CATEGORY_GRADIENT.asset;
+                                const name = account.account_name || account.accountName || 'Account';
+                                
+                                return (
+                                    <Box 
+                                        key={account.id}
+                                        onClick={() => onViewDetail?.(account)}
+                                        sx={{ 
+                                            display: 'flex', alignItems: 'center', px: 2, py: 1, 
+                                            borderBottom: idx < filteredArr.length - 1 ? '1px solid' : 'none', 
+                                            borderColor: 'divider',
+                                            cursor: 'pointer',
+                                            '&:hover': { bgcolor: 'action.hover' }
                                         }}
                                     >
-                                        {fmtBalance(account.balance)}
-                                    </Typography>
-
-                                    {(account.available_balance !== undefined || account.availableBalance !== undefined) && (
-                                        <Typography variant="caption" color="text.secondary" display="block" mb={2}>
-                                            Available: {fmtBalance(account.available_balance ?? account.availableBalance)}
-                                        </Typography>
-                                    )}
-
-                                    {/* Row 5: Chips */}
-                                    <Box display="flex" alignItems="center" gap={0.75} flexWrap="wrap">
-                                        <Chip
-                                            label={status}
-                                            size="small"
-                                            color={CHIP_COLORS[status] || 'default'}
-                                            sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700 }}
-                                        />
-                                        {typeName && (
-                                            <Chip
-                                                label={typeName}
-                                                size="small"
-                                                variant="outlined"
-                                                sx={{ height: 20, fontSize: '0.68rem', fontWeight: 500 }}
+                                        <Box sx={{ flex: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                            <Box sx={{ 
+                                                width: 32, height: 32, borderRadius: '8px', 
+                                                background: gradient, display: 'flex', 
+                                                alignItems: 'center', justifyContent: 'center',
+                                                '& svg': { fontSize: 16, color: 'white' }
+                                            }}>
+                                                {getAccountIcon(typeName)}
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="body2" fontWeight={700} noWrap>
+                                                    {name}
+                                                    {account.is_primary || account.isPrimary ? <Star sx={{ ml: 0.5, fontSize: 12, color: 'warning.main' }} /> : null}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                                                    {account.account_number_masked || account.accountNumberMasked || '••••'}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        
+                                        <Box sx={{ flex: 1 }}>
+                                            <Chip 
+                                                label={typeName} 
+                                                size="small" 
+                                                variant="outlined" 
+                                                sx={{ height: 18, fontSize: '0.6rem', fontWeight: 600 }} 
                                             />
-                                        )}
+                                        </Box>
+                                        
+                                        <Typography variant="body2" color="text.secondary" sx={{ flex: 1, fontSize: '0.75rem' }}>
+                                            {institution || '—'}
+                                        </Typography>
+                                        
+                                        <Box sx={{ flex: 1.2, textAlign: 'right' }}>
+                                            <Typography 
+                                                variant="body2" 
+                                                fontWeight={800}
+                                                sx={{ 
+                                                    background: gradient, 
+                                                    WebkitBackgroundClip: 'text', 
+                                                    WebkitTextFillColor: showBalances ? 'transparent' : 'inherit',
+                                                    backgroundClip: 'text'
+                                                }}
+                                            >
+                                                {fmtBalance(account.balance)}
+                                            </Typography>
+                                        </Box>
+                                        
+                                        <Box sx={{ width: 40, textAlign: 'right' }}>
+                                            <IconButton size="small" onClick={(e) => openMenu(e, account)}>
+                                                <MoreVert fontSize="inherit" />
+                                            </IconButton>
+                                        </Box>
                                     </Box>
-                                </Box>
-                            </Paper>
-                        </Grid>
-                    );
-                })}
-            </Grid>
+                                );
+                            })}
+                        </Box>
+                    </Box>
+                </Paper>
+            ) : (
+                <Grid container spacing={2}>
+                    {accounts
+                    .filter(a => 
+                        (a.account_type_category || a.accountTypeCategory) !== 'liability' && 
+                        !(a.account_name || a.accountName)?.toLowerCase().startsWith('credit card - ')
+                    )
+                    .map((account) => {
+                        const category = account.account_type_category || account.accountTypeCategory || 'asset';
+                        const typeName = account.account_type_name || account.accountTypeName || '';
+                        const institution = account.institution_name || account.institutionName || '';
+                        const maskedNum = account.account_number_masked || account.accountNumberMasked || '';
+                        const status = account.account_status || account.accountStatus || 'active';
+                        const isPrimary = account.is_primary || account.isPrimary;
+                        const gradient = CATEGORY_GRADIENT[category] || CATEGORY_GRADIENT.asset;
+                        const name = account.account_name || account.accountName || 'Account';
+
+                        return (
+                            <Grid key={account.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+                                <Paper
+                                    elevation={0}
+                                    onClick={() => onViewDetail?.(account)}
+                                    sx={{
+                                        borderRadius: '16px',
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        overflow: 'hidden',
+                                        cursor: 'pointer',
+                                        background: (theme) =>
+                                            theme.palette.mode === 'dark'
+                                                ? CATEGORY_BG_DARK[category] || CATEGORY_BG_DARK.asset
+                                                : CATEGORY_BG_LIGHT[category] || CATEGORY_BG_LIGHT.asset,
+                                        backdropFilter: 'blur(12px)',
+                                        transition: 'all 0.2s ease',
+                                        position: 'relative',
+                                        '&:hover': {
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                                            borderColor: 'primary.main',
+                                        },
+                                    }}
+                                >
+                                    <Box sx={{ height: 3, background: gradient }} />
+                                    <Box p={2}>
+                                        <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={1.5}>
+                                            <Box
+                                                sx={{
+                                                    width: 44, height: 44, borderRadius: '12px',
+                                                    background: gradient,
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                                                    '& svg': { fontSize: 22, color: 'white' },
+                                                }}
+                                            >
+                                                {getAccountIcon(typeName)}
+                                            </Box>
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => openMenu(e, account)}
+                                            >
+                                                <MoreVert fontSize="small" />
+                                            </IconButton>
+                                        </Box>
+
+                                        <Box display="flex" alignItems="center" gap={0.75} mb={0.25}>
+                                            <Typography variant="body2" fontWeight={800} letterSpacing={-0.1} noWrap>
+                                                {name}
+                                            </Typography>
+                                            {isPrimary && <Star sx={{ fontSize: 12, color: 'warning.main' }} />}
+                                        </Box>
+
+                                        <Typography variant="caption" color="text.secondary" display="block" mb={1.5} sx={{ fontSize: '0.72rem' }} noWrap>
+                                            {institution || '—'} {maskedNum ? ` · ${maskedNum}` : ''}
+                                        </Typography>
+
+                                        <Typography
+                                            variant="h6"
+                                            fontWeight={800}
+                                            sx={{
+                                                mb: 0.25,
+                                                background: gradient,
+                                                WebkitBackgroundClip: 'text',
+                                                WebkitTextFillColor: showBalances ? 'transparent' : 'inherit',
+                                                backgroundClip: 'text',
+                                            }}
+                                        >
+                                            {fmtBalance(account.balance)}
+                                        </Typography>
+
+                                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                                            <Box display="flex" gap={0.5}>
+                                                <Chip
+                                                    label={status}
+                                                    size="small"
+                                                    color={CHIP_COLORS[status] || 'default'}
+                                                    sx={{ height: 16, fontSize: '0.62rem', fontWeight: 700 }}
+                                                />
+                                                <Chip
+                                                    label={typeName}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ height: 16, fontSize: '0.62rem', fontWeight: 600 }}
+                                                />
+                                            </Box>
+                                        </Box>
+                                    </Box>
+                                </Paper>
+                            </Grid>
+                        );
+                    })}
+                </Grid>
+            )}
 
             {/* Context Menu */}
             <Menu

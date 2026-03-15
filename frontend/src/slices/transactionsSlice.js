@@ -61,6 +61,42 @@ export const deleteTransaction = createAsyncThunk(
   }
 );
 
+export const deleteBulkTransactions = createAsyncThunk(
+  'transactions/deleteBulkTransactions',
+  async (transactionIds, { rejectWithValue }) => {
+    try {
+      await api.post('/api/transactions/bulk/delete', { transactionIds });
+      return transactionIds;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.error || 'Failed to delete transactions.');
+    }
+  }
+);
+
+export const updateBulkTransactionsCategory = createAsyncThunk(
+  'transactions/updateBulkTransactionsCategory',
+  async ({ transactionIds, categoryId }, { rejectWithValue }) => {
+    try {
+      await api.post('/api/transactions/bulk/category', { transactionIds, categoryId });
+      return { transactionIds, categoryId };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.error || 'Failed to update categories.');
+    }
+  }
+);
+
+export const updateBulkTransactionsStatus = createAsyncThunk(
+  'transactions/updateBulkTransactionsStatus',
+  async ({ transactionIds, status }, { rejectWithValue }) => {
+    try {
+      await api.post('/api/transactions/bulk/status', { transactionIds, status });
+      return { transactionIds, status };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.error || 'Failed to update statuses.');
+    }
+  }
+);
+
 const transactionsSlice = createSlice({
   name: 'transactions',
   initialState: {
@@ -77,8 +113,17 @@ const transactionsSlice = createSlice({
       .addCase(fetchTransactions.pending, (state) => { state.loading = true; state.error = null; })
       .addCase(fetchTransactions.fulfilled, (state, action) => {
         state.loading = false;
-        state.transactions = action.payload.transactions || action.payload;
-        if (action.payload.pagination) state.pagination = action.payload.pagination;
+        if (action.payload.transactions) {
+          state.transactions = action.payload.transactions;
+          state.pagination = {
+            page: action.payload.page,
+            limit: action.payload.limit,
+            total: action.payload.total,
+            totalPages: action.payload.totalPages
+          };
+        } else {
+          state.transactions = action.payload;
+        }
       })
       .addCase(fetchTransactions.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
 
@@ -100,6 +145,12 @@ const transactionsSlice = createSlice({
       // Delete
       .addCase(deleteTransaction.fulfilled, (state, action) => {
         state.transactions = state.transactions.filter((t) => t.id !== action.payload);
+      })
+
+      // Bulk Operations Reducers
+      .addCase(deleteBulkTransactions.fulfilled, (state, action) => {
+        const deletedIds = action.payload;
+        state.transactions = state.transactions.filter((t) => !deletedIds.includes(t.id));
       });
   },
 });

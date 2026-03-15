@@ -35,14 +35,14 @@ const WidgetCard = ({ title, icon, accent = '#6366f1', children, linkTo, linkLab
         }}>
             {/* ── Header ── */}
             <Box sx={{
-                px: 2.5, py: 1.75,
+                px: 1.5, py: 1.25,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 borderBottom: '1px solid', borderColor: 'divider',
                 background: `linear-gradient(135deg, ${accent}14 0%, transparent 100%)`,
             }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{
-                        width: 34, height: 34, borderRadius: '10px',
+                        width: 30, height: 30, borderRadius: '8px',
                         background: `linear-gradient(135deg, ${accent} 0%, ${accent}bb 100%)`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         boxShadow: `0 4px 10px ${accent}44`,
@@ -71,7 +71,7 @@ const WidgetCard = ({ title, icon, accent = '#6366f1', children, linkTo, linkLab
             </Box>
 
             {/* ── Body ── */}
-            <Box sx={{ px: 2.5, py: 1.5, flexGrow: 1 }}>
+            <Box sx={{ px: 1.5, py: 1, flexGrow: 1 }}>
                 {children}
             </Box>
         </Box>

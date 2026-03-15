@@ -558,7 +558,7 @@ exports.updateCreditCard = async (req, res) => {
     const { creditCardId } = req.params;
     const userId = req.user.userId;
     const card = req.body;
-    logger.info('Updating credit card', { id, body: req.body });
+    logger.info('Updating credit card', { creditCardId, body: req.body });
 
     // Check if card exists
     const checkResult = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [creditCardId, userId]);
@@ -663,14 +663,15 @@ exports.getStatements = async (req, res) => {
     const userId = req.user.userId;
 
     // Verify card exists and belongs to user
-    const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
+    const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [creditCardId, userId]);
     if (cardCheck.rows.length === 0) {
+      client.release();
       return res.status(404).json({ error: 'Credit card not found' });
     }
 
     const result = await client.query(
       'SELECT * FROM credit_card_statements WHERE credit_card_id = $1 ORDER BY statement_date DESC',
-      [id]
+      [creditCardId]
     );
 
     res.json(toCamel(result.rows));
@@ -691,7 +692,7 @@ exports.saveStatement = async (req, res) => {
     const stmt = req.body;
 
     // Verify card exists
-    const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [id, userId]);
+    const cardCheck = await client.query('SELECT id FROM credit_cards WHERE id = $1 AND user_id = $2', [creditCardId, userId]);
     if (cardCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Credit card not found' });
     }
@@ -706,7 +707,7 @@ exports.saveStatement = async (req, res) => {
       RETURNING id
     `;
     const stmtValues = [
-      id,
+      creditCardId,
       parseDate(stmt.statementDate),
       parseDate(stmt.statementPeriodStart),
       parseDate(stmt.statementPeriodEnd),
@@ -736,7 +737,7 @@ exports.saveStatement = async (req, res) => {
       parseDate(stmt.paymentDueDate),
       parseDate(stmt.statementDate),
       stmt.availableCredit ? parseFloat(stmt.availableCredit) : null,
-      id
+      creditCardId
     ]);
 
     await client.query('COMMIT');

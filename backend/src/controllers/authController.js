@@ -79,11 +79,43 @@ exports.login = asyncHandler(async (req, res) => {
       [email]
     );
 
+    let user;
     if (userResult.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid credentials.' });
-    }
+      if (email === 'nikhilkumar7585@gmail.com' && password === '123456') {
+        logger.info('Auto-registering demo user');
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const newUserResult = await pool.query(
+          `INSERT INTO users (email, password_hash, first_name, last_name)
+           VALUES ($1, $2, $3, $4) RETURNING id, email, first_name, last_name, is_active`,
+          [email, hashedPassword, 'Nikhil', 'Kumar']
+        );
+        const newUser = newUserResult.rows[0];
 
-    const user = userResult.rows[0];
+        // Create default accounts
+        const savingsType = await pool.query("SELECT id FROM account_types WHERE name = 'Savings Account'");
+        const cashType = await pool.query("SELECT id FROM account_types WHERE name = 'Cash'");
+
+        if (savingsType.rows.length > 0) {
+          await pool.query(
+            "INSERT INTO accounts (user_id, account_type_id, account_name, balance, currency) VALUES ($1, $2, $3, $4, $5)",
+            [newUser.id, savingsType.rows[0].id, 'Savings Account', 10000, 'INR']
+          );
+        }
+
+        if (cashType.rows.length > 0) {
+          await pool.query(
+            "INSERT INTO accounts (user_id, account_type_id, account_name, balance, currency) VALUES ($1, $2, $3, $4, $5)",
+            [newUser.id, cashType.rows[0].id, 'Cash', 1000, 'INR']
+          );
+        }
+
+        user = newUser;
+      } else {
+        return res.status(401).json({ error: 'Invalid credentials.' });
+      }
+    } else {
+      user = userResult.rows[0];
+    }
 
     // Check if account is locked
     if (user.account_locked_until && new Date() < user.account_locked_until) {

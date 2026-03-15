@@ -148,7 +148,7 @@ const CreditCardTransactionList = ({ creditCard }) => {
           color: row.isPayment ? 'green' : 'red',
           fontWeight: 600 
         }}>
-          {row.isPayment ? '-' : '+'}{formatAmount(value)}
+          {row.isPayment ? '+' : '-'}{formatAmount(value)}
         </span>
       )
     })

@@ -32,10 +32,10 @@ const SummaryCard = ({
                     ? 'linear-gradient(145deg, rgba(30,30,46,0.9) 0%, rgba(22,22,35,0.9) 100%)'
                     : 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
             backdropFilter: 'blur(12px)',
-            p: 3,
+            p: 2,
             display: 'flex',
             alignItems: 'center',
-            gap: 2.5,
+            gap: 2,
             boxShadow: '0 4px 24px rgba(0,0,0,0.10)',
             transition: 'box-shadow 0.25s, transform 0.25s',
             '&:hover': {
@@ -61,16 +61,16 @@ const SummaryCard = ({
 
             {/* Icon */}
             <Box sx={{
-                width: 56,
-                height: 56,
-                borderRadius: '16px',
+                width: 48,
+                height: 48,
+                borderRadius: '12px',
                 background: gradient,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: `0 6px 18px ${glowColor}`,
+                boxShadow: `0 4px 12px ${glowColor}`,
                 flexShrink: 0,
-                '& svg': { fontSize: 26, color: 'white' },
+                '& svg': { fontSize: 22, color: 'white' },
             }}>
                 {icon}
             </Box>
@@ -86,10 +86,10 @@ const SummaryCard = ({
                     {title}
                 </Typography>
                 <Typography
-                    variant="h5"
+                    variant="h6"
                     fontWeight={800}
-                    letterSpacing={-0.5}
-                    sx={{ lineHeight: 1.2, mt: 0.25 }}
+                    letterSpacing={-0.4}
+                    sx={{ lineHeight: 1.2, mt: 0.15 }}
                 >
                     {value}
                 </Typography>

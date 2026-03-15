@@ -5,12 +5,15 @@ import { Search, Download } from '@mui/icons-material';
 const TransactionFilters = ({
     searchTerm, setSearchTerm,
     selectedType, setSelectedType,
-    selectedStatus, setSelectedStatus
+    selectedStatus, setSelectedStatus,
+    selectedAccount, setSelectedAccount,
+    selectedCategory, setSelectedCategory,
+    accounts = [], creditCards = [], categories = []
 }) => {
     return (
-        <Paper sx={{ p: 2, borderRadius: 3 }} elevation={1}>
+        <Paper sx={{ p: 1.5, borderRadius: 3 }} elevation={1}>
             <Grid container spacing={2} alignItems="center">
-                <Grid size={{ xs: 12, md: 4 }}>
+                <Grid size={{ xs: 12, md: 3 }}>
                     <TextField
                         fullWidth
                         size="small"
@@ -22,7 +25,47 @@ const TransactionFilters = ({
                         }}
                     />
                 </Grid>
-                <Grid size={{ xs: 6, md: 3 }}>
+                <Grid size={{ xs: 6, md: 2.25 }}>
+                    <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        value={selectedAccount}
+                        onChange={(e) => setSelectedAccount(e.target.value)}
+                        label="Account / Card"
+                    >
+                        <MenuItem value="all">All Accounts</MenuItem>
+                        <MenuItem value="CASH">💵 Cash</MenuItem>
+                        {creditCards.map((cc) => (
+                            <MenuItem key={cc.id} value={`CC_${cc.id}`}>
+                                💳 {cc.cardName}
+                            </MenuItem>
+                        ))}
+                        {accounts.map((a) => (
+                            <MenuItem key={a.id} value={a.id}>
+                                🏦 {a.account_name || a.accountName}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                </Grid>
+                <Grid size={{ xs: 6, md: 2 }}>
+                    <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        label="Category"
+                    >
+                        <MenuItem value="all">All Categories</MenuItem>
+                        {categories.map((cat) => (
+                            <MenuItem key={cat.id} value={cat.id}>
+                                {cat.name}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                </Grid>
+                <Grid size={{ xs: 6, md: 1.5 }}>
                     <TextField
                         select
                         fullWidth
@@ -37,7 +80,7 @@ const TransactionFilters = ({
                         <MenuItem value="transfer">Transfer</MenuItem>
                     </TextField>
                 </Grid>
-                <Grid size={{ xs: 6, md: 3 }}>
+                <Grid size={{ xs: 6, md: 1.5 }}>
                     <TextField
                         select
                         fullWidth
@@ -52,7 +95,7 @@ const TransactionFilters = ({
                         <MenuItem value="failed">Failed</MenuItem>
                     </TextField>
                 </Grid>
-                <Grid size={{ xs: 12, md: 2 }} display="flex" justifyContent="flex-end">
+                <Grid size={{ xs: 12, md: 1.75 }} display="flex" justifyContent="flex-end">
                     <Button variant="outlined" startIcon={<Download />} fullWidth>
                         Export
                     </Button>

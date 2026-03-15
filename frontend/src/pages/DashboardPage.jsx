@@ -113,13 +113,13 @@ const DashboardPage = () => {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
       {/* ── Page Header ───────────────────────────────────────────────── */}
       <Box display="flex" alignItems="center" justifyContent="space-between">
         <Box>
           <Typography
-            variant="h4" fontWeight={800} letterSpacing={-0.5}
+            variant="h5" fontWeight={800} letterSpacing={-0.5}
             sx={{
               background: theme => theme.palette.mode === 'dark'
                 ? 'linear-gradient(135deg, #fff 30%, #a78bfa 100%)'
@@ -137,7 +137,7 @@ const DashboardPage = () => {
         </Box>
         <Box
           display="flex" alignItems="center" gap={1}
-          px={2} py={1} borderRadius={3}
+          px={1.5} py={0.75} borderRadius={2.5}
           sx={{ border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}
         >
           <CalendarToday fontSize="small" color="primary" />
@@ -148,7 +148,7 @@ const DashboardPage = () => {
       </Box>
 
       {/* ── Summary Cards ─────────────────────────────────────────────── */}
-      <Grid container spacing={2.5}>
+      <Grid container spacing={2}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <DashboardSummaryCard
             title="Total Balance"
@@ -194,7 +194,7 @@ const DashboardPage = () => {
       </Grid>
 
       {/* ── Charts ────────────────────────────────────────────────────── */}
-      <Grid container spacing={2.5}>
+      <Grid container spacing={2}>
         <Grid size={{ xs: 12, lg: 8 }}>
           <DashboardCashFlowChart data={monthlyData} />
         </Grid>
@@ -204,7 +204,7 @@ const DashboardPage = () => {
       </Grid>
 
       {/* ── Loans + Credit Cards ──────────────────────────────────────── */}
-      <Grid container spacing={2.5}>
+      <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           <DashboardLoansWidget
             activeLoans={activeLoans}
@@ -223,7 +223,7 @@ const DashboardPage = () => {
       </Grid>
 
       {/* ── Accounts + Recent Transactions ────────────────────────────── */}
-      <Grid container spacing={2.5}>
+      <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 4 }}>
           <DashboardAccountsWidget accounts={accounts} />
         </Grid>

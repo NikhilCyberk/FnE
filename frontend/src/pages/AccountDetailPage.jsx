@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Box, Typography, Paper, Chip, IconButton, Button,
     Divider, Grid, CircularProgress, LinearProgress,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-    Alert, Avatar, Tooltip, Snackbar,
+    Alert, Avatar, Tooltip, Snackbar, Pagination
 } from '@mui/material';
 import {
     ArrowBack, Edit, AccountBalance, CreditCard, Savings, BusinessCenter,
@@ -15,6 +14,7 @@ import { fetchAccountById } from '../slices/accountsSlice';
 import { transactionsAPI } from '../api';
 import EditAccountDialog from '../components/accounts/EditAccountDialog';
 import AddTransactionDialog from '../components/transactions/AddTransactionDialog';
+import TransactionTable from '../components/transactions/TransactionTable';
 import { Add } from '@mui/icons-material';
 
 /* ─── Helpers ─────────────────────────────────────────────────────────── */
@@ -58,11 +58,11 @@ const StatBox = ({ label, value, accent }) => (
             {label}
         </Typography>
         <Typography
-            variant="h4"
+            variant="h5"
             fontWeight={800}
             letterSpacing={-0.5}
             sx={{
-                mt: 0.25,
+                mt: 0.1,
                 background: accent,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -85,10 +85,10 @@ const InfoRow = ({ label, value }) => (
         >
             {label}
         </Typography>
-        <Typography variant="body1" fontWeight={600} sx={{ mt: 0.25 }}>
+        <Typography variant="body2" fontWeight={600} sx={{ mt: 0.1 }}>
             {value}
         </Typography>
-        <Divider sx={{ mt: 1.5 }} />
+        <Divider sx={{ mt: 1 }} />
     </Box>
 );
 
@@ -102,28 +102,41 @@ const AccountDetailPage = () => {
     const [transactions, setTransactions] = useState([]);
     const [txLoading, setTxLoading] = useState(true);
     const [txError, setTxError] = useState('');
+    const [pagination, setPagination] = useState({ page: 1, limit: 25, total: 0, totalPages: 0 });
     const [editOpen, setEditOpen] = useState(false);
     const [addTxOpen, setAddTxOpen] = useState(false);
+    const [editTx, setEditTx] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     useEffect(() => { dispatch(fetchAccountById(id)); }, [dispatch, id]);
 
-    const fetchTx = async () => {
+    const fetchTx = useCallback(async (targetPage = pagination.page) => {
         setTxLoading(true);
         setTxError('');
         try {
-            const res = await transactionsAPI.getAll({ accountId: id, limit: 20 });
+            const res = await transactionsAPI.getAll({ 
+                accountId: id, 
+                page: targetPage, 
+                limit: pagination.limit 
+            });
             setTransactions(res.data.transactions || res.data || []);
+            if (res.data.pagination) {
+                setPagination(res.data.pagination);
+            }
         } catch {
             setTxError('Failed to load transactions.');
         } finally {
             setTxLoading(false);
         }
-    };
+    }, [id, pagination.limit]);
 
     useEffect(() => {
-        if (id) fetchTx();
-    }, [id]);
+        if (id) fetchTx(pagination.page);
+    }, [id, pagination.page, fetchTx]);
+
+    const handlePageChange = (event, value) => {
+        setPagination(prev => ({ ...prev, page: value }));
+    };
 
     if (loading && !account) {
         return (
@@ -181,9 +194,9 @@ const AccountDetailPage = () => {
             <Paper
                 elevation={0}
                 sx={{
-                    borderRadius: '24px',
-                    p: { xs: 3, md: 4 },
-                    mb: 3,
+                    borderRadius: '20px',
+                    p: { xs: 2, md: 2.5 },
+                    mb: 2,
                     background: (theme) =>
                         theme.palette.mode === 'dark'
                             ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
@@ -202,29 +215,29 @@ const AccountDetailPage = () => {
                 }} />
 
                 {/* Header row */}
-                <Box display="flex" alignItems="flex-start" justifyContent="space-between" flexWrap="wrap" gap={2} mb={4}>
-                    <Box display="flex" alignItems="center" gap={2.5}>
+                <Box display="flex" alignItems="flex-start" justifyContent="space-between" flexWrap="wrap" gap={2} mb={2}>
+                    <Box display="flex" alignItems="center" gap={2}>
                         <Box sx={{
-                            width: 72, height: 72, borderRadius: '20px',
+                            width: 60, height: 60, borderRadius: '16px',
                             background: gradient,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-                            '& svg': { fontSize: 32, color: 'white' },
+                            boxShadow: '0 6px 18px rgba(0,0,0,0.15)',
+                            '& svg': { fontSize: 26, color: 'white' },
                         }}>
                             {getAccountIcon(typeName)}
                         </Box>
                         <Box>
-                            <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                                <Typography variant="h5" fontWeight={800} letterSpacing={-0.5}>
+                            <Box display="flex" alignItems="center" gap={1} mb={0.25}>
+                                <Typography variant="h6" fontWeight={800} letterSpacing={-0.4}>
                                     {account.account_name || account.accountName}
                                 </Typography>
                                 {isPrimary && (
                                     <Tooltip title="Primary Account">
-                                        <Star sx={{ color: 'warning.main', fontSize: 18 }} />
+                                        <Star sx={{ color: 'warning.main', fontSize: 16 }} />
                                     </Tooltip>
                                 )}
                             </Box>
-                            <Typography variant="body2" color="text.secondary" mb={1}>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5, lineHeight: 1.2 }}>
                                 {institution || 'No institution'}{maskedNumber ? ` · ${maskedNumber}` : ''}
                             </Typography>
                             <Box display="flex" gap={1} flexWrap="wrap">
@@ -265,7 +278,7 @@ const AccountDetailPage = () => {
                 </Box>
 
                 {/* Balance stats */}
-                <Grid container spacing={4}>
+                <Grid container spacing={2}>
                     <Grid size={{ xs: 12, sm: 4 }}>
                         <StatBox label="Current Balance" value={fmt(balance)} accent={gradient} />
                     </Grid>
@@ -281,12 +294,12 @@ const AccountDetailPage = () => {
 
                 {/* Utilisation bar */}
                 {creditLimit > 0 && (
-                    <Box mt={3.5}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.75}>
-                            <Typography variant="caption" fontWeight={600} color="text.secondary">
+                    <Box mt={2}>
+                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ fontSize: '0.65rem' }}>
                                 Credit Utilisation
                             </Typography>
-                            <Typography variant="caption" fontWeight={800} color={`${utilisationColor}.main`}>
+                            <Typography variant="caption" fontWeight={800} color={`${utilisationColor}.main`} sx={{ fontSize: '0.65rem' }}>
                                 {utilisation.toFixed(1)}%
                             </Typography>
                         </Box>
@@ -294,7 +307,7 @@ const AccountDetailPage = () => {
                             variant="determinate"
                             value={utilisation}
                             color={utilisationColor}
-                            sx={{ height: 8, borderRadius: 4, bgcolor: 'action.hover' }}
+                            sx={{ height: 6, borderRadius: 3, bgcolor: 'action.hover' }}
                         />
                     </Box>
                 )}
@@ -304,9 +317,9 @@ const AccountDetailPage = () => {
             <Paper
                 elevation={0}
                 sx={{
-                    borderRadius: '20px',
-                    p: 3,
-                    mb: 3,
+                    borderRadius: '16px',
+                    p: 2,
+                    mb: 2,
                     border: '1px solid',
                     borderColor: 'divider',
                     background: (theme) =>
@@ -315,12 +328,12 @@ const AccountDetailPage = () => {
                             : 'linear-gradient(145deg,#ffffff,#f8fafc)',
                 }}
             >
-                <Box display="flex" alignItems="center" gap={1.5} mb={2.5}>
-                    <Box sx={{ width: 4, height: 20, borderRadius: 2, background: gradient }} />
-                    <Typography variant="h6" fontWeight={700} letterSpacing={-0.3}>Account Information</Typography>
+                <Box display="flex" alignItems="center" gap={1.2} mb={1.5}>
+                    <Box sx={{ width: 4, height: 18, borderRadius: 2, background: gradient }} />
+                    <Typography variant="subtitle1" fontWeight={700} letterSpacing={-0.2}>Account Information</Typography>
                 </Box>
 
-                <Grid container spacing={3}>
+                <Grid container spacing={2}>
                     {[
                         { label: 'Account Type', value: typeName || '—' },
                         { label: 'Institution', value: institution || '—' },
@@ -349,7 +362,7 @@ const AccountDetailPage = () => {
             <Paper
                 elevation={0}
                 sx={{
-                    borderRadius: '20px',
+                    borderRadius: '16px',
                     overflow: 'hidden',
                     border: '1px solid',
                     borderColor: 'divider',
@@ -360,13 +373,13 @@ const AccountDetailPage = () => {
                 }}
             >
                 <Box
-                    px={3} py={2.5}
+                    px={2} py={1.5}
                     display="flex" alignItems="center" justifyContent="space-between"
                     sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
                 >
-                    <Box display="flex" alignItems="center" gap={1.5}>
-                        <Box sx={{ width: 4, height: 20, borderRadius: 2, background: gradient }} />
-                        <Typography variant="h6" fontWeight={700} letterSpacing={-0.3}>Recent Transactions</Typography>
+                    <Box display="flex" alignItems="center" gap={1.2}>
+                        <Box sx={{ width: 4, height: 18, borderRadius: 2, background: gradient }} />
+                        <Typography variant="subtitle1" fontWeight={700} letterSpacing={-0.2}>Recent Transactions</Typography>
                     </Box>
                     <Box display="flex" alignItems="center" gap={1}>
                         <Button
@@ -410,85 +423,33 @@ const AccountDetailPage = () => {
                         <Typography variant="body2" color="text.disabled">Transactions for this account will appear here.</Typography>
                     </Box>
                 ) : (
-                    <TableContainer>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow sx={{ '& th': { fontWeight: 700, fontSize: '0.72rem', letterSpacing: 0.8, textTransform: 'uppercase', color: 'text.disabled', py: 1.5 } }}>
-                                    <TableCell>Date</TableCell>
-                                    <TableCell>Description</TableCell>
-                                    <TableCell>Category</TableCell>
-                                    <TableCell>Type</TableCell>
-                                    <TableCell align="right">Amount</TableCell>
-                                    <TableCell>Status</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {transactions.map((tx) => (
-                                    <TableRow
-                                        key={tx.id}
-                                        sx={{ '&:hover': { bgcolor: 'action.hover' }, '& td': { py: 1.5, borderColor: 'divider' } }}
-                                    >
-                                        <TableCell>
-                                            <Typography variant="body2" color="text.secondary" fontWeight={500} noWrap>
-                                                {fmtDate(tx.transactionDate || tx.transaction_date)}
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Typography variant="body2" fontWeight={600}>
-                                                {tx.description || (tx.type === 'transfer' ? (tx.account_id === id ? `Transfer to ${tx.transfer_account_name || 'unknown'}` : `Transfer from ${tx.account_name || 'unknown'}`) : tx.merchant || '—')}
-                                            </Typography>
-                                            {(tx.description || tx.type === 'transfer') && tx.merchant && (
-                                                <Typography variant="caption" color="text.secondary">{tx.merchant}</Typography>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {tx.categoryName || tx.category_name || (tx.type === 'transfer' ? 'Transfer' : '—')}
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                icon={TX_ICONS[tx.type]}
-                                                label={tx.type}
-                                                size="small"
-                                                color={TX_COLORS[tx.type] || 'default'}
-                                                variant="outlined"
-                                                sx={{ fontSize: '0.68rem', height: 22, fontWeight: 600 }}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <Typography
-                                                variant="body2"
-                                                fontWeight={800}
-                                                sx={{
-                                                    color: tx.type === 'income' || (tx.type === 'transfer' && tx.transfer_account_id === id)
-                                                        ? 'success.main'
-                                                        : tx.type === 'expense' || (tx.type === 'transfer' && tx.account_id === id)
-                                                            ? 'error.main'
-                                                            : 'text.primary',
-                                                }}
-                                            >
-                                                {tx.type === 'income' || (tx.type === 'transfer' && tx.transfer_account_id === id) ? '+' : '−'}
-                                                {fmt(Math.abs(tx.amount))}
-                                            </Typography>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={tx.status}
-                                                size="small"
-                                                color={
-                                                    tx.status === 'completed' ? 'success'
-                                                        : tx.status === 'pending' ? 'warning'
-                                                            : 'default'
-                                                }
-                                                sx={{ fontSize: '0.68rem', height: 22, fontWeight: 600 }}
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                    <Box>
+                        <TransactionTable
+                            filteredTransactions={transactions}
+                            setShowAddModal={() => { setEditTx(null); setAddTxOpen(true); }}
+                            onEdit={(tx) => {
+                                setEditTx(tx);
+                                setAddTxOpen(true);
+                            }}
+                            onSuccess={(msg) => {
+                                setSnackbar({ open: true, message: msg, severity: 'success' });
+                                fetchTx();
+                                dispatch(fetchAccountById(id));
+                            }}
+                        />
+                        {/* ── Pagination ── */}
+                        {pagination.totalPages > 1 && (
+                            <Paper sx={{ mt: 0, p: 2, display: 'flex', justifyContent: 'center', borderRadius: 0, borderTop: '1px solid', borderColor: 'divider' }} elevation={0}>
+                                <Pagination 
+                                    count={pagination.totalPages} 
+                                    page={pagination.page} 
+                                    onChange={handlePageChange} 
+                                    color="primary" 
+                                    size="medium"
+                                />
+                            </Paper>
+                        )}
+                    </Box>
                 )}
             </Paper>
 
@@ -501,8 +462,8 @@ const AccountDetailPage = () => {
 
             <AddTransactionDialog
                 open={addTxOpen}
-                transaction={{ accountId: id }}
-                onClose={() => setAddTxOpen(false)}
+                transaction={editTx || { accountId: id }}
+                onClose={() => { setAddTxOpen(false); setEditTx(null); }}
                 onSuccess={(msg) => {
                     setSnackbar({ open: true, message: msg, severity: 'success' });
                     fetchTx(); // Reload transactions

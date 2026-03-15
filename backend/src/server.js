@@ -1,8 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const logger = require('./logger');
-const { Pool } = require('pg');
 const ensureDatabaseExists = require('./ensureDatabase');
+const pool = require('./db');
 const { setupRoutes } = require('./routes');
 const {
   setupCors,

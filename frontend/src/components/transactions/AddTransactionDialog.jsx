@@ -73,7 +73,10 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                     creditCardsAPI.getAll(),
                     loansAPI.getAll()
                 ]);
-                setAccounts(accRes.data?.accounts || accRes.data || []);
+                setAccounts((accRes.data?.accounts || accRes.data || []).filter(a => 
+                    !(a.account_name || a.accountName)?.toLowerCase().startsWith('credit card - ') &&
+                    (a.account_type_category || a.accountTypeCategory) !== 'liability'
+                ));
                 setCategories(catRes.data?.categories || catRes.data || []);
                 setCashSources(cashRes.payload || []);
                 setCreditCards(ccRes.data?.creditCards || ccRes.data || []);
@@ -370,16 +373,7 @@ const AddTransactionDialog = ({ open, onClose, onSuccess, transaction }) => {
                                     </MenuItem>
                                 ))}
 
-                            <Typography variant="overline" sx={{ px: 2, py: 0.5, display: 'block', fontWeight: 700, bgcolor: 'action.hover' }}>
-                                Credit Cards
-                            </Typography>
-                            {accounts
-                                .filter((a) => a.id !== form.accountId && a.account_type_category === 'liability')
-                                .map((a) => (
-                                    <MenuItem key={a.id} value={a.id}>
-                                        💳 {a.account_name || a.accountName}
-                                    </MenuItem>
-                                ))}
+                            {/* Credit cards handled below via creditCards.map */}
                             {creditCards.map((cc) => (
                                 <MenuItem key={cc.id} value={`CC_${cc.id}`}>
                                     💳 {cc.cardName} · ****{cc.cardNumberLastFour}

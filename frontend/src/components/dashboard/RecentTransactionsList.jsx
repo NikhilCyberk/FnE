@@ -22,14 +22,14 @@ const RecentTransactionsList = ({ transactions }) => {
         }}>
             {/* Header */}
             <Box sx={{
-                px: 2.5, py: 1.75,
+                px: 1.5, py: 1.25,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 borderBottom: '1px solid', borderColor: 'divider',
                 background: 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, transparent 100%)',
             }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{
-                        width: 34, height: 34, borderRadius: '10px',
+                        width: 30, height: 30, borderRadius: '8px',
                         background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         '& svg': { fontSize: 18, color: 'white' },
@@ -59,16 +59,16 @@ const RecentTransactionsList = ({ transactions }) => {
                         const date = t.transactionDate || t.date;
                         return (
                             <Box key={t.id || i} sx={{
-                                px: 2.5, py: 1.5,
+                                px: 1.5, py: 1,
                                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                 borderBottom: i < recent.length - 1 ? '1px solid' : 'none',
                                 borderColor: 'divider',
                                 transition: 'background 0.15s',
                                 '&:hover': { bgcolor: 'action.hover' },
                             }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
                                     <Box sx={{
-                                        width: 36, height: 36, borderRadius: '10px',
+                                        width: 32, height: 32, borderRadius: '8px',
                                         background: isIncome
                                             ? 'linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%)'
                                             : 'linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.05) 100%)',

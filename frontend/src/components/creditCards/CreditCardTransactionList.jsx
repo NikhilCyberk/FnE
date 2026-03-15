@@ -63,7 +63,7 @@ const CreditCardTransactionList = ({ creditCard }) => {
     if (creditCard?.id) {
       dispatch(fetchCreditCardTransactions({
         creditCardId: creditCard.id,
-        params: { page, limit: 10 }
+        params: { page, limit: 25 }
       }));
       dispatch(getCreditCardTransactionSummary({
         creditCardId: creditCard.id
@@ -101,7 +101,7 @@ const CreditCardTransactionList = ({ creditCard }) => {
       setDeleteForm({ deletingTransaction: null });
       dispatch(fetchCreditCardTransactions({
         creditCardId: creditCard.id,
-        params: { page: paginationForm.page, limit: 10 }
+        params: { page: paginationForm.page, limit: 25 }
       }));
       dispatch(getCreditCardTransactionSummary({ creditCardId: creditCard.id }));
     } catch (error) {
@@ -188,8 +188,8 @@ const CreditCardTransactionList = ({ creditCard }) => {
             <TableHead>
               <TableRow sx={{
                 '& th': {
-                  fontWeight: 700, fontSize: '0.68rem', letterSpacing: 0.8,
-                  textTransform: 'uppercase', color: 'text.disabled', py: 1.5,
+                  fontWeight: 700, fontSize: '0.66rem', letterSpacing: 0.5,
+                  textTransform: 'uppercase', color: 'text.disabled', py: 0.75, px: 1,
                 }
               }}>
                 <TableCell>Transaction</TableCell>
@@ -225,16 +225,16 @@ const CreditCardTransactionList = ({ creditCard }) => {
                 </TableRow>
               ) : (
                 transactions.map((tx) => (
-                  <TableRow key={tx.id} sx={{ '&:hover': { bgcolor: 'action.hover' }, '& td': { py: 1.5, borderColor: 'divider' } }}>
+                  <TableRow key={tx.id} sx={{ '&:hover': { bgcolor: 'action.hover' }, '& td': { py: 0.75, px: 1, borderColor: 'divider' } }}>
                     <TableCell>
                       <Box display="flex" alignItems="center" gap={1.5}>
                         <Box sx={{
-                          width: 36, height: 36, borderRadius: '10px', flexShrink: 0,
+                          width: 30, height: 30, borderRadius: '8px', flexShrink: 0,
                           background: TYPE_GRADIENT[tx.transactionType] || TYPE_GRADIENT[TRANSACTION_TYPES.PURCHASE],
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          '& svg': { color: 'white', fontSize: 18 },
+                          '& svg': { color: 'white', fontSize: 16 },
                         }}>
-                          {TYPE_ICONS[tx.transactionType] || <AccountBalanceWallet fontSize="small" />}
+                          {TYPE_ICONS[tx.transactionType] || <AccountBalanceWallet sx={{ fontSize: 16 }} />}
                         </Box>
                         <Box>
                           <Typography variant="body2" fontWeight={700} letterSpacing={-0.1}>
@@ -273,7 +273,7 @@ const CreditCardTransactionList = ({ creditCard }) => {
                         variant="body2" fontWeight={800}
                         sx={{ color: tx.isPayment ? 'success.main' : 'error.main' }}
                       >
-                        {tx.isPayment ? '-' : '+'}{formatAmount(tx.amount)}
+                        {tx.isPayment ? '+' : '-'}{formatAmount(tx.amount)}
                       </Typography>
                       {tx.rewardsEarned > 0 && (
                         <Typography variant="caption" color="primary.main" display="block">
@@ -320,7 +320,7 @@ const CreditCardTransactionList = ({ creditCard }) => {
       <AddCreditCardTransactionDialog
         open={dialogOpen} onClose={closeTransactionDialog}
         onSuccess={() => {
-          dispatch(fetchCreditCardTransactions({ creditCardId: creditCard.id, params: { page: paginationForm.page, limit: 10 } }));
+          dispatch(fetchCreditCardTransactions({ creditCardId: creditCard.id, params: { page: paginationForm.page, limit: 25 } }));
           dispatch(getCreditCardTransactionSummary({ creditCardId: creditCard.id }));
         }}
         creditCard={creditCard} transaction={editForm.editingTransaction}

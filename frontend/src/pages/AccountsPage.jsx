@@ -64,14 +64,15 @@ const AccountsPage = () => {
   return (
     <Box>
       {/* ── Page Header ── */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
         <Box>
           <Typography
-            variant="h4"
+            variant="h5"
             fontWeight={800}
             letterSpacing={-0.5}
             gutterBottom
             sx={{
+              lineHeight: 1,
               background: (theme) =>
                 theme.palette.mode === 'dark'
                   ? 'linear-gradient(135deg, #fff 30%, #818cf8 100%)'
@@ -92,13 +93,13 @@ const AccountsPage = () => {
           startIcon={<Add />}
           onClick={() => setShowAddModal(true)}
           sx={{
-            borderRadius: '12px',
-            px: 3,
-            py: 1.1,
+            borderRadius: '10px',
+            px: 2,
+            py: 0.8,
             fontWeight: 700,
             background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-            boxShadow: '0 4px 14px rgba(79,70,229,0.4)',
-            '&:hover': { boxShadow: '0 6px 20px rgba(79,70,229,0.55)', opacity: 0.93 },
+            boxShadow: '0 4px 14px rgba(79,70,229,0.35)',
+            '&:hover': { boxShadow: '0 6px 20px rgba(79,70,229,0.5)', opacity: 0.93 },
           }}
         >
           Add Account
@@ -106,7 +107,7 @@ const AccountsPage = () => {
       </Box>
 
       {/* ── Summary Cards ── */}
-      <Grid container spacing={2.5} sx={{ mb: 5 }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 4 }}>
           <SummaryCard
             title="Total Assets"
@@ -140,7 +141,7 @@ const AccountsPage = () => {
       </Grid>
 
       {/* ── Section Label ── */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
         <Typography variant="h6" fontWeight={700} letterSpacing={-0.3}>All Accounts</Typography>
         <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
         <Typography variant="caption" color="text.disabled" fontWeight={600}>

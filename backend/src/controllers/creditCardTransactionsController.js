@@ -185,9 +185,9 @@ exports.getCreditCardTransactions = asyncHandler(async (req, res) => {
   }
 
   // Get total count for pagination
-  const countQuery = query.replace(/SELECT.*?FROM/, 'SELECT COUNT(*) FROM').replace(/ORDER BY.*$/, '');
+  const countQuery = query.replace(/SELECT.*?FROM/s, 'SELECT COUNT(*) FROM').replace(/ORDER BY.*$/, '');
   const countResult = await pool.query(countQuery, params);
-  const total = parseInt(countResult.rows[0].count);
+  const total = countResult.rows[0] ? parseInt(countResult.rows[0].count) : 0;
 
   query += ' ORDER BY cct.transaction_date DESC, cct.created_at DESC';
 

@@ -226,6 +226,10 @@ router.use(auth);
 router.get('/', transactionsController.getTransactions);
 router.post('/', transactionsController.createTransaction);
 
+router.post('/bulk/delete', transactionsController.deleteBulkTransactions);
+router.post('/bulk/category', transactionsController.updateBulkCategory);
+router.post('/bulk/status', transactionsController.updateBulkStatus);
+
 /**
  * @swagger
  * /api/transactions/stats:

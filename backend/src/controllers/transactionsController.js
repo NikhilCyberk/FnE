@@ -30,6 +30,30 @@ const isValidCashSource = async (cashSourceId) => {
   return result.rows.length > 0;
 };
 
+// Helper function to get or create account linked to a credit card
+const getOrCreateCardAccount = async (creditCardId, userId) => {
+  try {
+    const result = await pool.query('SELECT get_or_create_credit_card_account($1) as account_id', [creditCardId]);
+    return result.rows[0]?.account_id || null;
+  } catch (err) {
+    logger.error('Error in getOrCreateCardAccount call:', err);
+    return null;
+  }
+};
+
+// Helper function to resolve account ID (strips prefixes like CC_)
+const resolveAccountId = async (accountId, userId) => {
+  if (!accountId) return null;
+  if (typeof accountId !== 'string') return accountId;
+
+  if (accountId.startsWith('CC_')) {
+    const creditCardId = accountId.replace('CC_', '');
+    return await getOrCreateCardAccount(creditCardId, userId);
+  }
+
+  return accountId;
+};
+
 exports.getTransactions = asyncHandler(async (req, res) => {
   logger.info('Get transactions request', { userId: req.user && req.user.userId });
   const userId = req.user.userId;
@@ -84,9 +108,12 @@ exports.getTransactions = asyncHandler(async (req, res) => {
     params.push(categoryId);
   }
   if (accountId) {
-    query += ` AND (t.account_id = $${paramIndex} OR t.transfer_account_id = $${paramIndex})`;
-    paramIndex++;
-    params.push(accountId);
+    const resolvedId = await resolveAccountId(accountId, userId);
+    if (resolvedId) {
+      query += ` AND (t.account_id = $${paramIndex} OR t.transfer_account_id = $${paramIndex})`;
+      params.push(resolvedId);
+      paramIndex++;
+    }
   }
   if (type && isValidType(type)) {
     query += ` AND t.type = $${paramIndex++}`;
@@ -103,6 +130,11 @@ exports.getTransactions = asyncHandler(async (req, res) => {
   if (maxAmount) {
     query += ` AND t.amount <= $${paramIndex++}`;
     params.push(parseFloat(maxAmount));
+  }
+  if (req.query.search) {
+    query += ` AND (t.description ILIKE $${paramIndex} OR t.reference_number ILIKE $${paramIndex} OR t.notes ILIKE $${paramIndex})`;
+    params.push(`%${req.query.search}%`);
+    paramIndex++;
   }
 
   // Add GROUP BY before counting and ordering
@@ -180,9 +212,26 @@ exports.createTransaction = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'Either an account or Cash must be selected.' });
   }
 
-  let finalAccountId = accountId;
+  let finalAccountId = null;
   if (isCash) {
     finalAccountId = await getOrCreateCashAccount(userId);
+  } else {
+    finalAccountId = await resolveAccountId(accountId, userId);
+  }
+
+  // Only resolve transferAccountId if type is 'transfer'
+  let finalTransferAccountId = null;
+  if (type === 'transfer') {
+    finalTransferAccountId = await resolveAccountId(transferAccountId, userId);
+    
+    // Cross-check resolution: must be different
+    if (finalTransferAccountId === finalAccountId) {
+      return res.status(400).json({ error: 'Transfer source and destination accounts must be different after ID resolution.' });
+    }
+    
+    if (!finalTransferAccountId) {
+      return res.status(400).json({ error: 'Valid transfer account is required for transfer transactions.' });
+    }
   }
 
   // Validate cash source only if provided
@@ -210,7 +259,7 @@ exports.createTransaction = asyncHandler(async (req, res) => {
                 transaction_date, posted_date, reference_number, notes,
                 is_recurring, cash_source_id, source_description, created_at, updated_at
     `, [
-    userId, finalAccountId, categoryId, transferAccountId || null, numericAmount, type, status || 'completed',
+    userId, finalAccountId, categoryId, finalTransferAccountId || null, numericAmount, type, status || 'completed',
     description, merchantId, location, transactionDate, postedDate, referenceNumber,
     notes, isRecurring || false, recurringRule || null,
     cashSourceId || null, req.body.sourceDescription || null
@@ -331,6 +380,23 @@ exports.updateTransaction = asyncHandler(async (req, res) => {
     merchantId = mResult.rows[0].id;
   }
 
+  const finalAccountId = isCash ? await getOrCreateCashAccount(userId) : await resolveAccountId(accountId, userId);
+  
+  // Only resolve transferAccountId if type is 'transfer'
+  let finalTransferAccountId = null;
+  if (type === 'transfer') {
+    finalTransferAccountId = await resolveAccountId(transferAccountId, userId);
+    
+    // Cross-check resolution
+    if (finalTransferAccountId === finalAccountId) {
+      return res.status(400).json({ error: 'Transfer source and destination accounts must be different after ID resolution.' });
+    }
+
+    if (!finalTransferAccountId) {
+      return res.status(400).json({ error: 'Valid transfer account is required for transfer transactions.' });
+    }
+  }
+
   const result = await pool.query(`
       UPDATE transactions SET 
         account_id = $1, category_id = $2, transfer_account_id = $3, amount = $4, type = $5, status = $6,
@@ -342,7 +408,7 @@ exports.updateTransaction = asyncHandler(async (req, res) => {
                 transaction_date, posted_date, reference_number, notes,
                 is_recurring, cash_source_id, source_description, created_at, updated_at
     `, [
-    isCash ? null : accountId, categoryId, transferAccountId || null, numericAmount, type, status || 'completed',
+    finalAccountId, categoryId, finalTransferAccountId || null, numericAmount, type, status || 'completed',
     description, merchantId, location, transactionDate, postedDate, referenceNumber,
     notes, isRecurring || false, recurringRule || null,
     id, userId, isCash ? cashSourceId : null, isCash && req.body.sourceDescription ? req.body.sourceDescription : null
@@ -378,16 +444,167 @@ exports.deleteTransaction = asyncHandler(async (req, res) => {
   const userId = req.user.userId;
   const { id } = req.params;
 
-  const result = await pool.query(
-    'DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING id',
-    [id, userId]
-  );
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-  if (result.rows.length === 0) {
-    return res.status(404).json({ error: 'Transaction not found.' });
+    // 1. Check if linked to a credit card transaction
+    const ccTxResult = await client.query(
+      `SELECT cct.id, cct.credit_card_id, cct.amount, cct.is_payment, cct.main_transaction_id
+       FROM credit_card_transactions cct
+       JOIN transactions t ON cct.main_transaction_id = t.id
+       WHERE t.id = $1 AND t.user_id = $2`,
+      [id, userId]
+    );
+
+    if (ccTxResult.rows.length > 0) {
+      const ccTx = ccTxResult.rows[0];
+      // Revert balance
+      if (ccTx.is_payment) {
+        await client.query(`
+          UPDATE credit_cards 
+          SET current_balance = current_balance + $1, 
+              available_credit = available_credit - $1
+          WHERE id = $2
+        `, [ccTx.amount, ccTx.credit_card_id]);
+      } else {
+        await client.query(`
+          UPDATE credit_cards 
+          SET current_balance = current_balance - $1, 
+              available_credit = available_credit + $1
+          WHERE id = $2
+        `, [ccTx.amount, ccTx.credit_card_id]);
+      }
+      // Delete from credit_card_transactions (trigger deletes main_transaction if exists)
+      await client.query('DELETE FROM credit_card_transactions WHERE id = $1', [ccTx.id]);
+    }
+
+    // 2. Delete main transaction if not already deleted by trigger
+    const result = await client.query(
+      'DELETE FROM transactions WHERE id = $1 AND user_id = $2 RETURNING id',
+      [id, userId]
+    );
+
+    await client.query('COMMIT');
+
+    if (result.rows.length === 0 && ccTxResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Transaction not found.' });
+    }
+
+    res.json({ message: 'Transaction deleted successfully.' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    logger.error('Error deleting transaction:', err);
+    res.status(500).json({ error: 'Failed to delete transaction.', details: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Bulk operations
+exports.deleteBulkTransactions = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { transactionIds } = req.body;
+
+  if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
+    return res.status(400).json({ error: 'transactionIds array is required.' });
   }
 
-  res.json({ message: 'Transaction deleted successfully.' });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // 1. Fetch any linked credit card transactions
+    const ccTxResult = await client.query(
+      `SELECT cct.id, cct.credit_card_id, cct.amount, cct.is_payment, cct.main_transaction_id
+       FROM credit_card_transactions cct
+       JOIN transactions t ON cct.main_transaction_id = t.id
+       WHERE t.id = ANY($1) AND t.user_id = $2`,
+      [transactionIds, userId]
+    );
+
+    // 2. Revert credit card balances
+    for (const ccTx of ccTxResult.rows) {
+      if (ccTx.is_payment) {
+        await client.query(`
+          UPDATE credit_cards 
+          SET current_balance = current_balance + $1, 
+              available_credit = available_credit - $1
+          WHERE id = $2
+        `, [ccTx.amount, ccTx.credit_card_id]);
+      } else {
+        await client.query(`
+          UPDATE credit_cards 
+          SET current_balance = current_balance - $1, 
+              available_credit = available_credit + $1
+          WHERE id = $2
+        `, [ccTx.amount, ccTx.credit_card_id]);
+      }
+    }
+
+    // 3. Delete from credit_card_transactions (trigger cascades delete to main transactions automatically)
+    if (ccTxResult.rows.length > 0) {
+      const ccTxIds = ccTxResult.rows.map(r => r.id);
+      await client.query('DELETE FROM credit_card_transactions WHERE id = ANY($1)', [ccTxIds]);
+    }
+
+    // 4. Delete the remaining main transactions directly
+    const result = await client.query(
+      'DELETE FROM transactions WHERE id = ANY($1) AND user_id = $2 RETURNING id',
+      [transactionIds, userId]
+    );
+
+    await client.query('COMMIT');
+
+    // Compile list of deleted IDs ensuring we include ones deleted by the trigger
+    const deletedIds = new Set(result.rows.map(r => r.id));
+    ccTxResult.rows.forEach(r => deletedIds.add(r.main_transaction_id));
+
+    res.json({ message: `${deletedIds.size} transactions deleted successfully.`, deletedIds: Array.from(deletedIds) });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    logger.error('Bulk delete error:', err);
+    res.status(500).json({ error: 'Failed to delete transactions.', details: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+exports.updateBulkCategory = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { transactionIds, categoryId } = req.body;
+
+  if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
+    return res.status(400).json({ error: 'transactionIds array is required.' });
+  }
+
+  // Not strictly validating category existence here unless absolutely necessary, assuming valid selection from frontend
+  const result = await pool.query(
+    'UPDATE transactions SET category_id = $1 WHERE id = ANY($2) AND user_id = $3 RETURNING id',
+    [categoryId || null, transactionIds, userId] // Allow null category
+  );
+
+  res.json({ message: `${result.rowCount} transactions updated successfully.`, updatedIds: result.rows.map(r => r.id) });
+});
+
+exports.updateBulkStatus = asyncHandler(async (req, res) => {
+  const userId = req.user.userId;
+  const { transactionIds, status } = req.body;
+
+  if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
+    return res.status(400).json({ error: 'transactionIds array is required.' });
+  }
+
+  if (status && !isValidStatus(status)) {
+    return res.status(400).json({ error: 'Invalid status.' });
+  }
+
+  const result = await pool.query(
+    'UPDATE transactions SET status = $1 WHERE id = ANY($2) AND user_id = $3 RETURNING id',
+    [status, transactionIds, userId]
+  );
+
+  res.json({ message: `${result.rowCount} transactions updated successfully.`, updatedIds: result.rows.map(r => r.id) });
 });
 
 // Get transaction statistics
