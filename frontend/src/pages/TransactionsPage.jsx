@@ -11,6 +11,7 @@ import TransactionFilters from '../components/transactions/TransactionFilters';
 import TransactionTable from '../components/transactions/TransactionTable';
 import TransactionCalendar from '../components/transactions/TransactionCalendar';
 import AddTransactionDialog from '../components/transactions/AddTransactionDialog';
+import DebtSummaryWidget from '../components/transactions/DebtSummaryWidget';
 import { accountsAPI, creditCardsAPI, categoriesAPI } from '../api';
 
 const fmt = (val) =>
@@ -165,27 +166,27 @@ const TransactionsPage = () => {
 
       {/* ── Summary Cards ── */}
       <Grid container spacing={2} sx={{ mb: 2.5 }}>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} sm={6} lg={3}>
           <SummaryCard
             title="Total Income"
             value={fmt(totalIncome)}
             icon={<ArrowUpward />}
             gradient="linear-gradient(135deg, #10b981 0%, #34d399 100%)"
             glowColor="rgba(16,185,129,0.4)"
-            subtitle={`${transactions.filter((t) => t.type === 'income').length} transactions`}
+            subtitle={`${transactions.filter((t) => t.type === 'income').length} items`}
           />
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} sm={6} lg={3}>
           <SummaryCard
             title="Total Expenses"
             value={fmt(totalExpenses)}
             icon={<ArrowDownward />}
             gradient="linear-gradient(135deg, #ef4444 0%, #f97316 100%)"
             glowColor="rgba(239,68,68,0.4)"
-            subtitle={`${transactions.filter((t) => t.type === 'expense').length} transactions`}
+            subtitle={`${transactions.filter((t) => t.type === 'expense').length} items`}
           />
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} sm={6} lg={3}>
           <SummaryCard
             title="Net Amount"
             value={fmt(Math.abs(netAmount))}
@@ -196,6 +197,9 @@ const TransactionsPage = () => {
             glowColor={netAmount >= 0 ? 'rgba(79,70,229,0.4)' : 'rgba(245,158,11,0.4)'}
             subtitle={netAmount >= 0 ? 'Positive cash flow' : 'Negative cash flow'}
           />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={3}>
+          <DebtSummaryWidget />
         </Grid>
       </Grid>
 

@@ -145,4 +145,16 @@ export const loansAPI = {
   delete: (id) => api.delete(`/api/loans/${id}`),
 };
 
+export const contactsAPI = {
+  getAll: (params) => api.get('/api/contacts', { params }),
+  getById: (id) => api.get(`/api/contacts/${id}`),
+  create: (contactData) => api.post('/api/contacts', contactData),
+  update: (id, contactData) => api.put(`/api/contacts/${id}`, contactData),
+  delete: (id) => api.delete(`/api/contacts/${id}`),
+};
+
+export const debtsAPI = {
+  getSummary: () => api.get('/api/debts/summary'),
+};
+
 export default api; 

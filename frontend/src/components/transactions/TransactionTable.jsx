@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
+import dayjs from 'dayjs';
 import {
     Box, Typography, TableContainer, Table, TableHead, TableRow, TableCell,
     TableBody, Chip, IconButton, Button, Menu, MenuItem, ListItemIcon, Avatar,
     Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-    Checkbox, Tooltip, CircularProgress
+    Checkbox, Tooltip, CircularProgress, TextField, InputAdornment
 } from '@mui/material';
 import {
     MoreVert, Edit, Delete, TrendingUp, TrendingDown, SwapHoriz,
-    AccountBalanceWallet, CheckCircle, ChangeCircle
+    AccountBalanceWallet, CheckCircle, ChangeCircle, 
+    Payments, Person, EventNote, Warning
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
@@ -34,12 +36,53 @@ const TYPE_ICONS = {
 };
 const STATUS_COLORS = { completed: 'success', pending: 'warning', failed: 'error', cancelled: 'default' };
 
+const DebtBadge = ({ tx, onRepay }) => {
+    if (!tx.debt_type) return null;
+
+    const isSettled = tx.debt_status === 'settled';
+    const isOverdue = tx.due_date && dayjs(tx.due_date).isBefore(dayjs(), 'day') && !isSettled;
+    const diff = tx.due_date ? dayjs(tx.due_date).diff(dayjs(), 'day') : null;
+
+    let text = tx.contact_name || 'Personal';
+    if (isSettled) text += ' · Settled';
+    else if (isOverdue) text += ' · Overdue';
+    else if (diff === 0) text += ' · Due Today';
+    else if (diff > 0) text += ` · Due in ${diff} days`;
+
+    return (
+        <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
+            <Tooltip title={isSettled ? "Settled Debt" : (isOverdue ? "Overdue Debt" : "Personal Debt")}>
+                <Chip
+                    icon={isOverdue ? <Warning /> : <Person />}
+                    label={text}
+                    size="small"
+                    variant="outlined"
+                    color={isSettled ? "default" : (isOverdue ? "error" : "primary")}
+                    sx={{ 
+                        height: 20, fontSize: '0.65rem', fontWeight: 700,
+                        borderColor: isOverdue ? 'error.light' : isSettled ? 'divider' : 'primary.light',
+                        bgcolor: isOverdue ? 'error.lighter' : isSettled ? 'transparent' : 'primary.lighter',
+                    }}
+                />
+            </Tooltip>
+            {!isSettled && tx.debt_type !== 'repayment' && (
+                <Tooltip title="One-click Repayment">
+                    <IconButton size="small" sx={{ p: 0.1, color: 'primary.main' }} onClick={() => onRepay(tx)}>
+                        <Payments sx={{ fontSize: 16 }} />
+                    </IconButton>
+                </Tooltip>
+            )}
+        </Box>
+    );
+};
+
 const TransactionTable = ({ filteredTransactions, setShowAddModal, onEdit, onSuccess }) => {
     const dispatch = useDispatch();
     const categories = useSelector((state) => state.categories?.items || []);
     
     const [menuAnchor, setMenuAnchor] = useState(null);
     const [menuTx, setMenuTx] = useState(null);
+    const [repayTarget, setRepayTarget] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleting, setDeleting] = useState(false);
 
@@ -287,8 +330,9 @@ const TransactionTable = ({ filteredTransactions, setShowAddModal, onEdit, onSuc
                                                     {tx.description || tx.merchant || 'Transaction'}
                                                 </Typography>
                                                 {tx.merchant && tx.description && (
-                                                    <Typography variant="caption" color="text.secondary">{tx.merchant}</Typography>
+                                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{tx.merchant}</Typography>
                                                 )}
+                                                <DebtBadge tx={tx} onRepay={(tx) => setRepayTarget(tx)} />
                                             </Box>
                                         </Box>
                                     </TableCell>
@@ -465,6 +509,73 @@ const TransactionTable = ({ filteredTransactions, setShowAddModal, onEdit, onSuc
                         sx={{ borderRadius: '10px', fontWeight: 700 }}
                     >
                         {deleting ? 'Deleting…' : 'Yes, Delete'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Repayment Dialog (Quick version) */}
+            <Dialog
+                open={Boolean(repayTarget)}
+                onClose={() => setRepayTarget(null)}
+                maxWidth="xs" fullWidth
+                PaperProps={{ sx: { borderRadius: '16px' } }}
+            >
+                <DialogTitle sx={{ fontWeight: 700 }}>
+                    {repayTarget?.debt_type === 'borrowed' ? 'Repay Money' : 'Receive Repayment'}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText mb={2}>
+                        {repayTarget?.debt_type === 'borrowed' 
+                            ? `You borrowed money from ${repayTarget?.contact_name || 'this contact'}. Record a repayment to reduce balance.`
+                            : `You lent money to ${repayTarget?.contact_name || 'this contact'}. Record when they pay you back.`}
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Amount"
+                        type="number"
+                        fullWidth
+                        variant="outlined"
+                        defaultValue={Math.abs(repayTarget?.amount || 0)}
+                        id="repayment-amount"
+                        InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+                    />
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                    <Button onClick={() => setRepayTarget(null)} color="inherit">Cancel</Button>
+                    <Button
+                        onClick={async () => {
+                            const amount = document.getElementById('repayment-amount').value;
+                            setDeleting(true); // Reuse loading state
+                            try {
+                                const payload = {
+                                    description: `Repayment for: ${repayTarget?.description || 'Debt'}`,
+                                    amount: parseFloat(amount),
+                                    transactionDate: dayjs().format('YYYY-MM-DD'),
+                                    accountId: repayTarget?.account_id,
+                                    contact_id: repayTarget?.contact_id,
+                                    debt_type: 'repayment',
+                                    debt_group_id: repayTarget?.id,
+                                    status: 'completed'
+                                };
+                                const result = await dispatch(createTransaction(payload));
+                                if (createTransaction.fulfilled.match(result)) {
+                                    onSuccess?.('Repayment recorded successfully!');
+                                    dispatch(fetchTransactions());
+                                } else {
+                                    throw new Error(result.error?.message || 'Failed to record repayment');
+                                }
+                            } catch (err) {
+                                // Error alert would be better but keeping it simple for now
+                            } finally {
+                                setDeleting(false);
+                                setRepayTarget(null);
+                            }
+                        }}
+                        variant="contained" color="primary"
+                        sx={{ borderRadius: '10px', fontWeight: 700 }}
+                    >
+                        Save Repayment
                     </Button>
                 </DialogActions>
             </Dialog>

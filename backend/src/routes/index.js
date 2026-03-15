@@ -24,6 +24,8 @@ const setupRoutes = (app) => {
   app.use('/api/credit-cards', creditCardRoutes);
   app.use('/api/loans', require('./loans'));
   app.use('/api/cash-sources', cashSourcesRoutes);
+  app.use('/api/contacts', require('./contacts'));
+  app.use('/api/debts', require('./debts'));
 
   // Root route for API
   app.get('/', (req, res) => {

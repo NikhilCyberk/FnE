@@ -9,7 +9,7 @@ import {
 import {
     Menu as MenuIcon, Brightness4, Brightness7, Dashboard as DashboardIcon,
     AccountBalanceWallet, CreditCard, SwapHoriz, Savings, PieChart, ExitToApp,
-    RequestQuote
+    RequestQuote, PeopleAlt
 } from '@mui/icons-material';
 
 const DRAWER_WIDTH = 260;
@@ -21,6 +21,7 @@ const navItems = [
     { id: 'credit-cards', label: 'Credit Cards', path: '/credit-cards', icon: <CreditCard /> },
     { id: 'loans', label: 'Loans', path: '/loans', icon: <RequestQuote /> },
     { id: 'transactions', label: 'Transactions', path: '/transactions', icon: <SwapHoriz /> },
+    { id: 'contacts', label: 'Contacts', path: '/contacts', icon: <PeopleAlt /> },
     { id: 'budgets', label: 'Budgets', path: '/budgets', icon: <Savings /> },
     { id: 'reports', label: 'Reports', path: '/reports', icon: <PieChart /> },
 ];
